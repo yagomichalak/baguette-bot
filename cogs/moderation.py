@@ -414,7 +414,7 @@ class Moderation(commands.Cog):
 			# General embed
 			moderation_log = discord.utils.get(ctx.guild.channels, id=mod_log_id)
 			embed = discord.Embed(
-				description=F"**Unmuted** {member.mention}\n**Reason:** {reason}",
+				description=F"**Unmuted** {member.mention}",
 				color=discord.Color.light_gray(),
 				timestamp=ctx.message.created_at)
 			embed.set_author(name=f"{ctx.author} (ID {ctx.author.id})", icon_url=ctx.author.avatar_url)
