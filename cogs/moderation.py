@@ -820,7 +820,7 @@ class Moderation(commands.Cog):
 		await mycursor.close()
 
 	@commands.command(aliases=['ri', 'remove_warn', 'remove_warning'])
-	@commands.has_any_role(*allowed_roles)
+	@commands.has_permissions(administrator=True)
 	async def remove_infraction(self, ctx, infr_id: int = None):
 		"""
 		(MOD) Removes a specific infraction by ID.
@@ -838,7 +838,7 @@ class Moderation(commands.Cog):
 			await ctx.send(f"**Infraction with ID `{infr_id}` was not found!**")
 
 	@commands.command(aliases=['ris', 'remove_warns', 'remove_warnings'])
-	@commands.has_any_role(*allowed_roles)
+	@commands.has_permissions(administrator=True)
 	async def remove_infractions(self, ctx, member: discord.Member = None):
 		"""
 		(MOD) Removes all infractions for a specific user.
