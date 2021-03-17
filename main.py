@@ -54,44 +54,23 @@ async def change_status():
 	await client.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=f'{len(guild.members)} members.'))
 
 
-# @client.event
-# async def on_member_join(member) -> None:
-# 	""" Greets newcomers as soon as they join the server. """
+@client.event
+async def on_member_join(member) -> None:
+	""" Greets newcomers as soon as they join the server. """
 
-# 	# Discards bot joinings
-# 	if member.bot:
-# 		return
+	# Discards bot joinings
+	if member.bot:
+		return
 
-# 	join_log = discord.utils.get(member.guild.channels, id=joins_and_leaves_log_id)
+	join_log = discord.utils.get(member.guild.channels, id=joins_and_leaves_log_id)
 
-# 	# Embedded message to send into the chat
-# 	embed = discord.Embed(
-# 		title=f"Welcome to {member.guild}!",
-# 		description="We hope you have a nice stay in here and meet new people.",
-# 		color=discord.Color.green()
-# 	)
-# 	embed.set_author(name=member, icon_url=member.avatar_url)
-# 	embed.set_image(url=member.guild.icon_url)
-# 	embed.set_footer(text=member.guild, icon_url=member.guild.icon_url)
-# 	await join_log.send(content=f"**Nice to see you, {member.mention}! Have a nice welcome.**", embed=embed)
+	await join_log.send(content=f"**{member}** joined.\nAccount creation date: {member.created_at.strftime("%a, %d %B %y, %I %M %p UTC")}")
 
 @client.event
 async def on_member_remove(member):
 	roles = [role for role in member.roles]
 	channel = discord.utils.get(member.guild.channels, id=joins_and_leaves_log_id)
-	embed = discord.Embed(title=member.name, description=f"User has left the server.", colour=discord.Colour.dark_red())
-	embed.set_thumbnail(url=member.avatar_url)
-	embed.set_author(name=f"User Info: {member}")
-	embed.add_field(name="ID:", value=member.id, inline=False)
-	embed.add_field(name="Guild name:", value=member.display_name, inline=False)
-	embed.add_field(name="Created at:", value=member.created_at.strftime("%a, %d %B %y, %I %M %p UTC"), inline=False)
-	embed.add_field(name="Joined at:", value=member.joined_at.strftime("%a, %d %B %y, %I %M %p UTC"), inline=False)
-	embed.add_field(name="Left at:", value=datetime.utcnow().strftime("%a, %d %B %y, %I %M %p UTC"), inline=False)
-	embed.add_field(name=f"Roles: {len(roles)}", value=" ".join([role.mention for role in roles]), inline=False)
-	embed.add_field(name="Top role:", value=member.top_role.mention, inline=False)
-	embed.add_field(name="Bot?", value=member.bot)
-	#cosmos = discord.utils.get(member.guild.members, id=user_cosmos_id)
-	await channel.send(embed=embed)
+	await channel.send(f"**{member}** left.")
 
 
 # Delete messages log

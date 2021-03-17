@@ -15,7 +15,10 @@ last_deleted_message = []
 mod_role_id = int(os.getenv('MOD_ROLE_ID'))
 jr_mod_role_id = int(os.getenv('JR_MOD_ROLE_ID'))
 trial_mod_role_id = int(os.getenv('TRIAL_MOD_ROLE_ID'))
-allowed_roles = [int(os.getenv('OWNER_ROLE_ID')), int(os.getenv('ADMIN_ROLE_ID')), mod_role_id, jr_mod_role_id, trial_mod_role_id]
+admin_role_id = int(os.getenv('ADMIN_ROLE_ID'))
+owner_role_id = int(os.getenv('OWNER_ROLE_ID'))
+
+allowed_roles = [owner_role_id, admin_role_id, mod_role_id, jr_mod_role_id, trial_mod_role_id]
 
 
 class Moderation(commands.Cog):
@@ -202,8 +205,40 @@ class Moderation(commands.Cog):
 		last_deleted_message.clear()
 		last_deleted_message.append(message)
 
+
+	@commands.command(aliases=['user', 'whois'])
+	@commands.has_any_role(*[trial_mod_role_id, jr_mod_role_id, mod_role_id, admin_role_id, owner_role_id])
+	async def userinfo(self, ctx, member: discord.Member = None):
+		'''
+		Shows all the information about a member.
+		:param member: The member to show the info.
+		:return: An embedded message with the user's information
+		'''
+		member = ctx.author if not member else member
+		roles = [role for role in member.roles]
+
+		embed = discord.Embed(colour=member.color, timestamp=ctx.message.created_at)
+
+		embed.set_author(name=f"User Info: {member}")
+		embed.set_thumbnail(url=member.avatar_url)
+		embed.set_footer(text=f"Requested by {ctx.author}", icon_url=ctx.author.avatar_url)
+
+		embed.add_field(name="ID:", value=member.id, inline=False)
+		embed.add_field(name="Guild name:", value=member.display_name, inline=False)
+
+		embed.add_field(name="Created at:", value=member.created_at.strftime("%a, %d %B %y, %I %M %p UTC"),
+						inline=False)
+		embed.add_field(name="Joined at:", value=member.joined_at.strftime("%a, %d %B %y, %I %M %p UTC"), inline=False)
+
+		embed.add_field(name=f"Roles: {len(roles)}", value=" ".join([role.mention for role in roles]), inline=False)
+		embed.add_field(name="Top role:", value=member.top_role.mention, inline=False)
+
+		embed.add_field(name="Bot?", value=member.bot)
+
+		await ctx.send(embed=embed)
+
 	@commands.command()
-	@commands.has_any_role(*allowed_roles)
+	@commands.has_any_role(*[trial_mod_role_id, jr_mod_role_id, mod_role_id, admin_role_id, owner_role_id])
 	async def snipe(self, ctx):
 		'''
 		(MOD) Snipes the last deleted message.
@@ -219,7 +254,7 @@ class Moderation(commands.Cog):
 
 	# Purge command
 	@commands.command()
-	@commands.has_permissions(manage_messages=True)
+	@commands.has_any_role(*[jr_mod_role_id, mod_role_id, admin_role_id, owner_role_id])
 	async def purge(self, ctx, amount=0, member: discord.Member = None):
 		'''
 		(MOD) Purges messages.
@@ -257,7 +292,7 @@ class Moderation(commands.Cog):
 
 	# Warns a member
 	@commands.command()
-	@commands.has_any_role(*allowed_roles)
+	@commands.has_any_role(*[trial_mod_role_id, jr_mod_role_id, mod_role_id, admin_role_id, owner_role_id])
 	async def warn(self, ctx, member: discord.Member = None, *, reason=None):
 		'''
 		(MOD) Warns a member.
@@ -306,7 +341,7 @@ class Moderation(commands.Cog):
 				await self.mute(ctx=ctx, member=member, reason=reason)
 
 	@commands.command()
-	@commands.has_any_role(*allowed_roles)
+	@commands.has_any_role(*[trial_mod_role_id, jr_mod_role_id, mod_role_id, admin_role_id, owner_role_id])
 	async def mute(self, ctx, member: discord.Member = None, *, reason = None):
 		'''
 		(MOD) Mutes a member.
@@ -363,7 +398,7 @@ class Moderation(commands.Cog):
 
 	# Unmutes a member
 	@commands.command()
-	@commands.has_any_role(*allowed_roles)
+	@commands.has_any_role(*[trial_mod_role_id, jr_mod_role_id, mod_role_id, admin_role_id, owner_role_id])
 	async def unmute(self, ctx, member: discord.Member = None):
 		'''
 		(MOD) Unmutes a member.
@@ -408,7 +443,7 @@ class Moderation(commands.Cog):
 			await ctx.send(f'**{member} is not even muted!**', delete_after=5)
 
 	@commands.command()
-	@commands.has_any_role(*allowed_roles)
+	@commands.has_any_role(**[mod_role_id, admin_role_id, owner_role_id])
 	async def kick(self, ctx, member: discord.Member = None, *, reason=None):
 		'''
 		(MOD) Kicks a member from the server.
@@ -452,7 +487,7 @@ class Moderation(commands.Cog):
 
 	# Bans a member
 	@commands.command()
-	@commands.has_permissions(administrator=True)
+	@commands.has_any_role(*[mod_role_id, admin_role_id, owner_role_id])
 	async def ban(self, ctx, member: discord.Member = None, *, reason=None) -> None:
 		'''
 		(ModTeam/ADM) Bans a member from the server.
@@ -545,50 +580,6 @@ class Moderation(commands.Cog):
 		else:
 			await ctx.send('**Member not found!**', delete_after=3)
 
-	# Bans a member
-	@commands.command()
-	@commands.has_permissions(administrator=True)
-	async def softban(self, ctx, member: discord.Member = None, *, reason=None):
-		'''
-		(ADM) Bans and unbans a member from the server; deleting their messages from the last 7 seven days.
-		:param member: The @ or ID of the user to softban.
-		:param reason: The reason for softbanning the user. (Optional)
-		'''
-		await ctx.message.delete()
-		if not member:
-			await ctx.send('**Please, specify a member!**', delete_after=3)
-		else:
-			try:
-				await member.ban(delete_message_days=7, reason=reason)
-				await member.unban(reason=reason)
-			except Exception:
-				await ctx.send('**You cannot do that!**', delete_after=3)
-			else:
-				# General embed
-				general_embed = discord.Embed(description=f'**Reason:** {reason}', colour=discord.Colour.dark_purple())
-				general_embed.set_author(name=f'{member} has been softbanned', icon_url=member.avatar_url)
-				await ctx.send(embed=general_embed)
-				# Moderation log embed
-				moderation_log = discord.utils.get(ctx.guild.channels, id=mod_log_id)
-				embed = discord.Embed(title='__**SoftBanishment**__', colour=discord.Colour.dark_purple(),
-									  timestamp=ctx.message.created_at)
-				embed.add_field(name='User info:', value=f'```Name: {member.display_name}\nId: {member.id}```',
-								inline=False)
-				embed.add_field(name='Reason:', value=f'```{reason}```')
-				embed.set_author(name=member)
-				embed.set_thumbnail(url=member.avatar_url)
-				embed.set_footer(text=f"SoftBanned by {ctx.author}", icon_url=ctx.author.avatar_url)
-				await moderation_log.send(embed=embed)
-				# Inserts a infraction into the database
-				epoch = datetime.utcfromtimestamp(0)
-				current_ts = (datetime.utcnow() - epoch).total_seconds()
-				await self.insert_user_infraction(
-					user_id=member.id, infr_type="softban", reason=reason, 
-					timestamp=current_ts , perpetrator=ctx.author.id)
-				try:
-					await member.send(embed=embed)
-				except:
-					pass
 
 	@commands.command()
 	@commands.has_permissions(administrator=True)
@@ -725,8 +716,8 @@ class Moderation(commands.Cog):
 		
 
 	# Infraction methods
-	@commands.command(aliases=['infr', 'show_warnings', 'sw', 'show_bans', 'sb', 'show_muted', 'sm'])
-	@commands.has_any_role(*allowed_roles)
+	@commands.command(aliases=['infr', 'show_warnings', 'sw', 'show_bans', 'sb', 'show_muted', 'sm', 'punishements'])
+	@commands.has_any_role(*[trial_mod_role_id, jr_mod_role_id, mod_role_id, admin_role_id, owner_role_id])
 	async def infractions(self, ctx, member: discord.Member = None) -> None:
 		'''
 		Shows all infractions of a specific user.
@@ -741,7 +732,6 @@ class Moderation(commands.Cog):
 			mutes = len([m for m in user_infractions if m[1] == 'mute'])
 			kicks = len([k for k in user_infractions if k[1] == 'kick'])
 			bans = len([b for b in user_infractions if b[1] == 'ban'])
-			softbans = len([sb for sb in user_infractions if sb[1] == 'softban'])
 			hackbans = len([hb for hb in user_infractions if hb[1] == 'hackban'])
 		else:
 			return await ctx.send(f"**{member.mention} doesn't have any existent infractions!**")
@@ -749,11 +739,11 @@ class Moderation(commands.Cog):
 		# Makes the initial embed with their amount of infractions
 		embed = discord.Embed(
 			title=f"Infractions for {member}",
-			# description=f"Warns: {warns} | Mutes: {mutes} | Kicks: {kicks} | Bans: {bans} | Softbans: {softbans} | Hackbans: {hackbans}",
+			# description=f"Warns: {warns} | Mutes: {mutes} | Kicks: {kicks} | Bans: {bans} | Hackbans: {hackbans}",
 			color=member.color,
 			timestamp=ctx.message.created_at)
 		embed.set_thumbnail(url=member.avatar_url)
-		embed.set_footer(text=f"Warns: {warns} | Mutes: {mutes} | Kicks: {kicks} | Bans: {bans} | Softbans: {softbans} | Hackbans: {hackbans}", icon_url=ctx.author.avatar_url)
+		embed.set_footer(text=f"Warns: {warns} | Mutes: {mutes} | Kicks: {kicks} | Bans: {bans} | Hackbans: {hackbans}", icon_url=ctx.author.avatar_url)
 
 		# Loops through each infraction and adds a field to the embedded message
 		## 0-user_id, 1-infraction_type, 2-infraction_reason, 3-infraction_ts, 4-infraction_id, 5-perpetrator
@@ -925,7 +915,7 @@ class Moderation(commands.Cog):
 
 
 	@commands.command()
-	@commands.has_any_role(*allowed_roles)
+	@commands.has_permissions(administrator=True)
 	async def lockdown(self, ctx, channel: discord.TextChannel = None) -> None:
 		""" Locksdown a channel. """
 
