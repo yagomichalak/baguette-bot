@@ -50,13 +50,13 @@ class Moderation(commands.Cog):
 		if not message.guild:
 			return
 
-		# perms = message.channel.permissions_for(message.author)
-		# if perms.administrator:
-		# 	return
+		perms = message.channel.permissions_for(message.author)
+		if perms.administrator:
+			return
 
-		# for role in message.author.roles:
-		# 	if role.id in allowed_roles:
-		# 		return
+		for role in message.author.roles:
+			if role.id in allowed_roles:
+				return
 
 		ctx = await self.client.get_context(message)
 		ctx.author = self.client.user
@@ -965,6 +965,46 @@ class Moderation(commands.Cog):
 		else:
 			return True
 
+
+	@commands.command()
+	@commands.has_any_role(*allowed_roles)
+	async def lockdown(self, ctx, channel: discord.TextChannel = None) -> None:
+		""" Locksdown a channel. """
+
+		if not ctx.guild:
+			return await ctx.send("**It won't work here!**")
+
+		channel = channel or ctx.channel
+
+
+		embed = discord.Embed(
+			description=f"**{channel.mention} is now on lockdown! 🔒**",
+			color=discord.Color.red()
+		)
+
+
+		if ctx.guild.default_role not in channel.overwrites:
+			overwrites = {
+				ctx.guild.default_role: discord.PermissionOverwrite(send_messages=False)
+			}
+			await channel.edit(overwrites=overwrites)
+			await ctx.send(embed=embed)
+
+		elif channel.overwrites[ctx.guild.default_role].send_messages == True or channel.overwrites[ctx.guild.default_role].send_messages == None:
+			overwrites = channel.overwrites[ctx.guild.default_role]
+			overwrites.send_messages = False
+
+			await channel.set_permissions(ctx.guild.default_role, overwrite=overwrites)
+			await ctx.send(embed=embed)
+
+		else:
+			overwrites = channel.overwrites[ctx.guild.default_role]
+			overwrites.send_messages = True
+			await channel.set_permissions(ctx.guild.default_role, overwrite=overwrites)
+			embed.description = f"**{channel.mention} is no longer on lockdown! 🔓**"
+			embed.color = discord.Color.green()
+			await ctx.send(embed=embed)
+		
 
 def setup(client) -> None:
 	client.add_cog(Moderation(client))
