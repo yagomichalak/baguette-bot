@@ -13,7 +13,9 @@ muted_role_id = int(os.getenv('MUTED_ROLE_ID'))
 general_channel = int(os.getenv('GENERAL_CHANNEL_ID'))
 last_deleted_message = []
 mod_role_id = int(os.getenv('MOD_ROLE_ID'))
-allowed_roles = [int(os.getenv('OWNER_ROLE_ID')), int(os.getenv('ADMIN_ROLE_ID')), mod_role_id]
+jr_mod_role_id = int(os.getenv('JR_MOD_ROLE_ID'))
+trial_mod_role_id = int(os.getenv('TRIAL_MOD_ROLE_ID'))
+allowed_roles = [int(os.getenv('OWNER_ROLE_ID')), int(os.getenv('ADMIN_ROLE_ID')), mod_role_id, jr_mod_role_id, trial_mod_role_id]
 
 
 class Moderation(commands.Cog):
@@ -50,13 +52,16 @@ class Moderation(commands.Cog):
 		if not message.guild:
 			return
 
-		perms = message.channel.permissions_for(message.author)
-		if perms.administrator:
+		if message.author.bot:
 			return
 
-		for role in message.author.roles:
-			if role.id in allowed_roles:
-				return
+		# perms = message.channel.permissions_for(message.author)
+		# if perms.administrator:
+		# 	return
+
+		# for role in message.author.roles:
+		# 	if role.id in allowed_roles:
+		# 		return
 
 		ctx = await self.client.get_context(message)
 		ctx.author = self.client.user
@@ -78,6 +83,11 @@ class Moderation(commands.Cog):
 			await message.delete()
 			await self.warn(ctx=ctx, member=message.author, reason="Mass Mention")
 
+		# Checks whether it's an invite
+		if 'discord.gg/' in str(message.content).lower():
+			await message.delete()
+			return await message.author.send("**Please, stop sending invites! (Invite Advertisement)**")
+
 
 	async def check_cache_messages(self, ctx: commands.Context, message: discord.Message) -> None:
 		""" Checks the user who used a banned word. 
@@ -88,7 +98,7 @@ class Moderation(commands.Cog):
 			if word.lower() in chat_filter:
 
 				await message.delete()
-				await message.channel.send(f"**Watch your language, {message.author.mention}!**", delete_after=2)
+				# await message.channel.send(f"**Watch your language, {message.author.mention}!**", delete_after=2)
 
 				# Cache message
 				timestamp = time.time()
@@ -103,7 +113,12 @@ class Moderation(commands.Cog):
 				if len(user_cache := self.banned_words_cache.get(member.id)) >= 3:
 					sub = user_cache[-1] - user_cache[-3]
 					if sub <= 60:
-						return await self.warn(ctx=ctx, member=member, reason="Excess of Banned Words")
+						try:
+							await message.author.send("**Excess of Banned Words, please stop!**")
+						except:
+							pass
+						return
+						# return await self.warn(ctx=ctx, member=member, reason="Excess of Banned Words")
 
 	async def check_banned_websites(self, ctx: commands.Context, message: discord.Message) -> None:
 		""" Checks whether the user posted a banned website link. 
@@ -113,7 +128,11 @@ class Moderation(commands.Cog):
 		for msg in message.content.lower().split():
 			if msg in website_filter:
 				await message.delete()
-				return await self.warn(ctx=ctx, member=message.author, reason="Banned Website Link")
+				try:
+					await message.author.send(ctx=ctx, member=message.author, reason="Banned Website Link")
+				except:
+					pass
+				return
 
 
 	async def check_message_spam(self, ctx: commands.Context, message: discord.Message) -> None:
@@ -432,7 +451,7 @@ class Moderation(commands.Cog):
 
 	# Bans a member
 	@commands.command()
-	@commands.has_any_role(*allowed_roles)
+	@commands.has_permissions(administrator=True)
 	async def ban(self, ctx, member: discord.Member = None, *, reason=None) -> None:
 		'''
 		(ModTeam/ADM) Bans a member from the server.
@@ -445,70 +464,8 @@ class Moderation(commands.Cog):
 
 
 		channel = ctx.channel
-		author = ctx.author
 
-		perpetrators = []
-		confirmations = {}
-
-		perms = channel.permissions_for(author)
-
-		if not perms.administrator:
-			confirmations[author.id] = author.name
-			mod_ban_embed = discord.Embed(
-				title=f"Ban Request ({len(confirmations)}/5) → (2mins)",
-				description=f'''
-				{author.mention} wants to ban {member.mention}, it requires 4 more moderator ✅ reactions for it!
-				```Reason: {reason}```''', 
-				colour=discord.Colour.dark_red(), timestamp=ctx.message.created_at)
-			mod_ban_embed.set_author(name=f'{member} is being banned...', icon_url=member.avatar_url)
-			msg = await ctx.send(embed=mod_ban_embed)
-			await msg.add_reaction('✅')
-			# Prompts for 3 moderator reactions
-			def check_mod(r, u):
-				if u.bot:
-					return False
-				if r.message.id != msg.id:
-					return
-
-				if str(r.emoji) == '✅':
-					perms = channel.permissions_for(u)
-					if mod_role_id in [r.id for r in u.roles] or perms.administrator:
-						confirmations[u.id] = u.name
-						return True
-					else:
-						self.client.loop.create_task(
-							msg.remove_reaction('✅', u)
-							)
-						return False
-
-				else:
-					self.client.loop.create_task(
-						msg.remove_reaction(r.emoji, u)
-						)
-					return False
-
-			while True:
-				try:
-					r, _ = await self.client.wait_for('reaction_add', timeout=120, check=check_mod)
-				except asyncio.TimeoutError:
-					mod_ban_embed.description = f'Timeout, {member} is not getting banned!'
-					await msg.remove_reaction('✅', self.client.user)
-					return await msg.edit(embed=mod_ban_embed)
-				else:
-					mod_ban_embed.title = f"Ban Request ({len(confirmations)}/5) → (2mins)"
-					await msg.edit(embed=mod_ban_embed)
-					if len(confirmations) < 5:
-						continue
-					else:
-						break
-
-		# Checks if it was a moderator ban request or just a normal ban
-		if len(confirmations) <= 1:
-			perpetrators = ctx.author
-			icon = ctx.author.avatar_url
-		else:
-			perpetrators = ', '.join(confirmations.values())
-			icon = ctx.guild.icon_url
+		icon = ctx.author.avatar_url
 
 		# Bans and logs
 		try:
@@ -529,7 +486,7 @@ class Moderation(commands.Cog):
 			embed.add_field(name='Reason:', value=f'```{reason}```')
 			embed.set_author(name=member)
 			embed.set_thumbnail(url=member.avatar_url)
-			embed.set_footer(text=f"Banned by {perpetrators}", icon_url=icon)
+			embed.set_footer(text=f"Banned by {ctx.author}", icon_url=ctx.author.avatar_url)
 			await moderation_log.send(embed=embed)
 			# Inserts a infraction into the database
 			epoch = datetime.utcfromtimestamp(0)
