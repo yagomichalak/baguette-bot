@@ -589,7 +589,7 @@ class Moderation(commands.Cog):
 			general_embed = discord.Embed(description=f'**Reason:** {reason}', colour=discord.Colour.dark_teal(),
 										  timestamp=ctx.message.created_at)
 			general_embed.set_author(name=f'{self.client.get_user(user_id)} has been hackbanned')
-			# await ctx.send(embed=general_embed)
+			await ctx.send(embed=general_embed)
 
 			# Moderation log embed
 			moderation_log = discord.utils.get(ctx.guild.channels, id=mod_log_id)
