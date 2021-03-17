@@ -206,9 +206,9 @@ class Moderation(commands.Cog):
 		last_deleted_message.append(message)
 
 
-	@commands.command(aliases=['user', 'whois'])
+	@commands.command(aliases=['userinfo', 'whois'])
 	@commands.has_any_role(*[trial_mod_role_id, jr_mod_role_id, mod_role_id, admin_role_id, owner_role_id])
-	async def userinfo(self, ctx, member: discord.Member = None):
+	async def user(self, ctx, member: discord.Member = None):
 		'''
 		Shows all the information about a member.
 		:param member: The member to show the info.

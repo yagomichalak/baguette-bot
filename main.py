@@ -64,7 +64,7 @@ async def on_member_join(member) -> None:
 
 	join_log = discord.utils.get(member.guild.channels, id=joins_and_leaves_log_id)
 
-	await join_log.send(content=f"**{member}** joined.\nAccount creation date: {member.created_at.strftime("%a, %d %B %y, %I %M %p UTC")}")
+	await join_log.send(content=f"**{member}** joined.\nAccount creation date: {member.created_at.strftime('%a, %d %B %y, %I %M %p UTC')}")
 
 @client.event
 async def on_member_remove(member):
@@ -88,21 +88,6 @@ async def on_message_delete(message):
 	if message.author != client.user and not message.author.bot:
 		await general_log.send(embed=embed)
 
-# # Edit messages log
-# @client.event
-# async def on_message_edit(before, after):
-# 	if not after.guild:
-# 		return
-
-# 	general_log = client.get_channel(message_log_id)
-# 	embed = discord.Embed(description=f'Message edited in {before.channel.mention}', colour=discord.Colour.greyple())
-# 	embed.add_field(name='Before:', value=f'```{before.content}```', inline=False)
-# 	embed.add_field(name='After:', value=f'```{after.content}```', inline=False)
-# 	embed.add_field(name='ID', value=f'```py\nUser = {before.author.id}\nMessage = {before.id}```')
-# 	embed.set_footer(text=f"Guild name: {before.author.guild.name}")
-# 	embed.set_author(name=before.author.name, icon_url=before.author.avatar_url)
-# 	if before.author != client.user and not before.author.bot:
-# 		await general_log.send(embed=embed)
 
 
 @client.command()
