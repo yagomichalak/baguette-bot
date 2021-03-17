@@ -443,7 +443,7 @@ class Moderation(commands.Cog):
 			await ctx.send(f'**{member} is not even muted!**', delete_after=5)
 
 	@commands.command()
-	@commands.has_any_role(**[mod_role_id, admin_role_id, owner_role_id])
+	@commands.has_any_role(*[mod_role_id, admin_role_id, owner_role_id])
 	async def kick(self, ctx, member: discord.Member = None, *, reason=None):
 		'''
 		(MOD) Kicks a member from the server.
