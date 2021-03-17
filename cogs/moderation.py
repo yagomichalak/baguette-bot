@@ -294,7 +294,7 @@ class Moderation(commands.Cog):
 				user_id=member.id, infr_type="warn", reason=reason,
 				timestamp=current_ts , perpetrator=ctx.author.id)
 			try:
-				await member.send(embed=moderation_log)
+				await member.send(embed=embed)
 			except Exception as e:
 				print(e)
 				pass
@@ -354,7 +354,7 @@ class Moderation(commands.Cog):
 				user_id=member.id, infr_type="mute", reason=reason, 
 				timestamp=current_ts , perpetrator=ctx.author.id)
 			try:
-				await member.send(embed=moderation_log)
+				await member.send(embed=embed)
 			except:
 				pass
 		
@@ -400,7 +400,7 @@ class Moderation(commands.Cog):
 			embed.set_footer(text=f"Unmuted by {ctx.author}", icon_url=ctx.author.avatar_url)
 			await moderation_log.send(embed=embed)
 			try:
-				await member.send(embed=moderation_log)
+				await member.send(embed=embed)
 			except:
 				pass
 
@@ -446,7 +446,7 @@ class Moderation(commands.Cog):
 					user_id=member.id, infr_type="kick", reason=reason, 
 					timestamp=current_ts , perpetrator=ctx.author.id)
 				try:
-					await member.send(embed=moderation_log)
+					await member.send(embed=embed)
 				except:
 					pass
 
@@ -496,7 +496,7 @@ class Moderation(commands.Cog):
 				user_id=member.id, infr_type="ban", reason=reason, 
 				timestamp=current_ts , perpetrator=ctx.author.id)
 			try:
-				await member.send(embed=moderation_log)
+				await member.send(embed=embed)
 			except:
 				pass
 
@@ -538,7 +538,7 @@ class Moderation(commands.Cog):
 				embed.set_footer(text=f"Unbanned by {ctx.author}", icon_url=ctx.author.avatar_url)
 				await moderation_log.send(embed=embed)
 				try:
-					await user.send(embed=moderation_log)
+					await user.send(embed=embed)
 				except:
 					pass
 				return
@@ -586,7 +586,7 @@ class Moderation(commands.Cog):
 					user_id=member.id, infr_type="softban", reason=reason, 
 					timestamp=current_ts , perpetrator=ctx.author.id)
 				try:
-					await member.send(embed=moderation_log)
+					await member.send(embed=embed)
 				except:
 					pass
 
@@ -633,7 +633,7 @@ class Moderation(commands.Cog):
 				user_id=member.id, infr_type="hackban", reason=reason, 
 				timestamp=current_ts , perpetrator=ctx.author.id)
 			try:
-				await member.send(embed=moderation_log)
+				await member.send(embed=embed)
 			except:
 				pass
 
