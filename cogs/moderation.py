@@ -391,7 +391,7 @@ class Moderation(commands.Cog):
 	# Unmutes a member
 	@commands.command()
 	@commands.has_any_role(*[trial_mod_role_id, jr_mod_role_id, mod_role_id, admin_role_id, owner_role_id])
-	async def unmute(self, ctx, member: discord.Member = None):
+	async def unmute(self, ctx, member: discord.Member = None *, reason = None):
 		'''
 		(MOD) Unmutes a member.
 		:param member: The @ or the ID of the user to unmute.
@@ -412,14 +412,14 @@ class Moderation(commands.Cog):
 						pass
 			await member.remove_roles(role)
 			# General embed
-			general_embed = discord.Embed(colour=discord.Colour.light_grey(),
-										  timestamp=ctx.message.created_at)
+			general_embed = discord.Embed(description=f'**Reason:** {reason}', colour=discord.Colour.light_gray(), timestamp=ctx.message.created_at)
 			general_embed.set_author(name=f'{member} has been unmuted', icon_url=member.avatar_url)
+			await ctx.send(embed=general_embed)
 			await ctx.send(embed=general_embed)
 			# Moderation log embed
 			moderation_log = discord.utils.get(ctx.guild.channels, id=mod_log_id)
 			embed = discord.Embed(
-				description=F"**Unmuted** {member.mention}",
+				description=F"**Unmuted** {member.mention}\n**Reason:** {reason}",
 				color=discord.Color.light_gray(),
 				timestamp=ctx.message.created_at)
 			embed.set_author(name=f"{ctx.author} (ID {ctx.author.id})", icon_url=ctx.author.avatar_url)
@@ -736,7 +736,7 @@ class Moderation(commands.Cog):
 			infr_date = datetime.fromtimestamp(infr[3]).strftime('%Y/%m/%d at %H:%M:%S')
 			perpetrator = discord.utils.get(ctx.guild.members, id=infr[5])
 			embed.add_field(
-				name=f"**{infr[1]} ID: {infr[4]}**", 
+				name=f"__**{infr[1]} ID: {infr[4]}**__", 
 				value=f"**Given on:** {infr_date}\n**By:** {perpetrator}\n**Reason:** {infr[2]}",
 				inline=False)
 
