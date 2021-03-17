@@ -295,7 +295,8 @@ class Moderation(commands.Cog):
 				timestamp=current_ts , perpetrator=ctx.author.id)
 			try:
 				await member.send(embed=moderation_log)
-			except:
+			except Exception as e:
+				print(e)
 				pass
 
 			user_infractions = await self.get_user_infractions(member.id)

@@ -13,7 +13,7 @@ moderation_log_channel_id = int(os.getenv('MOD_LOG_CHANNEL_ID'))
 message_log_id = int(os.getenv('MESSAGE_LOG_ID'))
 
 
-client = commands.Bot(command_prefix='!', intents=discord.Intents.all(), help_command=None)
+client = commands.Bot(command_prefix='b!', intents=discord.Intents.all(), help_command=None)
 
 @client.event
 async def on_ready() -> None:
