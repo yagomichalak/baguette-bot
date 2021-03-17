@@ -391,7 +391,7 @@ class Moderation(commands.Cog):
 	# Unmutes a member
 	@commands.command()
 	@commands.has_any_role(*[trial_mod_role_id, jr_mod_role_id, mod_role_id, admin_role_id, owner_role_id])
-	async def unmute(self, ctx, member: discord.Member = None *, reason = None):
+	async def unmute(self, ctx, member: discord.Member = None, *, reason = None):
 		'''
 		(MOD) Unmutes a member.
 		:param member: The @ or the ID of the user to unmute.
