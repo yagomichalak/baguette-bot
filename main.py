@@ -11,6 +11,7 @@ moderator_role_id = int(os.getenv('MOD_ROLE_ID'))
 joins_and_leaves_log_id = int(os.getenv('JOIN_LEAVE_LOG_CHANNEL_ID'))
 moderation_log_channel_id = int(os.getenv('MOD_LOG_CHANNEL_ID'))
 message_log_id = int(os.getenv('MESSAGE_LOG_ID'))
+counting_channel_id = int(os.getenv('COUNTING_CHANNEL_ID'))
 
 
 client = commands.Bot(command_prefix='b!', intents=discord.Intents.all(), help_command=None)
@@ -79,14 +80,21 @@ async def on_message_delete(message):
 	if not message.guild:
 		return
 
+	if message.author.bot:
+		return
+
+	if message.channel.id == counting_channel_id:
+		return
+
 	general_log = client.get_channel(message_log_id)
-	embed = discord.Embed(description=f'Message deleted in {message.channel.mention}', colour=discord.Colour.dark_grey())
-	embed.add_field(name='Content', value=f'```{message.content}```', inline=False)
-	embed.add_field(name='ID', value=f'```py\nUser = {message.author.id}\nMessage = {message.id}```')
-	embed.set_footer(text=f"Guild name: {message.author.guild.name}")
-	embed.set_author(name=message.author.name, icon_url=message.author.avatar_url)
-	if message.author != client.user and not message.author.bot:
-		await general_log.send(embed=embed)
+	embed = discord.Embed(
+		description=f"**User:** {message.author.id}\n**Channel:** {message.channel.mention}\n**Message:** {message.content}", 
+		color=discord.Color.dark_grey(),
+		timestamp=message.created_at)
+	embed.set_footer(text=f"Message ID: {message.id}")
+	embed.set_author(name="Message Deleted", icon_url=message.author.avatar_url)
+	# if message.author != client.user and not message.author.bot:
+	await general_log.send(embed=embed)
 
 
 

@@ -310,14 +310,12 @@ class Moderation(commands.Cog):
 			await ctx.send(embed=general_embed)
 			# Moderation log embed
 			moderation_log = discord.utils.get(ctx.guild.channels, id=mod_log_id)
-			embed = discord.Embed(title='__**Warning**__', colour=discord.Colour.dark_gold(),
-								  timestamp=ctx.message.created_at)
-			embed.add_field(name='User info:', value=f'```Name: {member.display_name}\nId: {member.id}```',
-							inline=False)
-			embed.add_field(name='Reason:', value=f'```{reason}```')
-			embed.set_author(name=member)
+			embed = discord.Embed(
+				description=F"**Warned** {member.display_name} (ID {member.id})\n**Reason:** {reason}",
+				colou=discord.Color.dark_gold(),
+				timestamp=ctx.message.created_at)
+			embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
 			embed.set_thumbnail(url=member.avatar_url)
-			embed.set_footer(text=f"Warned by {ctx.author}", icon_url=ctx.author.avatar_url)
 			await moderation_log.send(embed=embed)
 			# Inserts a infraction into the database
 			epoch = datetime.utcfromtimestamp(0)
