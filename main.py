@@ -88,7 +88,7 @@ async def on_message_delete(message):
 
 	general_log = client.get_channel(message_log_id)
 	embed = discord.Embed(
-		description=f"**User:** {message.author.id}\n**Channel:** {message.channel.mention}\n**Message:** {message.content}", 
+		description=f"**User:** {message.author.mention}\n**Channel:** {message.channel.mention}\n**Message:** {message.content}", 
 		color=discord.Color.dark_grey(),
 		timestamp=message.created_at)
 	embed.set_footer(text=f"Message ID: {message.id}")
