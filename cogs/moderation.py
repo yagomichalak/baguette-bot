@@ -226,9 +226,9 @@ class Moderation(commands.Cog):
 		embed.add_field(name="ID:", value=member.id, inline=False)
 		embed.add_field(name="Server name:", value=member.display_name, inline=False)
 
-		embed.add_field(name="Created at:", value=member.created_at.strftime("%d/%b/%y %I:%M %p GMT"),
+		embed.add_field(name="Created at:", value=member.created_at.strftime("%d/%m/%y %I:%M %p GMT"),
 						inline=False)
-		embed.add_field(name="Joined at:", value=member.joined_at.strftime("%d/%b/%y %I:%M %p GMT"), inline=False)
+		embed.add_field(name="Joined at:", value=member.joined_at.strftime("%d/%m/%y %I:%M %p GMT"), inline=False)
 
 		embed.add_field(name="Top role:", value=member.top_role.mention, inline=False)
 

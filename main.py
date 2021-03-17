@@ -64,7 +64,7 @@ async def on_member_join(member) -> None:
 
 	join_log = discord.utils.get(member.guild.channels, id=joins_and_leaves_log_id)
 
-	await join_log.send(f"{member.mention} joined.\nAccount creation date: {member.created_at.strftime('%d/%b/%y %I:%M %p GMT')}")
+	await join_log.send(f"{member.mention} joined.\nAccount creation date: **{member.created_at.strftime('%d/%m/%y %I:%M %p GMT')}**")
 
 @client.event
 async def on_member_remove(member):
