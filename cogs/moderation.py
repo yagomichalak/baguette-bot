@@ -412,6 +412,11 @@ class Moderation(commands.Cog):
 						pass
 			await member.remove_roles(role)
 			# General embed
+			general_embed = discord.Embed(colour=discord.Colour.light_grey(),
+										  timestamp=ctx.message.created_at)
+			general_embed.set_author(name=f'{member} has been unmuted', icon_url=member.avatar_url)
+			await ctx.send(embed=general_embed)
+			# Moderation log embed
 			moderation_log = discord.utils.get(ctx.guild.channels, id=mod_log_id)
 			embed = discord.Embed(
 				description=F"**Unmuted** {member.mention}",
