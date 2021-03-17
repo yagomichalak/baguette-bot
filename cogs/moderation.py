@@ -224,16 +224,13 @@ class Moderation(commands.Cog):
 		embed.set_footer(text=f"Requested by {ctx.author}", icon_url=ctx.author.avatar_url)
 
 		embed.add_field(name="ID:", value=member.id, inline=False)
-		embed.add_field(name="Guild name:", value=member.display_name, inline=False)
+		embed.add_field(name="Server name:", value=member.display_name, inline=False)
 
 		embed.add_field(name="Created at:", value=member.created_at.strftime("%a, %d %B %y, %I %M %p UTC"),
 						inline=False)
 		embed.add_field(name="Joined at:", value=member.joined_at.strftime("%a, %d %B %y, %I %M %p UTC"), inline=False)
 
-		embed.add_field(name=f"Roles: {len(roles)}", value=" ".join([role.mention for role in roles]), inline=False)
 		embed.add_field(name="Top role:", value=member.top_role.mention, inline=False)
-
-		embed.add_field(name="Bot?", value=member.bot)
 
 		await ctx.send(embed=embed)
 
