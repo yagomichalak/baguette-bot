@@ -64,13 +64,13 @@ async def on_member_join(member) -> None:
 
 	join_log = discord.utils.get(member.guild.channels, id=joins_and_leaves_log_id)
 
-	await join_log.send(f"**{member}** joined.\nAccount creation date: {member.created_at.strftime('%d/%B/%y %I:%M %p GMT')}")
+	await join_log.send(f"{member.mention} joined.\nAccount creation date: {member.created_at.strftime('%d/%B/%y %I:%M %p GMT')}")
 
 @client.event
 async def on_member_remove(member):
 	roles = [role for role in member.roles]
 	channel = discord.utils.get(member.guild.channels, id=joins_and_leaves_log_id)
-	await channel.send(f"**{member}** left.")
+	await channel.send(f"{member.mention} left.")
 
 
 # Delete messages log
