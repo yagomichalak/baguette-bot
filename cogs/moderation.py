@@ -737,7 +737,7 @@ class Moderation(commands.Cog):
 			perpetrator = discord.utils.get(ctx.guild.members, id=infr[5])
 			embed.add_field(
 				name=f"**{infr[1]} ID: {infr[4]}**", 
-				value=f"`Given on` {infr_date} | `By` {perpetrator} | `Reason`: {infr[2]}", 
+				value=f"**Given on:** {infr_date}\n**By:** {perpetrator}\n**Reason:** {infr[2]}",
 				inline=False)
 
 		# Shows the infractions
