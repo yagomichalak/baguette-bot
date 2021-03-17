@@ -54,26 +54,26 @@ async def change_status():
 	await client.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=f'{len(guild.members)} members.'))
 
 
-@client.event
-async def on_member_join(member) -> None:
-	""" Greets newcomers as soon as they join the server. """
+# @client.event
+# async def on_member_join(member) -> None:
+# 	""" Greets newcomers as soon as they join the server. """
 
-	# Discards bot joinings
-	if member.bot:
-		return
+# 	# Discards bot joinings
+# 	if member.bot:
+# 		return
 
-	join_log = discord.utils.get(member.guild.channels, id=joins_and_leaves_log_id)
+# 	join_log = discord.utils.get(member.guild.channels, id=joins_and_leaves_log_id)
 
-	# Embedded message to send into the chat
-	embed = discord.Embed(
-		title=f"Welcome to {member.guild}!",
-		description="We hope you have a nice stay in here and meet new people.",
-		color=discord.Color.green()
-	)
-	embed.set_author(name=member, icon_url=member.avatar_url)
-	embed.set_image(url=member.guild.icon_url)
-	embed.set_footer(text=member.guild, icon_url=member.guild.icon_url)
-	await join_log.send(content=f"**Nice to see you, {member.mention}! Have a nice welcome.**", embed=embed)
+# 	# Embedded message to send into the chat
+# 	embed = discord.Embed(
+# 		title=f"Welcome to {member.guild}!",
+# 		description="We hope you have a nice stay in here and meet new people.",
+# 		color=discord.Color.green()
+# 	)
+# 	embed.set_author(name=member, icon_url=member.avatar_url)
+# 	embed.set_image(url=member.guild.icon_url)
+# 	embed.set_footer(text=member.guild, icon_url=member.guild.icon_url)
+# 	await join_log.send(content=f"**Nice to see you, {member.mention}! Have a nice welcome.**", embed=embed)
 
 @client.event
 async def on_member_remove(member):
@@ -109,22 +109,21 @@ async def on_message_delete(message):
 	if message.author != client.user and not message.author.bot:
 		await general_log.send(embed=embed)
 
+# # Edit messages log
+# @client.event
+# async def on_message_edit(before, after):
+# 	if not after.guild:
+# 		return
 
-# Edit messages log
-@client.event
-async def on_message_edit(before, after):
-	if not after.guild:
-		return
-
-	general_log = client.get_channel(message_log_id)
-	embed = discord.Embed(description=f'Message edited in {before.channel.mention}', colour=discord.Colour.greyple())
-	embed.add_field(name='Before:', value=f'```{before.content}```', inline=False)
-	embed.add_field(name='After:', value=f'```{after.content}```', inline=False)
-	embed.add_field(name='ID', value=f'```py\nUser = {before.author.id}\nMessage = {before.id}```')
-	embed.set_footer(text=f"Guild name: {before.author.guild.name}")
-	embed.set_author(name=before.author.name, icon_url=before.author.avatar_url)
-	if before.author != client.user and not before.author.bot:
-		await general_log.send(embed=embed)
+# 	general_log = client.get_channel(message_log_id)
+# 	embed = discord.Embed(description=f'Message edited in {before.channel.mention}', colour=discord.Colour.greyple())
+# 	embed.add_field(name='Before:', value=f'```{before.content}```', inline=False)
+# 	embed.add_field(name='After:', value=f'```{after.content}```', inline=False)
+# 	embed.add_field(name='ID', value=f'```py\nUser = {before.author.id}\nMessage = {before.id}```')
+# 	embed.set_footer(text=f"Guild name: {before.author.guild.name}")
+# 	embed.set_author(name=before.author.name, icon_url=before.author.avatar_url)
+# 	if before.author != client.user and not before.author.bot:
+# 		await general_log.send(embed=embed)
 
 
 @client.command()
