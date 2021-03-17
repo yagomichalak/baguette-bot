@@ -329,11 +329,11 @@ class Moderation(commands.Cog):
 				print(e)
 				pass
 
-			user_infractions = await self.get_user_infractions(member.id)
-			user_warns = [w for w in user_infractions if w[1] == 'warn']
-			if len(user_warns) >= 3:
-				ctx.author = self.client.user
-				await self.mute(ctx=ctx, member=member, reason=reason)
+			# user_infractions = await self.get_user_infractions(member.id)
+			# user_warns = [w for w in user_infractions if w[1] == 'warn']
+			# if len(user_warns) >= 3:
+			# 	ctx.author = self.client.user
+			# 	await self.mute(ctx=ctx, member=member, reason=reason)
 
 	@commands.command()
 	@commands.has_any_role(*[trial_mod_role_id, jr_mod_role_id, mod_role_id, admin_role_id, owner_role_id])

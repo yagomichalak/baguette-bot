@@ -93,6 +93,7 @@ async def on_message_delete(message):
 		timestamp=message.created_at)
 	embed.set_footer(text=f"Message ID: {message.id}")
 	embed.set_author(name="Message Deleted", icon_url=message.author.avatar_url)
+	# if len(message.attachments)
 	# if message.author != client.user and not message.author.bot:
 	await general_log.send(embed=embed)
 
