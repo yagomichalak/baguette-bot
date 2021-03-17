@@ -2,8 +2,8 @@ import discord
 from discord.ext import commands, tasks
 import os
 import datetime
-# from dotenv import load_dotenv
-# load_dotenv()
+from dotenv import load_dotenv
+load_dotenv()
 
 
 server_id = int(os.getenv('SERVER_ID'))

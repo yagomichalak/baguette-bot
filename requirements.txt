@@ -1,0 +1,4 @@
+discord.py==1.6.0
+aiomysql==0.0.21
+discord==1.0.1
+python-dotenv==0.15.0
