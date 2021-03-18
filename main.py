@@ -117,6 +117,8 @@ async def on_message_delete(message):
 @client.event
 async def on_bulk_message_delete(messages):
 	
+	general_log = client.get_channel(message_log_id)
+	
 	for message in messages:
 		if not message.guild:
 			continue
@@ -127,7 +129,6 @@ async def on_bulk_message_delete(messages):
 		if message.channel.id == counting_channel_id:
 			continue
 
-		general_log = client.get_channel(message_log_id)
 		embed = discord.Embed(
 			description=f"**User:** {message.author.mention}\n**Channel:** {message.channel.mention}\n**Message:** {message.content}", 
 			color=discord.Color.dark_grey(),

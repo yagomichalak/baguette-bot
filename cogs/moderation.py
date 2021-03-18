@@ -19,6 +19,7 @@ trial_mod_role_id = int(os.getenv('TRIAL_MOD_ROLE_ID'))
 admin_role_id = int(os.getenv('ADMIN_ROLE_ID'))
 owner_role_id = int(os.getenv('OWNER_ROLE_ID'))
 server_id = int(os.getenv('SERVER_ID'))
+nsfw_channel_id = int(os.getenv('NSFW_CHANNEL_ID'))
 
 allowed_roles = [owner_role_id, admin_role_id, mod_role_id, jr_mod_role_id, trial_mod_role_id]
 
@@ -158,6 +159,9 @@ class Moderation(commands.Cog):
 	async def check_cache_messages(self, ctx: commands.Context, message: discord.Message) -> None:
 		""" Checks the user who used a banned word. 
 		:param member: The user that is gonna be added to cache. """
+
+		if ctx.channel.id == nsfw_channel_id:
+			return
 
 		contents = message.content.split()
 		for word in contents:
