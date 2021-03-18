@@ -772,7 +772,7 @@ class Moderation(commands.Cog):
 
 		# Bans and logs
 		try:
-			await member.ban(reason=reason)
+			await member.ban(delete_message_days=0, reason=reason)
 		except Exception:
 			await ctx.send('**You cannot do that!**', delete_after=3)
 		else:
@@ -821,7 +821,7 @@ class Moderation(commands.Cog):
 
 		# Bans and logs
 		try:
-			await member.ban(delete_message_days=7, reason=reason)
+			await member.ban(delete_message_days=1, reason=reason)
 		except Exception:
 			await ctx.send('**You cannot do that!**', delete_after=3)
 		else:
