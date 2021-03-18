@@ -20,6 +20,7 @@ admin_role_id = int(os.getenv('ADMIN_ROLE_ID'))
 owner_role_id = int(os.getenv('OWNER_ROLE_ID'))
 server_id = int(os.getenv('SERVER_ID'))
 nsfw_channel_id = int(os.getenv('NSFW_CHANNEL_ID'))
+staff_role_id = int(os.getenv('STAFF_ROLE_ID'))
 
 allowed_roles = [owner_role_id, admin_role_id, mod_role_id, jr_mod_role_id, trial_mod_role_id]
 
@@ -319,6 +320,10 @@ class Moderation(commands.Cog):
 		online = len({m.id for m in guild.members if m.status is not discord.Status.offline})
 		em.add_field(name="Server ID", value=guild.id, inline=True)
 		em.add_field(name="Owner", value=guild.owner.mention, inline=True)
+
+		staff_role = discord.utils.get(guild.roles, id=staff_role_id)
+		staff = ', '.join([m.mention for m in guild.members if staff_role in m.m.roles])
+		em.add_field(name="Staff Members", value=staff, inline=False)
 		em.add_field(name="Members", value=f"🟢 {online} members ⚫ {len(guild.members)} members", inline=False)
 		em.add_field(name="Channels", value=f"⌨️ {len(guild.text_channels)} | 🔈 {len(guild.voice_channels)}", inline=True)
 		em.add_field(name="Roles", value=len(guild.roles), inline=False)
@@ -326,7 +331,7 @@ class Moderation(commands.Cog):
 		em.add_field(name="🌐 Region", value=str(guild.region).title() if guild.region else None, inline=False)
 		em.add_field(name="🔨 Bans", value=len(await guild.bans()), inline=False)
 		em.add_field(name="🌟 Boosts", value=f"{guild.premium_subscription_count} (Level {guild.premium_tier})", inline=False)
-		features = '\n'.join(list(map(lambda f: f.replace('_', '').capitalize(), guild.features)))
+		features = '\n'.join(list(map(lambda f: f.replace('_', ' ').capitalize(), guild.features)))
 		em.add_field(name="Server Features", value=features if features else None, inline=False)
 
 
