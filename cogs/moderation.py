@@ -305,6 +305,42 @@ class Moderation(commands.Cog):
 		await ctx.send(embed=embed)
 
 
+	@commands.command(aliases=['si', 'server'])
+	@commands.has_any_role(*[trial_mod_role_id, jr_mod_role_id, mod_role_id, admin_role_id, owner_role_id])
+	async def serverinfo(self, ctx):
+		'''
+		Shows some information about the server.
+		'''
+		await ctx.message.delete()
+		guild = ctx.guild
+		guild_age = (ctx.message.created_at - guild.created_at).days
+		created_at = f"Server created on {guild.created_at.strftime('%b %d %Y at %H:%M')}. That\'s over {guild_age} days ago!"
+		color = discord.Color.green()
+
+
+		em = discord.Embed(description=guild.description, color=ctx.author.color)
+		online = len({m.id for m in guild.members if m.status is not discord.Status.offline})
+		em.add_field(name="Server ID", value=guild.id, inline=True)
+		em.add_field(name="Owner", value=guild.owner.mention, inline=True)
+		em.add_field(name="Members", value=f"🟢 {online} members ⚫ {len(guild.members)} members", inline=False)
+		em.add_field(name="Channels", value=f"⌨️ {len(guild.text_channels)} | 🔈 {len(guild.voice_channels)}", inline=True)
+		em.add_field(name="Roles", value=len(guild.roles), inline=False)
+		em.add_field(name="Emojis", value=len(guild.emojis), inline=True)
+		em.add_field(name="🌐 Region", value=guild.region, inline=False)
+		em.add_field(name="🔨 Bans", value=len(await guild.bans()), inline=False)
+		em.add_field(name="🌟 Boosts", value=f"{guild.premium_subscription_count} (Level {guild.premium_tier})", inline=False)
+		features = '\n'.join(guild.features)
+		em.add_field(name="Server Features", value=features if features else None, inline=False)
+
+
+		em.set_thumbnail(url=None or guild.icon_url)
+		em.set_image(url=guild.splash_url)
+		em.set_author(name=guild.name, icon_url=None or guild.icon_url)
+		created_at = await self.sort_time(guild, guild.created_at)
+		em.set_footer(text=f"Created: {guild.created_at.strftime('%d/%m/%y')} ({created_at})")
+		await ctx.send(embed=em)
+
+
 	async def sort_time(self, guild: discord.Guild, at: datetime) -> str:
 
 		member_age = (datetime.utcnow() - at).total_seconds()
