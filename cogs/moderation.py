@@ -322,7 +322,7 @@ class Moderation(commands.Cog):
 		em.add_field(name="Owner", value=guild.owner.mention, inline=True)
 
 		staff_role = discord.utils.get(guild.roles, id=staff_role_id)
-		staff = ', '.join([m.mention for m in guild.members if staff_role in m.m.roles])
+		staff = ', '.join([m.mention for m in guild.members if staff_role in m.roles])
 		em.add_field(name="Staff Members", value=staff, inline=False)
 		em.add_field(name="Members", value=f"🟢 {online} members ⚫ {len(guild.members)} members", inline=False)
 		em.add_field(name="Channels", value=f"⌨️ {len(guild.text_channels)} | 🔈 {len(guild.voice_channels)}", inline=True)
