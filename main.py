@@ -12,6 +12,7 @@ joins_and_leaves_log_id = int(os.getenv('JOIN_LEAVE_LOG_CHANNEL_ID'))
 moderation_log_channel_id = int(os.getenv('MOD_LOG_CHANNEL_ID'))
 message_log_id = int(os.getenv('MESSAGE_LOG_ID'))
 counting_channel_id = int(os.getenv('COUNTING_CHANNEL_ID'))
+faq_channel_id = int(os.getenv('FAQ_CHANNEL_ID'))
 
 
 client = commands.Bot(command_prefix='b!', intents=discord.Intents.all(), help_command=None)
@@ -67,6 +68,14 @@ async def on_member_join(member) -> None:
 
 	await join_log.send(f"{member.mention} joined.\n**Account creation date:** {member.created_at.strftime('%d/%m/%y %H:%M GMT')}")
 
+	welcome_message = f"""
+	**Welcome to: Le Salon Français!**
+
+Please read the rules and report anything that is against the rules to any of the Moderators/Admins.
+If there is anything you are unsure of, please first read the <#{faq_channel_id}> channel as this will have answers to some of your questions."""
+
+	await member.send(welcome_message)
+
 @client.event
 async def on_member_remove(member):
 	roles = [role for role in member.roles]
@@ -96,7 +105,6 @@ async def on_message_delete(message):
 	# if len(message.attachments)
 	# if message.author != client.user and not message.author.bot:
 	await general_log.send(embed=embed)
-
 
 
 @client.command()

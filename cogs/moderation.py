@@ -1,5 +1,5 @@
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 import asyncio
 from mysqldb import the_database
 from datetime import datetime
@@ -7,6 +7,7 @@ import time
 from typing import List, Union
 import os
 from extra.banned_things import chat_filter, website_filter
+from typing import List, Dict
 
 mod_log_id = int(os.getenv('MOD_LOG_CHANNEL_ID'))
 muted_role_id = int(os.getenv('MUTED_ROLE_ID'))
@@ -17,11 +18,13 @@ jr_mod_role_id = int(os.getenv('JR_MOD_ROLE_ID'))
 trial_mod_role_id = int(os.getenv('TRIAL_MOD_ROLE_ID'))
 admin_role_id = int(os.getenv('ADMIN_ROLE_ID'))
 owner_role_id = int(os.getenv('OWNER_ROLE_ID'))
+server_id = int(os.getenv('SERVER_ID'))
 
 allowed_roles = [owner_role_id, admin_role_id, mod_role_id, jr_mod_role_id, trial_mod_role_id]
 
 
 class Moderation(commands.Cog):
+	""" Category for moderation commands. """
 
 	def __init__(self, client) -> None:
 		self.client = client
@@ -34,8 +37,68 @@ class Moderation(commands.Cog):
 
 	@commands.Cog.listener()
 	async def on_ready(self) -> None:
+		self.look_for_expired_tempmutes.start()
 		print("Moderation cog is online!")
 
+
+	@tasks.loop(minutes=1)
+	async def look_for_expired_tempmutes(self) -> None:
+		""" Looks for expired tempmutes and unmutes the users. """
+
+		epoch = datetime.utcfromtimestamp(0)
+		current_ts = (datetime.utcnow() - epoch).total_seconds()
+		tempmutes = await self.get_expired_tempmutes(current_ts)
+
+		guild = self.client.get_guild(server_id)
+
+		for tm in tempmutes:
+			member = discord.utils.get(guild.members, id=tm)
+			if not member:
+				continue
+
+			try:
+				role = discord.utils.get(guild.roles, id=muted_role_id)
+
+				if role in member.roles:
+					user_roles = await self.get_muted_roles(member.id)
+					if user_roles:
+						for mrole in user_roles:
+							the_role = discord.utils.get(guild.roles, id=mrole[1])
+							try:
+								await member.add_roles(the_role, atomic=True)
+								await self.remove_role_from_system(member.id, the_role.id)
+							except Exception:
+								pass
+					await member.remove_roles(role)
+					# Moderation log embed
+					moderation_log = discord.utils.get(guild.channels, id=mod_log_id)
+					embed = discord.Embed(
+						description=F"**Unmuted** {member.mention}\n**Reason:** Tempmute is over",
+						color=discord.Color.light_gray())
+					embed.set_author(name=f"{self.client.user} (ID {self.client.user.id})", icon_url=self.client.user.avatar_url)
+					embed.set_thumbnail(url=member.avatar_url)
+					await moderation_log.send(embed=embed)
+					try:
+						await member.send(embed=embed)
+					except:
+						pass
+
+
+
+
+
+			except:
+				continue
+
+	async def get_expired_tempmutes(self, current_ts: int) -> List[int]:
+		""" Gets expired tempmutes. 
+		:param current_ts: The current timestamp. """
+
+		mycursor, db = await the_database()
+		await mycursor.execute("SELECT DISTINCT(user_id) FROM MutedMember WHERE (%s -  mute_ts) >= muted_for_seconds", (current_ts,))
+		tempmutes = list(map(lambda m: m[0], await mycursor.fetchall()))
+		await mycursor.close()
+		return tempmutes
 
 	@commands.Cog.listener()
 	async def on_member_join(self, member):
@@ -388,6 +451,135 @@ class Moderation(commands.Cog):
 		else:
 			await ctx.send(f'**{member} is already muted!**')
 
+
+	async def get_mute_time(self, ctx: commands.Context, time: List[str]) -> Dict[str, int]:
+		""" Gets the mute time in seconds.
+		:param ctx: The context.
+		:param time: The given time. """
+		
+		keys = ['d', 'h', 'm', 's']
+		for k in keys:
+			if k in time:
+				break
+		else:
+			await ctx.send(f"**Inform a valid time, {ctx.author.mention}**", delete_after=3)
+			return False
+
+		the_time_dict = {
+			'days': 0,
+			'hours': 0,
+			'minutes': 0,
+			'seconds': 0,
+		}
+
+		seconds = 0
+
+		for t in time.split():
+
+			if (just_time := t[:-1]).isdigit():
+				just_time = int(t[:-1])
+
+			if 'd' in t:
+
+				seconds += just_time * 86400
+				the_time_dict['days'] = just_time
+				continue
+			elif 'h' in t:
+				seconds += just_time * 3600
+				the_time_dict['hours'] = just_time
+				continue
+			elif 'm' in t:
+				seconds += just_time * 60
+				the_time_dict['minutes'] = just_time
+				continue
+			elif 's' in t:
+				seconds += just_time
+				the_time_dict['seconds'] = just_time
+				continue
+
+		if seconds <= 0:
+			await ctx.send(f"**Something is wrong with it, {ctx.author.mention}!**", delete_after=3)
+			return False, False
+		else:
+			return the_time_dict, seconds
+
+	# Mutes a member temporarily
+	@commands.command()
+	@commands.has_any_role(*[trial_mod_role_id, jr_mod_role_id, mod_role_id, admin_role_id, owner_role_id])
+	async def tempmute(self, ctx, member: discord.Member = None, reason: str =  None, *, time: str = None):
+		"""
+		Mutes a member for a determined amount of time.
+		:param member: The @ or the ID of the user to tempmute.
+		:param minutes: The amount of minutes that the user will be muted.
+		:param reason: The reason for the tempmute.
+		:param time: The time for the mute.
+		"""
+		await ctx.message.delete()
+
+		role = discord.utils.get(ctx.guild.roles, id=muted_role_id)
+
+		if not member:
+			return await ctx.send("**Please, specify a member!**", delete_after=3)
+
+		if not reason:
+			return await ctx.send(f"**Specify a reason!**", delete_after=3)
+
+		if not time:
+			return await ctx.send('**Inform a time!**', delete_after=3)
+
+
+		time_dict, seconds = await self.get_mute_time(ctx=ctx, time=time)
+		if not seconds:
+			return
+
+
+		# print('ah')
+		epoch = datetime.utcfromtimestamp(0)
+		current_ts = int((datetime.utcnow() - epoch).total_seconds())
+
+		# print(current_ts, seconds)
+
+		if role not in member.roles:
+			await member.add_roles(role)
+			await member.move_to(None)
+			for mr in member.roles:
+				if mr.id != role.id:
+					try:
+						await member.remove_roles(mr, atomic=True)
+						await self.insert_in_muted(member.id, mr.id, current_ts, seconds)
+					except Exception:
+						pass
+			
+			# General embed
+			general_embed = discord.Embed(description=f"**For:** `{time_dict['days']}d` `{time_dict['hours']}h`, `{time_dict['minutes']}m`\n**Reason:** {reason}", colour=discord.Colour.dark_grey(), timestamp=ctx.message.created_at)
+			general_embed.set_author(name=f"{member} has been tempmuted", icon_url=member.avatar_url)
+			await ctx.send(embed=general_embed)
+			# Moderation log embed
+			moderation_log = discord.utils.get(ctx.guild.channels, id=mod_log_id)
+			embed = discord.Embed(
+				description=F"**Tempmuted** {member.mention} for `{time_dict['days']}d` `{time_dict['hours']}h`, `{time_dict['minutes']}m`\n**Reason:** {reason}",
+				color=discord.Color.lighter_grey(),
+				timestamp=ctx.message.created_at)
+			embed.set_author(name=f"{ctx.author} (ID {ctx.author.id})", icon_url=ctx.author.avatar_url)
+			embed.set_thumbnail(url=member.avatar_url)
+			await moderation_log.send(embed=embed)
+			# After a while
+			
+			# general_embed = discord.Embed(colour=discord.Colour.lighter_grey(),
+			# 							  timestamp=ctx.message.created_at)
+			# general_embed.set_author(name=f'{member} is no longer tempmuted', icon_url=member.avatar_url)
+			# await ctx.send(embed=general_embed)
+			# # Inserts a infraction into the database
+			await self.insert_user_infraction(
+				user_id=member.id, infr_type="mute", reason=reason, 
+				timestamp=current_ts , perpetrator=ctx.author.id)
+			try:
+				await member.send(embed=general_embed)
+			except:
+				pass
+		else:
+			await ctx.send(f'**{member} is already muted!**', delete_after=5)
+
 	# Unmutes a member
 	@commands.command()
 	@commands.has_any_role(*[trial_mod_role_id, jr_mod_role_id, mod_role_id, admin_role_id, owner_role_id])
@@ -614,9 +806,12 @@ class Moderation(commands.Cog):
 		except discord.errors.NotFound:
 			return await ctx.send("**Invalid user id!**", delete_after=3)
 
-	async def insert_in_muted(self, user_id: int, role_id: int):
+	async def insert_in_muted(self, user_id: int, role_id: int, mute_ts: int = None, muted_for_seconds: int = None):
 		mycursor, db = await the_database()
-		await mycursor.execute("INSERT INTO MutedMember (user_id, role_id) VALUES (%s, %s)", (user_id, role_id))
+		await mycursor.execute("""
+			INSERT INTO MutedMember (
+			user_id, role_id, mute_ts, muted_for_seconds) VALUES (%s, %s, %s, %s)""", (user_id, role_id, mute_ts, muted_for_seconds)
+		)
 		await db.commit()
 		await mycursor.close()
 
