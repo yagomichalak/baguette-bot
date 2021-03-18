@@ -72,10 +72,15 @@ async def on_member_join(member) -> None:
 	await join_log.send(f"{member.mention} joined.\n**Account creation date:** {member.created_at.strftime('%d/%m/%y')} ({sorted_time_create})")
 
 	welcome_message = f"""
-	**Welcome to: Le Salon Français!**
+🇬🇧 **Welcome to: Le Salon Français!**
 
 Please read the rules and report anything that is against the rules to any of the Moderators/Admins.
-If there is anything you are unsure of, please first read the <#{faq_channel_id}> channel as this will have answers to some of your questions."""
+If there is anything you are unsure of, please first read the <#{faq_channel_id}> channel as this will have answers to some of your questions.
+
+🇫🇷 **Bienvenue sur Le Salon Français !**
+
+Veuillez lire les règles et signaler tout ce qui est contre les règles à n'importe quel membre du Staff. 
+S'il y a quelque chose dont vous n'êtes pas sûr, veuillez d'abord lire le canal <#{faq_channel_id}> car vous y trouverez les réponses à la plupart de vos questions."""
 
 	await member.send(welcome_message)
 

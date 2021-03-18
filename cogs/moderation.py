@@ -108,8 +108,8 @@ class Moderation(commands.Cog):
 		if await self.get_muted_roles(member.id):
 			muted_role = discord.utils.get(member.guild.roles, id=muted_role_id)
 			await member.add_roles(muted_role)
-			general = discord.utils.get(member.guild.channels, id=general_channel)
-			await general.send(f"**{member.mention}, you were muted, left and rejoined the server, so you shall stay muted! 🔇**")
+			# general = discord.utils.get(member.guild.channels, id=general_channel)
+			await member.send(f"**{member.mention}, you were muted, left and rejoined the server, so you shall stay muted! 🔇**")
 	
 
 	# Chat filter
