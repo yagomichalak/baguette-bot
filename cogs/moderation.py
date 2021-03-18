@@ -479,20 +479,20 @@ class Moderation(commands.Cog):
 			if (just_time := t[:-1]).isdigit():
 				just_time = int(t[:-1])
 
-			if 'd' in t:
+			if 'd' in t and not the_time_dict.get('days'):
 
 				seconds += just_time * 86400
 				the_time_dict['days'] = just_time
 				continue
-			elif 'h' in t:
+			elif 'h' in t and not the_time_dict.get('hours'):
 				seconds += just_time * 3600
 				the_time_dict['hours'] = just_time
 				continue
-			elif 'm' in t:
+			elif 'm' in t and not the_time_dict.get('minutes'):
 				seconds += just_time * 60
 				the_time_dict['minutes'] = just_time
 				continue
-			elif 's' in t:
+			elif 's' in t and not the_time_dict.get('seconds'):
 				seconds += just_time
 				the_time_dict['seconds'] = just_time
 				continue
@@ -563,12 +563,6 @@ class Moderation(commands.Cog):
 			embed.set_author(name=f"{ctx.author} (ID {ctx.author.id})", icon_url=ctx.author.avatar_url)
 			embed.set_thumbnail(url=member.avatar_url)
 			await moderation_log.send(embed=embed)
-			# After a while
-			
-			# general_embed = discord.Embed(colour=discord.Colour.lighter_grey(),
-			# 							  timestamp=ctx.message.created_at)
-			# general_embed.set_author(name=f'{member} is no longer tempmuted', icon_url=member.avatar_url)
-			# await ctx.send(embed=general_embed)
 			# # Inserts a infraction into the database
 			await self.insert_user_infraction(
 				user_id=member.id, infr_type="mute", reason=reason, 
@@ -670,11 +664,59 @@ class Moderation(commands.Cog):
 	@commands.command()
 	@commands.has_any_role(*[mod_role_id, admin_role_id, owner_role_id])
 	async def ban(self, ctx, member: discord.Member = None, *, reason=None) -> None:
-		'''
-		(ModTeam/ADM) Bans a member from the server.
+		""" Bans a member from the server.
 		:param member: The @ or ID of the user to ban.
-		:param reason: The reason for banning the user. (Optional)
-		'''
+		:param reason: The reason for banning the user. (Optional) """
+
+		await ctx.message.delete()
+		if not member:
+			return await ctx.send('**Please, specify a member!**', delete_after=3)
+
+
+		channel = ctx.channel
+
+		icon = ctx.author.avatar_url
+
+		# Bans and logs
+		try:
+			await member.ban(reason=reason)
+		except Exception:
+			await ctx.send('**You cannot do that!**', delete_after=3)
+		else:
+			# General embed
+			general_embed = discord.Embed(description=f'**Reason:** {reason}', colour=discord.Colour.dark_red())
+			general_embed.set_author(name=f'{member} has been banned', icon_url=member.avatar_url)
+			await ctx.send(embed=general_embed)
+			# Moderation log embed
+			moderation_log = discord.utils.get(ctx.guild.channels, id=mod_log_id)
+			embed = discord.Embed(
+				description=F"**Banned** {member.mention}\n**Reason:** {reason}",
+				color=discord.Color.dark_red(),
+				timestamp=ctx.message.created_at)
+			embed.set_author(name=f"{ctx.author} (ID {ctx.author.id})", icon_url=ctx.author.avatar_url)
+			embed.set_thumbnail(url=member.avatar_url)
+			await moderation_log.send(embed=embed)
+			# Inserts a infraction into the database
+			epoch = datetime.utcfromtimestamp(0)
+			current_ts = (datetime.utcnow() - epoch).total_seconds()
+			await self.insert_user_infraction(
+				user_id=member.id, infr_type="ban", reason=reason, 
+				timestamp=current_ts , perpetrator=ctx.author.id)
+			try:
+				await member.send(embed=general_embed)
+			except:
+				pass
+
+
+
+	# Hardbans a member
+	@commands.command()
+	@commands.has_any_role(*[mod_role_id, admin_role_id, owner_role_id])
+	async def hardban(self, ctx, member: discord.Member = None, *, reason=None) -> None:
+		""" Hardbans a member from the server.
+		=> Bans and delete messages from the last 7 days,
+		:param member: The @ or ID of the user to ban.
+		:param reason: The reason for banning the user. (Optional) """
 		await ctx.message.delete()
 		if not member:
 			return await ctx.send('**Please, specify a member!**', delete_after=3)
@@ -692,12 +734,12 @@ class Moderation(commands.Cog):
 		else:
 			# General embed
 			general_embed = discord.Embed(description=f'**Reason:** {reason}', colour=discord.Colour.dark_red())
-			general_embed.set_author(name=f'{member} has been banned', icon_url=member.avatar_url)
+			general_embed.set_author(name=f'{member} has been hardbanned', icon_url=member.avatar_url)
 			await ctx.send(embed=general_embed)
 			# Moderation log embed
 			moderation_log = discord.utils.get(ctx.guild.channels, id=mod_log_id)
 			embed = discord.Embed(
-				description=F"**Banned** {member.mention}\n**Reason:** {reason}",
+				description=F"**Hardbanned** {member.mention}\n**Reason:** {reason}",
 				color=discord.Color.dark_red(),
 				timestamp=ctx.message.created_at)
 			embed.set_author(name=f"{ctx.author} (ID {ctx.author.id})", icon_url=ctx.author.avatar_url)
