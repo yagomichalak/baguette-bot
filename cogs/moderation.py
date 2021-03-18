@@ -312,8 +312,6 @@ class Moderation(commands.Cog):
 		'''
 		await ctx.message.delete()
 		guild = ctx.guild
-		guild_age = (ctx.message.created_at - guild.created_at).days
-		created_at = f"Server created on {guild.created_at.strftime('%b %d %Y at %H:%M')}. That\'s over {guild_age} days ago!"
 		color = discord.Color.green()
 
 
