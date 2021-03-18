@@ -67,7 +67,8 @@ async def on_member_join(member) -> None:
 	join_log = discord.utils.get(member.guild.channels, id=joins_and_leaves_log_id)
 
 
-	sorted_time_create = await self.sort_time(member.guild, member.created_at)
+
+	sorted_time_create = await client.get_cog('Moderation').sort_time(member.guild, member.created_at)
 	await join_log.send(f"{member.mention} joined.\n**Account creation date:** {member.created_at.strftime('%d %b %y')} ({sorted_time_create})")
 
 	welcome_message = f"""
