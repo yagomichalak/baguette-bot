@@ -69,7 +69,7 @@ async def on_member_join(member) -> None:
 
 
 	sorted_time_create = await client.get_cog('Moderation').sort_time(member.guild, member.created_at)
-	await join_log.send(f"{member.mention} joined.\n**Account creation date:** {member.created_at.strftime('%d %b %y')} ({sorted_time_create})")
+	await join_log.send(f"{member.mention} joined.\n**Account creation date:** {member.created_at.strftime('%d/%m/%y')} ({sorted_time_create})")
 
 	welcome_message = f"""
 	**Welcome to: Le Salon Français!**

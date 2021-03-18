@@ -292,9 +292,9 @@ class Moderation(commands.Cog):
 		sorted_time_create = await self.sort_time(ctx.guild, member.created_at)
 		sorted_time_join = await self.sort_time(ctx.guild, member.joined_at)
 
-		embed.add_field(name="Created at:", value=f"{member.created_at.strftime('%d %b %y')} ({sorted_time_create})",
+		embed.add_field(name="Created at:", value=f"{member.created_at.strftime('%d/%m/%y')} ({sorted_time_create})",
 						inline=False)
-		embed.add_field(name="Joined at:", value=f"{member.joined_at.strftime('%d %b %y')} ({sorted_time_join})", inline=False)
+		embed.add_field(name="Joined at:", value=f"{member.joined_at.strftime('%d/%m/%y')} ({sorted_time_join})", inline=False)
 
 		embed.add_field(name="Top role:", value=member.top_role.mention, inline=False)
 
