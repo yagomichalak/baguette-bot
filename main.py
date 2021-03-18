@@ -114,6 +114,30 @@ async def on_message_delete(message):
 	# if message.author != client.user and not message.author.bot:
 	await general_log.send(embed=embed)
 
+@client.event
+async def on_bulk_message_delete(messages):
+	
+	for message in messages:
+		if not message.guild:
+			continue
+
+		if message.author.bot:
+			continue
+
+		if message.channel.id == counting_channel_id:
+			continue
+
+		general_log = client.get_channel(message_log_id)
+		embed = discord.Embed(
+			description=f"**User:** {message.author.mention}\n**Channel:** {message.channel.mention}\n**Message:** {message.content}", 
+			color=discord.Color.dark_grey(),
+			timestamp=message.created_at)
+		embed.set_footer(text=f"Message ID: {message.id}")
+		embed.set_author(name="Message Deleted (Purge)", icon_url=message.author.avatar_url)
+		# if len(message.attachments)
+		# if message.author != client.user and not message.author.bot:
+		await general_log.send(embed=embed)
+
 
 @client.command()
 async def help(ctx, cmd: str = None):
