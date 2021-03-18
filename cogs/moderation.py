@@ -218,9 +218,9 @@ class Moderation(commands.Cog):
 			
 		if len(user_cache := self.message_cache.get(member.id)) >= 10:
 			sub = user_cache[-1]['timestamp'] - user_cache[-10]['timestamp']
-			if sub <= 10:
+			if sub <= 5:
 				await message.delete()
-				return await self.warn(ctx=ctx, member=member, reason="Message Spam")
+				return await self.mute(ctx=ctx, member=member, reason="Message Spam")
 
 		if lmsg >= 50:
 			user_cache = self.message_cache.get(member.id)
@@ -289,13 +289,64 @@ class Moderation(commands.Cog):
 		embed.add_field(name="ID:", value=member.id, inline=False)
 		embed.add_field(name="Server name:", value=member.display_name, inline=False)
 
-		embed.add_field(name="Created at:", value=member.created_at.strftime("%d/%m/%y %H:%M GMT"),
+		sorted_time_create = await self.sort_time(ctx.guild, member.created_at)
+		sorted_time_join = await self.sort_time(ctx.guild, member.joined_at)
+
+		embed.add_field(name="Created at:", value=f"{member.created_at.strftime('%d %b %y')} ({sorted_time_create})",
 						inline=False)
-		embed.add_field(name="Joined at:", value=member.joined_at.strftime("%d/%m/%y %H:%M GMT"), inline=False)
+		embed.add_field(name="Joined at:", value=f"{member.joined_at.strftime('%d %b %y')} ({sorted_time_join})", inline=False)
 
 		embed.add_field(name="Top role:", value=member.top_role.mention, inline=False)
 
 		await ctx.send(embed=embed)
+
+
+	async def sort_time(self, guild: discord.Guild, at: datetime) -> str:
+
+		member_age = (datetime.utcnow() - at).total_seconds()
+		uage = {
+			"years": 0,
+			"months": 0,
+			"days": 0,
+			"hours": 0,
+			"minutes": 0,
+			"seconds": 0
+		}
+
+		text_list = []
+
+
+		if (years := round(member_age / 31536000)) > 0:
+			text_list.append(f"{years} years")
+			member_age -= 31536000 * years
+			# uage['years'] = years
+
+		if (months := round(member_age / 2628288)) > 0:
+			text_list.append(f"{months} months")
+			member_age -= 2628288 * months
+			# uage['months'] = months
+
+		if not years and not months and (days := round(member_age / 86400)) > 0:
+			text_list.append(f"{days} days")
+			member_age -= 86400 * days
+			# uage['days'] = days
+
+		if not years and not months and not days and (hours := round(member_age / 3600)) > 0:
+			text_list.append(f"{hours} hours")
+			member_age -= 3600 * hours
+
+			# uage['hours'] = hours
+
+		if not years and not months and not days and not hours and (minutes := round(member_age / 60)) > 0:
+			text_list.append(f"{minutes} minutes")
+			member_age -= 60 * minutes
+			# uage['minutes'] = minutes
+
+
+
+		text = ' and '.join(text_list)
+		text += ' ago'
+		return text
 
 	@commands.command()
 	@commands.has_any_role(*[trial_mod_role_id, jr_mod_role_id, mod_role_id, admin_role_id, owner_role_id])

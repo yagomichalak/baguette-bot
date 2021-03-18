@@ -66,7 +66,9 @@ async def on_member_join(member) -> None:
 
 	join_log = discord.utils.get(member.guild.channels, id=joins_and_leaves_log_id)
 
-	await join_log.send(f"{member.mention} joined.\n**Account creation date:** {member.created_at.strftime('%d/%m/%y %H:%M GMT')}")
+
+	sorted_time_create = await self.sort_time(member.guild, member.created_at)
+	await join_log.send(f"{member.mention} joined.\n**Account creation date:** {member.created_at.strftime('%d %b %y')} ({sorted_time_create})")
 
 	welcome_message = f"""
 	**Welcome to: Le Salon Français!**
@@ -80,7 +82,7 @@ If there is anything you are unsure of, please first read the <#{faq_channel_id}
 async def on_member_remove(member):
 	roles = [role for role in member.roles]
 	channel = discord.utils.get(member.guild.channels, id=joins_and_leaves_log_id)
-	await channel.send(f"{member.mention} left.")
+	await channel.send(f"**{member.display_name}** (ID {member.id}) left.")
 
 
 # Delete messages log
