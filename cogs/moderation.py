@@ -323,7 +323,7 @@ class Moderation(commands.Cog):
 		em.add_field(name="Channels", value=f"⌨️ {len(guild.text_channels)} | 🔈 {len(guild.voice_channels)}", inline=True)
 		em.add_field(name="Roles", value=len(guild.roles), inline=False)
 		em.add_field(name="Emojis", value=len(guild.emojis), inline=True)
-		em.add_field(name="🌐 Region", value=guild.region.lower() if guild.region else None, inline=False)
+		em.add_field(name="🌐 Region", value=str(guild.region).title() if guild.region else None, inline=False)
 		em.add_field(name="🔨 Bans", value=len(await guild.bans()), inline=False)
 		em.add_field(name="🌟 Boosts", value=f"{guild.premium_subscription_count} (Level {guild.premium_tier})", inline=False)
 		features = '\n'.join(list(map(lambda f: f.replace('_', '').capitalize(), guild.features)))
