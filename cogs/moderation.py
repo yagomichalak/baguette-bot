@@ -222,7 +222,7 @@ class Moderation(commands.Cog):
 			
 		if len(user_cache := self.message_cache.get(member.id)) >= 10:
 			sub = user_cache[-1]['timestamp'] - user_cache[-10]['timestamp']
-			if sub <= 5:
+			if sub <= 8:
 				await message.delete()
 				return await self.mute(ctx=ctx, member=member, reason="Message Spam")
 
@@ -429,7 +429,7 @@ class Moderation(commands.Cog):
 			# Moderation log embed
 			moderation_log = discord.utils.get(ctx.guild.channels, id=mod_log_id)
 			embed = discord.Embed(
-				description=F"**Warned** {member.mention}\n**Reason:** {reason}",
+				description=F"**Warned** {member.mention}\n**Reason:** {reason}\n**Location:** {ctx.channel.mention}",
 				color=discord.Color.dark_gold(),
 				timestamp=ctx.message.created_at)
 			embed.set_author(name=f"{ctx.author} (ID {ctx.author.id})", icon_url=ctx.author.avatar_url)
@@ -486,7 +486,7 @@ class Moderation(commands.Cog):
 			# Moderation log embed
 			moderation_log = discord.utils.get(ctx.guild.channels, id=mod_log_id)
 			embed = discord.Embed(
-				description=F"**Muted** {member.mention}\n**Reason:** {reason}",
+				description=F"**Muted** {member.mention}\n**Reason:** {reason}\n**Location:** {ctx.channel.mention}",
 				color=discord.Color.dark_gray(),
 				timestamp=ctx.message.created_at)
 			embed.set_author(name=f"{ctx.author} (ID {ctx.author.id})", icon_url=ctx.author.avatar_url)
@@ -612,7 +612,7 @@ class Moderation(commands.Cog):
 			# Moderation log embed
 			moderation_log = discord.utils.get(ctx.guild.channels, id=mod_log_id)
 			embed = discord.Embed(
-				description=F"**Tempmuted** {member.mention} for `{time_dict['days']}d` `{time_dict['hours']}h`, `{time_dict['minutes']}m`\n**Reason:** {reason}",
+				description=F"**Tempmuted** {member.mention} for `{time_dict['days']}d` `{time_dict['hours']}h`, `{time_dict['minutes']}m`\n**Reason:** {reason}\n**Location:** {ctx.channel.mention}",
 				color=discord.Color.lighter_grey(),
 				timestamp=ctx.message.created_at)
 			embed.set_author(name=f"{ctx.author} (ID {ctx.author.id})", icon_url=ctx.author.avatar_url)
@@ -659,7 +659,7 @@ class Moderation(commands.Cog):
 			# Moderation log embed
 			moderation_log = discord.utils.get(ctx.guild.channels, id=mod_log_id)
 			embed = discord.Embed(
-				description=F"**Unmuted** {member.mention}\n**Reason:** {reason}",
+				description=F"**Unmuted** {member.mention}\n**Reason:** {reason}\n**Location:** {ctx.channel.mention}",
 				color=discord.Color.light_gray(),
 				timestamp=ctx.message.created_at)
 			embed.set_author(name=f"{ctx.author} (ID {ctx.author.id})", icon_url=ctx.author.avatar_url)
@@ -697,7 +697,7 @@ class Moderation(commands.Cog):
 				# Moderation log embed
 				moderation_log = discord.utils.get(ctx.guild.channels, id=mod_log_id)
 				embed = discord.Embed(
-					description=F"**Kicked** {member.mention}\n**Reason:** {reason}",
+					description=F"**Kicked** {member.mention}\n**Reason:** {reason}\n**Location:** {ctx.channel.mention}",
 					color=discord.Color.magenta(),
 					timestamp=ctx.message.created_at)
 				embed.set_author(name=f"{ctx.author} (ID {ctx.author.id})", icon_url=ctx.author.avatar_url)
@@ -745,7 +745,7 @@ class Moderation(commands.Cog):
 			# Moderation log embed
 			moderation_log = discord.utils.get(ctx.guild.channels, id=mod_log_id)
 			embed = discord.Embed(
-				description=F"**Banned** {member.mention}\n**Reason:** {reason}",
+				description=F"**Banned** {member.mention}\n**Reason:** {reason}\n**Location:** {ctx.channel.mention}",
 				color=discord.Color.dark_red(),
 				timestamp=ctx.message.created_at)
 			embed.set_author(name=f"{ctx.author} (ID {ctx.author.id})", icon_url=ctx.author.avatar_url)
@@ -794,7 +794,7 @@ class Moderation(commands.Cog):
 			# Moderation log embed
 			moderation_log = discord.utils.get(ctx.guild.channels, id=mod_log_id)
 			embed = discord.Embed(
-				description=F"**Hardbanned** {member.mention}\n**Reason:** {reason}",
+				description=F"**Hardbanned** {member.mention}\n**Reason:** {reason}\n**Location:** {ctx.channel.mention}",
 				color=discord.Color.dark_red(),
 				timestamp=ctx.message.created_at)
 			embed.set_author(name=f"{ctx.author} (ID {ctx.author.id})", icon_url=ctx.author.avatar_url)
@@ -841,7 +841,7 @@ class Moderation(commands.Cog):
 				# Moderation log embed
 				moderation_log = discord.utils.get(ctx.guild.channels, id=mod_log_id)
 				embed = discord.Embed(
-					description=F"**Unbanned** {user.display_name} (ID {user.id})",
+					description=F"**Unbanned** {user.display_name} (ID {user.id})\n**Location:** {ctx.channel.mention}",
 					color=discord.Color.red(),
 					timestamp=ctx.message.created_at)
 				embed.set_author(name=f"{ctx.author} (ID {ctx.author.id})", icon_url=ctx.author.avatar_url)
@@ -883,7 +883,7 @@ class Moderation(commands.Cog):
 			# Moderation log embed
 			moderation_log = discord.utils.get(ctx.guild.channels, id=mod_log_id)
 			embed = discord.Embed(
-				description=F"**Hackbanned** {self.client.get_user(user_id)} (ID {member.id})\n**Reason:** {reason}",
+				description=F"**Hackbanned** {self.client.get_user(user_id)} (ID {member.id})\n**Reason:** {reason}\n**Location:** {ctx.channel.mention}",
 				color=discord.Color.dark_teal(),
 				timestamp=ctx.message.created_at)
 			embed.set_author(name=f"{ctx.author} (ID {ctx.author.id})", icon_url=ctx.author.avatar_url)
