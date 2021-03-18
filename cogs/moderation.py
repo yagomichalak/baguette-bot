@@ -336,7 +336,7 @@ class Moderation(commands.Cog):
 
 
 		em.set_thumbnail(url=None or guild.icon_url)
-		em.set_image(url=guild.splash_url)
+		em.set_image(url=guild.banner_url)
 		em.set_author(name=guild.name, icon_url=None or guild.icon_url)
 		created_at = await self.sort_time(guild, guild.created_at)
 		em.set_footer(text=f"Created: {guild.created_at.strftime('%d/%m/%y')} ({created_at})")
