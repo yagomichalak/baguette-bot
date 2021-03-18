@@ -304,7 +304,6 @@ class Moderation(commands.Cog):
 
 		await ctx.send(embed=embed)
 
-
 	@commands.command(aliases=['si', 'server'])
 	@commands.has_any_role(*[trial_mod_role_id, jr_mod_role_id, mod_role_id, admin_role_id, owner_role_id])
 	async def serverinfo(self, ctx):
