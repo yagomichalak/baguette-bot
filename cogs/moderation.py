@@ -233,6 +233,7 @@ class Moderation(commands.Cog):
 				sub = user_cache[-1]['timestamp'] - user_cache[-3]['timestamp']
 				if sub <= 10:
 					if user_cache[-3]['size'] >= 50:
+						await message.delete()
 						return await self.mute(ctx=ctx, member=member, reason="Message Spam")
 
 	async def check_image_spam(self, ctx: commands.Context, message: discord.Message) -> None:
