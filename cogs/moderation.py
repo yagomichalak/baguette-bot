@@ -8,6 +8,9 @@ from typing import List, Union
 import os
 from extra.banned_things import chat_filter, website_filter
 from typing import List, Dict
+from pprint import pprint
+import re
+import emoji
 
 mod_log_id = int(os.getenv('MOD_LOG_CHANNEL_ID'))
 muted_role_id = int(os.getenv('MUTED_ROLE_ID'))
@@ -50,7 +53,6 @@ class Moderation(commands.Cog):
 		epoch = datetime.utcfromtimestamp(0)
 		current_ts = (datetime.utcnow() - epoch).total_seconds()
 		tempmutes = await self.get_expired_tempmutes(current_ts)
-
 		guild = self.client.get_guild(server_id)
 
 		for tm in tempmutes:
@@ -60,18 +62,31 @@ class Moderation(commands.Cog):
 
 			try:
 				role = discord.utils.get(guild.roles, id=muted_role_id)
+				if role:
+					if user_roles := await self.get_muted_roles(member.id):
 
-				if role in member.roles:
-					user_roles = await self.get_muted_roles(member.id)
-					if user_roles:
+						bot = discord.utils.get(guild.members, id=self.client.user.id)
+
+						member_roles = [
+							a_role for the_role in user_roles if (a_role := discord.utils.get(guild.roles, id=the_role[1]))
+							and a_role < bot.top_role
+						]
+						member_roles.extend(member.roles)
+
+						member_roles = list(set(member_roles))
+						if role in member_roles:
+							member_roles.remove(role)
+
+						await member.edit(roles=member_roles)
 						for mrole in user_roles:
-							the_role = discord.utils.get(guild.roles, id=mrole[1])
 							try:
-								await member.add_roles(the_role, atomic=True)
-								await self.remove_role_from_system(member.id, the_role.id)
-							except Exception:
+								await self.remove_role_from_system(member.id, mrole[1])
+							except Exception as e:
+								print(e)
 								pass
-					await member.remove_roles(role)
+
+
+
 					# Moderation log embed
 					moderation_log = discord.utils.get(guild.channels, id=mod_log_id)
 					embed = discord.Embed(
@@ -85,11 +100,7 @@ class Moderation(commands.Cog):
 					except:
 						pass
 
-
-
-
-
-			except:
+			except Exception as e:
 				continue
 
 	async def get_expired_tempmutes(self, current_ts: int) -> List[int]:
@@ -214,7 +225,11 @@ class Moderation(commands.Cog):
 		member = message.author
 		timestamp = time.time()
 
+		# Substracts the amount of emojis from the length of the message
 		lmsg = len(message.content)
+		text_de= emoji.demojize(message.content)
+		emojis_list_de= re.findall(r'(<[a]?:[!_\-\w]+:\d[^>][0-9].{,18}>)', text_de)
+		lmsg -= len(''.join(emojis_list_de)) - len(emojis_list_de)
 
 		if user_cache := self.message_cache.get(member.id):
 			user_cache.append({'timestamp': timestamp, 'size': lmsg})
@@ -509,15 +524,31 @@ class Moderation(commands.Cog):
 		if not member:
 			return await ctx.send("**Please, specify a member!**")
 		if role not in member.roles:
-			await member.add_roles(role)
+			# await member.add_roles(role)
 			await member.move_to(None)
-			for mr in member.roles:
-				if mr.id != role.id:
-					try:
-						await member.remove_roles(mr, atomic=True)
-						await self.insert_in_muted(member.id, mr.id)
-					except Exception:
-						pass
+			remove_roles = []
+			keep_roles = [role]
+
+			bot = discord.utils.get(ctx.guild.members, id=self.client.user.id)
+
+			for i, member_role in enumerate(member.roles):
+				if i == 0:
+					continue
+
+				if member_role.id == role.id:
+					continue
+
+				if member_role < bot.top_role:
+					remove_roles.append(member_role)
+
+				if member_role >= bot.top_role:
+					keep_roles.append(member_role)
+
+			await member.edit(roles=keep_roles)
+			for rr in remove_roles:
+				await self.insert_in_muted(member.id, rr.id)
+
+
 			# General embed
 			general_embed = discord.Embed(description=f'**Reason:** {reason}', colour=discord.Colour.dark_grey(), timestamp=ctx.message.created_at)
 			general_embed.set_author(name=f'{member} has been muted', icon_url=member.avatar_url)
@@ -634,16 +665,30 @@ class Moderation(commands.Cog):
 		# print(current_ts, seconds)
 
 		if role not in member.roles:
-			await member.add_roles(role)
+			# await member.add_roles(role)
 			await member.move_to(None)
-			for mr in member.roles:
-				if mr.id != role.id:
-					try:
-						await member.remove_roles(mr, atomic=True)
-						await self.insert_in_muted(member.id, mr.id, current_ts, seconds)
-					except Exception:
-						pass
-			
+			remove_roles = []
+			keep_roles = [role]
+
+			bot = discord.utils.get(ctx.guild.members, id=self.client.user.id)
+
+			for i, member_role in enumerate(member.roles):
+				if i == 0:
+					continue
+
+				if member_role.id == role.id:
+					continue
+
+				if member_role < bot.top_role:
+					remove_roles.append(member_role)
+
+				if member_role >= bot.top_role:
+					keep_roles.append(member_role)
+
+			await member.edit(roles=keep_roles)
+			for rr in remove_roles:
+				await self.insert_in_muted(member.id, rr.id, current_ts, seconds)
+
 			# General embed
 			general_embed = discord.Embed(description=f"**For:** `{time_dict['days']}d` `{time_dict['hours']}h`, `{time_dict['minutes']}m`\n**Reason:** {reason}", colour=discord.Colour.dark_grey(), timestamp=ctx.message.created_at)
 			general_embed.set_author(name=f"{member} has been tempmuted", icon_url=member.avatar_url)
@@ -670,7 +715,7 @@ class Moderation(commands.Cog):
 
 	# Unmutes a member
 	@commands.command()
-	@commands.has_any_role(*[trial_mod_role_id, jr_mod_role_id, mod_role_id, admin_role_id, owner_role_id])
+	# @commands.has_any_role(*[trial_mod_role_id, jr_mod_role_id, mod_role_id, admin_role_id, owner_role_id])
 	async def unmute(self, ctx, member: discord.Member = None, *, reason = None):
 		'''
 		(MOD) Unmutes a member.
@@ -681,16 +726,28 @@ class Moderation(commands.Cog):
 		if not member:
 			return await ctx.send("**Please, specify a member!**", delete_after=3)
 		if role in member.roles:
-			user_roles = await self.get_muted_roles(member.id)
-			if user_roles:
+			if user_roles := await self.get_muted_roles(member.id):
+
+				bot = discord.utils.get(ctx.guild.members, id=self.client.user.id)
+
+				member_roles = [
+					a_role for the_role in user_roles if (a_role := discord.utils.get(member.guild.roles, id=the_role[1]))
+					and a_role < bot.top_role
+				]
+				member_roles.extend(member.roles)
+
+				member_roles = list(set(member_roles))
+				if role in member_roles:
+					member_roles.remove(role)
+
+				await member.edit(roles=member_roles)
 				for mrole in user_roles:
-					the_role = discord.utils.get(member.guild.roles, id=mrole[1])
 					try:
-						await member.add_roles(the_role, atomic=True)
-						await self.remove_role_from_system(member.id, the_role.id)
+						# await member.add_roles(the_role, atomic=True)
+						await self.remove_role_from_system(member.id, mrole)
 					except Exception:
 						pass
-			await member.remove_roles(role)
+			# await member.remove_roles(role)
 			# General embed
 			general_embed = discord.Embed(description=f'**Reason:** {reason}', colour=discord.Colour.light_gray(), timestamp=ctx.message.created_at)
 			general_embed.set_author(name=f'{member} has been unmuted', icon_url=member.avatar_url)
@@ -976,7 +1033,7 @@ class Moderation(commands.Cog):
 		await ctx.message.delete()
 		mycursor, db = await the_database()
 		await mycursor.execute("""CREATE TABLE MutedMember (
-			user_id BIGINT NOT NULL, role_id BIGINT NOT NULL)""")
+			user_id BIGINT NOT NULL, role_id BIGINT NOT NULL, mute_ts BIGINT DEFAULT NULL, muted_for_seconds BIGINT DEFAULT NULL)""")
 		await db.commit()
 		await mycursor.close()
 
