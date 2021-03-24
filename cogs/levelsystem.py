@@ -60,7 +60,6 @@ class LevelSystem(commands.Cog):
     ###
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
-        return
 
         if member.bot:
             return

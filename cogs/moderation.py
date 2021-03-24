@@ -67,10 +67,10 @@ class Moderation(commands.Cog):
 
 						bot = discord.utils.get(guild.members, id=self.client.user.id)
 
-						member_roles = [
+						member_roles = list([
 							a_role for the_role in user_roles if (a_role := discord.utils.get(guild.roles, id=the_role[1]))
 							and a_role < bot.top_role
-						]
+						])
 						member_roles.extend(member.roles)
 
 						member_roles = list(set(member_roles))
@@ -728,10 +728,10 @@ class Moderation(commands.Cog):
 
 				bot = discord.utils.get(ctx.guild.members, id=self.client.user.id)
 
-				member_roles = [
+				member_roles = list([
 					a_role for the_role in user_roles if (a_role := discord.utils.get(member.guild.roles, id=the_role[1]))
 					and a_role < bot.top_role
-				]
+				])
 				member_roles.extend(member.roles)
 
 				await member.edit(roles=member_roles)
