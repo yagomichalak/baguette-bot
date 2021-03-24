@@ -723,6 +723,10 @@ class Moderation(commands.Cog):
 		role = discord.utils.get(ctx.guild.roles, id=muted_role_id)
 		if not member:
 			return await ctx.send("**Please, specify a member!**", delete_after=3)
+
+		if not role:
+			return
+
 		if role in member.roles:
 			if user_roles := await self.get_muted_roles(member.id):
 
@@ -733,8 +737,6 @@ class Moderation(commands.Cog):
 					and a_role < bot.top_role
 				])
 				member_roles.extend(member.roles)
-
-				await member.edit(roles=member_roles)
 
 				member_roles = list(set(member_roles))
 				if role in member_roles:
@@ -747,6 +749,32 @@ class Moderation(commands.Cog):
 					await self.remove_role_from_system(user_role_ids)
 				except Exception:
 					pass
+
+
+				role = discord.utils.get(guild.roles, id=muted_role_id)
+				if role:
+					if user_roles := await self.get_muted_roles(member.id):
+
+						bot = discord.utils.get(guild.members, id=self.client.user.id)
+
+						member_roles = list([
+							a_role for the_role in user_roles if (a_role := discord.utils.get(guild.roles, id=the_role[1]))
+							and a_role < bot.top_role
+						])
+						member_roles.extend(member.roles)
+
+						member_roles = list(set(member_roles))
+						if role in member_roles:
+							member_roles.remove(role)
+
+						await member.edit(roles=member_roles)
+						user_role_ids = [(member.id, mrole[1]) for mrole in user_roles]
+						try:
+							await self.remove_role_from_system(user_role_ids)
+						except Exception as e:
+							print(e)
+							pass
+
 			# General embed
 			general_embed = discord.Embed(description=f'**Reason:** {reason}', colour=discord.Colour.light_gray(), timestamp=ctx.message.created_at)
 			general_embed.set_author(name=f'{member} has been unmuted', icon_url=member.avatar_url)
