@@ -39,6 +39,7 @@ class LevelSystem(commands.Cog):
     # In-game commands
     @commands.Cog.listener()
     async def on_message(self, message):
+        return
 
         # return
 
@@ -59,6 +60,7 @@ class LevelSystem(commands.Cog):
     ###
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
+        return
 
         if member.bot:
             return
@@ -153,7 +155,7 @@ class LevelSystem(commands.Cog):
             # await self.check_level_role(user, the_user[0][2]+1)
             await self.check_level_roles_deeply(user, the_user[0][2]+1)
             return await channel.send(
-                f"""🇬🇧 {user.mention} has reached level **{the_user[0][2] + 1}!**\n🇫🇷 {user.mention} a atteint niveau **{the_user[0][2] + 1}** !""")
+                f"""🇬🇧 {user.mention} has reached level **{the_user[0][2] + 1}!**\n🇫🇷 {user.mention} a atteint niveau **{the_user[0][2] + 1} !**""")
 
     async def check_level_role(self, member: discord.Member, level: int) -> Union[None, int]:
         """ Checks if the member level has a role attached to it

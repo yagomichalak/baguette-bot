@@ -330,9 +330,27 @@
 # # Transform the time to UTC
 # converted_time = converted_time.astimezone(pytz.utc)
 # print(converted_time.strftime("%H:%M"), converted_time.tzinfo)
+epoch = datetime.utcfromtimestamp(0)
+current_ts = (datetime.utcnow() - epoch).total_seconds()
 
+b!eval
+from datetime import datetime
+guild = ctx.guild
+role = discord.utils.get(guild.roles, name="Shy")
+await ctx.send(role.name)
 
-xp = 10
-boost = 10
-
-print(xp + (10 * boost)/ 100)
+current_ts = await client.get_cog('Misc').get_timestamp()
+lvl = 3
+print((lvl+1)**5)
+all_members = [(m.id, (lvl+1) **5, lvl, current_ts) for m in guild.members if role in m.roles]
+try:
+	mycursor, db = await the_database()
+	await mycursor.executemany("""
+	    INSERT INTO MemberStatus (user_id, user_xp, user_lvl, user_xp_time) 
+    	VALUES (%s, %s, %s, %s)""", all_members)
+	await db.commit()
+	await mycursor.close()
+except Exception as e:
+	print('n', e)
+else:
+	await ctx.send('y')
