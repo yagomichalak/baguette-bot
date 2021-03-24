@@ -734,10 +734,13 @@ class Moderation(commands.Cog):
 				]
 				member_roles.extend(member.roles)
 
+				await member.edit(roles=member_roles)
+
 				member_roles = list(set(member_roles))
 				if role in member_roles:
 					member_roles.remove(role)
 
+				await member.edit(roles=member_roles)
 				user_role_ids = [(member.id, mrole[1]) for mrole in user_roles]
 				try:
 					# await member.add_roles(the_role, atomic=True)
