@@ -221,9 +221,9 @@
 # 	# pprint.pprint(r.json())
 
 
-import pytz
-from pytz import timezone
-from datetime import datetime
+# import pytz
+# from pytz import timezone
+# from datetime import datetime
 
 
 
@@ -330,3 +330,9 @@ from datetime import datetime
 # # Transform the time to UTC
 # converted_time = converted_time.astimezone(pytz.utc)
 # print(converted_time.strftime("%H:%M"), converted_time.tzinfo)
+
+
+xp = 10
+boost = 10
+
+print(xp + (10 * boost)/ 100)

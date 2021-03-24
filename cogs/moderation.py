@@ -78,8 +78,7 @@ class Moderation(commands.Cog):
 							member_roles.remove(role)
 
 						await member.edit(roles=member_roles)
-						role_ids = [(member.id, mrole[1]) for mrole in user_roles]
-						user_role_ids = [(member.id, mrole[1])]
+						user_role_ids = [(member.id, mrole[1]) for mrole in user_roles]
 						try:
 							await self.remove_role_from_system(user_role_ids)
 						except Exception as e:
@@ -652,11 +651,9 @@ class Moderation(commands.Cog):
 		if not time:
 			return await ctx.send('**Inform a time!**', delete_after=3)
 
-
 		time_dict, seconds = await self.get_mute_time(ctx=ctx, time=time)
 		if not seconds:
 			return
-
 
 		# print('ah')
 		epoch = datetime.utcfromtimestamp(0)
@@ -741,13 +738,12 @@ class Moderation(commands.Cog):
 				if role in member_roles:
 					member_roles.remove(role)
 
-				await member.edit(roles=member_roles)
-				for mrole in user_roles:
-					try:
-						# await member.add_roles(the_role, atomic=True)
-						await self.remove_role_from_system(member.id, mrole)
-					except Exception:
-						pass
+				user_role_ids = [(member.id, mrole[1]) for mrole in user_roles]
+				try:
+					# await member.add_roles(the_role, atomic=True)
+					await self.remove_role_from_system(user_role_ids)
+				except Exception:
+					pass
 			# General embed
 			general_embed = discord.Embed(description=f'**Reason:** {reason}', colour=discord.Colour.light_gray(), timestamp=ctx.message.created_at)
 			general_embed.set_author(name=f'{member} has been unmuted', icon_url=member.avatar_url)
@@ -1324,6 +1320,10 @@ class Moderation(commands.Cog):
 			embed.color = discord.Color.green()
 			await ctx.send(embed=embed)
 		
-
+"""
+Setup:
+create_table_mutedmember
+create_table_user_infractions
+"""
 def setup(client) -> None:
 	client.add_cog(Moderation(client))
