@@ -287,12 +287,12 @@ class LevelSystem(commands.Cog):
 
         embed.add_field(
             name="__Most Active Message Channels__", 
-            value=f"**🕛 Last 24 hours:** {c_msg_1[0].mention if c_msg_1[0] else None}\n**🕖 Last 7 days:** {c_msg_7[0].mention if c_msg_7[0] else None}", 
+            value=f"**🕖 Last 7 days:** {c_msg_7[0].mention if c_msg_7[0] else None}\n**🕛 Last 24 hours:** {c_msg_1[0].mention if c_msg_1[0] else None}", 
             inline=False)
 
         embed.add_field(
             name="__Most Active Voice Channels__", 
-            value=f"**🕛 Last 24 hours:** {c_time_1[0].mention if c_time_1[0] else None}\n**🕖 Last 7 days:** {c_time_7[0].mention if c_time_7[0] else None}", 
+            value=f"**🕖 Last 7 days:** {c_time_7[0].mention if c_time_7[0] else None}\n**🕛 Last 24 hours:** {c_time_1[0].mention if c_time_1[0] else None}", 
             inline=True)
 
         embed.set_thumbnail(url=ctx.guild.icon_url)
