@@ -462,7 +462,7 @@ class LevelSystem(commands.Cog):
         # Embeds each one of the top ten users.
         for i, sm in enumerate(entries, start=offset):
             member = discord.utils.get(ctx.guild.members, id=sm[0])
-            leaderboard.add_field(name=f"[{i}]# - __**{member}**__", value=f"__**Level:**__ `{sm[2]}` | __**XP:**__ `{sm[1]}`",
+            leaderboard.add_field(name=f"[{i}]# - __**{member}**__", value=f"Level: `{sm[2]}` | XP: `{sm[1]}`",
                                   inline=False)
 
         for i, v in enumerate(entries, start=offset):

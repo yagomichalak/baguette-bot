@@ -640,7 +640,6 @@ class Moderation(commands.Cog):
 		"""
 		await ctx.message.delete()
 
-		role = discord.utils.get(ctx.guild.roles, id=muted_role_id)
 
 		if not member:
 			return await ctx.send("**Please, specify a member!**", delete_after=3)
@@ -660,6 +659,7 @@ class Moderation(commands.Cog):
 		current_ts = int((datetime.utcnow() - epoch).total_seconds())
 
 		# print(current_ts, seconds)
+		role = discord.utils.get(ctx.guild.roles, id=muted_role_id)
 
 		if role not in member.roles:
 			# await member.add_roles(role)

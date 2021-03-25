@@ -343,13 +343,40 @@ await ctx.send(role.name)
 
 
 b!eval
-rnames = [
-'Quiet', 'Talktative', 'Chatterbox',
-'Smooth Talker', 'Charisma Bomb', 'Tsunami Of Charisma',
-'Charisma Over 9000', 'Charisma Superior :crown:'
-]
+rnames = {
+	'Quiet': 10, 'Talktative': 15, 'Chatterbox': 25,
+	'Smooth Talker': 35, 'Charisma Bomb': 50, 'Tsunami Of Charisma': 75,
+	'Charisma Over 9000': 85, 'Charisma Superior :crown:': 100
+}
 guild = ctx.guild
-roles = [discord.utils.get(guild.roles, name=rn) for rn in rnames]
+roles = {discord.utils.get(guild.roles, name=rn):rv for rn, rv in rnames.items()}
+
+current_ts = await client.get_cog('Misc').get_timestamp()
+
+all_members = list(set([((lvl-1) ** 5, lvl, m.id) for m in guild.members for role, lvl in roles.items() if role in m.roles]))
+
+try:
+	mycursor, db = await the_database()
+	await mycursor.executemany("UPDATE MemberStatus SET user_xp = %s, user_lvl = %s WHERE user_id = %s", all_members)
+	await db.commit()
+	await mycursor.close()
+except Exception as e:
+	print('n', e)
+else:
+	await ctx.send('Done')
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 async with ctx.typing():
 	for member in guild.members:
