@@ -220,7 +220,7 @@ class LevelSystem(commands.Cog):
         # total_messages = await self.get_total_messages_past_24_7()
         embed.add_field(
             name="⌨️ __Messages__",
-            value=f"**Total:** {total_messages}\n**Past 24 hours:** {msgs_past_1[1]}\n**Past 7 days:** {msgs_past_7[1]}\n",
+            value=f"**Total:** {total_messages}\n**Past 7 days:** {msgs_past_7[1]}\n**Past 24 hours:** {msgs_past_1[1]}\n",
             inline=True)
 
         total_time = await self.get_total_time()
@@ -265,7 +265,7 @@ class LevelSystem(commands.Cog):
 
         embed.add_field(
             name="🗣️ __Time in VCs__",
-            value=f"**Total:** {text_all}\n**Past 24 hours:** {text_1}\n**Past 7 days:** {text_7}\n",
+            value=f"**Total:** {text_all}\n**Past 7 days:** {text_7}\n**Past 24 hours:** {text_1}\n",
             inline=True)
 
         guild = ctx.guild
