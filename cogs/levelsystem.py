@@ -39,9 +39,8 @@ class LevelSystem(commands.Cog):
     # In-game commands
     @commands.Cog.listener()
     async def on_message(self, message):
-        return
 
-        # return
+        return
 
         if not message.guild:
             return
@@ -140,7 +139,8 @@ class LevelSystem(commands.Cog):
         if the_member:
             if time_xp - the_member[0][3] >= 3 or the_member[0][1] == 0:
                 await self.update_user_xp_time(user.id, time_xp)
-                await self.update_user_xp(user.id, 5)
+                new_xp = int(self.xp_rate + (self.xp_rate * self.xp_multiplier)/ 100)
+                await self.update_user_xp(user.id, new_xp)
                 return await self.level_up(user, channel)
         else:
             return await self.insert_user(user_id=user.id, xp=5, xp_time=time_xp)
@@ -898,6 +898,85 @@ class LevelSystem(commands.Cog):
 
 
 
+
+    @commands.command(aliases=['xpchannels', 'xpc'])
+    @commands.has_permissions(administrator=True)
+    async def xp_channels(self, ctx) -> None:
+        """ Shows the channels that XP are allowed to be earned in. """
+
+        if not await self.table_important_vars_exists():
+            return await ctx.send(f"**This command is not ready to be used yet, {member.mention}!**")
+
+
+        member = ctx.author
+
+        if not (channels := await self.get_important_var(label="xp_channel", multiple=True)):
+            return await ctx.send(f"**No channels have seen set yet, {member.mention}!**")
+
+        guild = ctx.guild
+        channels = ', '.join([cm.mention if (cm := discord.utils.get(guild.channels, id=c[2])) else str(c[2]) for c in channels])
+
+        embed = discord.Embed(
+            title="XP Channels",
+            description=channels,
+            color=member.color,
+            timestamp=ctx.message.created_at
+            )
+
+        await ctx.send(embed=embed)
+
+
+    @commands.command(aliases=['set_xp_channel', 'setxpchannel', 'sxpc', 'enablexp'])
+    @commands.has_permissions(administrator=True)
+    async def enable_xp(self, ctx, channel: discord.TextChannel = None) -> None:
+        """ Enables a channel for getting XP.
+        :param channel: The channel. (Optional)
+        Ps: If channel is not informed, it will use the current channel. """
+
+        member = ctx.author
+
+        if not await self.table_important_vars_exists():
+            return await ctx.send(f"**This command is not ready to be used yet, {member.mention}!**")
+
+
+        if not ctx.guild:
+            return await ctx.send(f"**You cannot use this command in my DM's, {member.mention}!** ❌")
+
+
+        if not channel:
+            channel = ctx.channel
+
+        if await self.get_important_var(label='xp_channel', value_int=channel.id):
+            return await ctx.send(f"**{channel.mention} is already enabled for XP, {member.mention}!** ⚠️")
+
+        await self.insert_important_var(label='xp_channel', value_int=channel.id)
+        await ctx.send(f"**{channel.mention} has been enabled for XP, {member.mention}!** ✅")
+
+
+    @commands.command(aliases=['unset_xp_channel', 'unsetxpchannel', 'uxpc','disablexp', 'disablexpchannel'])
+    @commands.has_permissions(administrator=True)
+    async def disable_xp(self, ctx, channel: discord.TextChannel = None) -> None:
+        """ Enables a channel for getting XP.
+        :param channel: The channel. (Optional)
+        Ps: If channel is not informed, it will use the current channel. """
+
+        member = ctx.author
+
+        if not await self.table_important_vars_exists():
+            return await ctx.send(f"**This command is not ready to be used yet, {member.mention}!**")
+
+        if not ctx.guild:
+            return await ctx.send(f"**You cannot use this command in my DM's, {member.mention}!** ❌")
+
+        if not channel:
+            channel = ctx.channel
+
+        if not await self.get_important_var(label='xp_channel', value_int=channel.id):
+            return await ctx.send(f"**{channel.mention} is not even enabled for XP, {member.mention}!** ⚠️")
+
+        await self.delete_important_var(label='xp_channel', value_int=channel.id)
+        await ctx.send(f"**{channel.mention} has been disabled for XP, {member.mention}!** ✅")
+
     async def insert_important_var(self, label: str, value_str: str = None, value_int: int = None) -> None:
         """ Gets an important var.
         :param label: The label o that var. """
@@ -914,7 +993,6 @@ class LevelSystem(commands.Cog):
         mycursor, db = await the_database()
         if value_str and value_int:
             await mycursor.execute("UPDATE ImportantVars SET value_str = %s, value_int = %s WHERE label = %s", (value_str, value_int, label))
-
         elif value_str:
             await mycursor.execute("UPDATE ImportantVars SET value_str = %s WHERE label = %s", (value_str, label))
         else:
@@ -924,15 +1002,50 @@ class LevelSystem(commands.Cog):
         await mycursor.close()
 
 
-    async def get_important_var(self, label: str) -> int:
+    async def get_important_var(self, label: str, value_str: str = None, value_int: int = None, multiple: bool = False) -> Union[Union[str, int], List[Union[str, int]]]:
         """ Gets an important var.
-        :param label: The label o that var. """
+        :param label: The label o that var.
+        :param value_str: The string value. (Optional)
+        :param value_int: The integer value. (Optional)
+        :param multiple: Whether to get multiple values. """
 
         mycursor, db = await the_database()
-        await mycursor.execute("SELECT * FROM ImportantVars WHERE label = %s", (label,))
-        important_var = await mycursor.fetchone()
+        if value_str and value_int:
+            await mycursor.execute("SELECT * FROM ImportantVars WHERE label = %s AND value_str = %s AND value_int = %s", (label, value_str, value_int))
+        elif value_str:
+            await mycursor.execute("SELECT * FROM ImportantVars WHERE label = %s AND value_str = %s", (label, value_str))
+        elif value_int:
+            await mycursor.execute("SELECT * FROM ImportantVars WHERE label = %s AND value_int = %s", (label, value_int))
+        else:
+            await mycursor.execute("SELECT * FROM ImportantVars WHERE label = %s", (label,))
+
+        important_var = None
+        if multiple:
+            important_var = await mycursor.fetchall()
+        else:
+            important_var = await mycursor.fetchone()
         await mycursor.close()
         return important_var
+
+    async def delete_important_var(self, label: str, value_str: str = None, value_int: int = None) -> None:
+        """ Deletes an important var.
+        :param label: The label o that var.
+        :param value_str: The string value. (Optional)
+        :param value_int: The integer value. (Optional) """
+
+        mycursor, db = await the_database()
+
+        if value_str and value_int:
+            await mycursor.execute("DELETE FROM ImportantVars WHERE label = %s and value_str = %s and value_int = %s", (label, value_str, value_int))
+        elif value_str:
+            await mycursor.execute("DELETE FROM ImportantVars WHERE label = %s and value_str = %s", (label, value_str))
+        elif value_int:
+            await mycursor.execute("DELETE FROM ImportantVars WHERE label = %s and value_int = %s", (label, value_int))
+        else:
+            await mycursor.execute("DELETE FROM ImportantVars WHERE label = %s", (label,))
+
+        await db.commit()
+        await mycursor.close()
 
 
     @commands.command(hidden=True)

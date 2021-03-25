@@ -339,18 +339,26 @@ guild = ctx.guild
 role = discord.utils.get(guild.roles, name="Shy")
 await ctx.send(role.name)
 
-current_ts = await client.get_cog('Misc').get_timestamp()
-lvl = 3
-print((lvl+1)**5)
-all_members = [(m.id, (lvl+1) **5, lvl, current_ts) for m in guild.members if role in m.roles]
-try:
-	mycursor, db = await the_database()
-	await mycursor.executemany("""
-	    INSERT INTO MemberStatus (user_id, user_xp, user_lvl, user_xp_time) 
-    	VALUES (%s, %s, %s, %s)""", all_members)
-	await db.commit()
-	await mycursor.close()
-except Exception as e:
-	print('n', e)
-else:
-	await ctx.send('y')
+
+
+
+b!eval
+rnames = [
+'Quiet', 'Talktative', 'Chatterbox',
+'Smooth Talker', 'Charisma Bomb', 'Tsunami Of Charisma',
+'Charisma Over 9000', 'Charisma Superior :crown:'
+]
+guild = ctx.guild
+roles = [discord.utils.get(guild.roles, name=rn) for rn in rnames]
+
+async with ctx.typing():
+	for member in guild.members:
+		for role in roles:
+			if role in member.roles:
+				try:
+					await member.remove_role(role)
+				except:
+					continue
+
+	else:
+		print('All set')
