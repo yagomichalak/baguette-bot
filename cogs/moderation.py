@@ -358,50 +358,80 @@ class Moderation(commands.Cog):
 
 	async def sort_time(self, guild: discord.Guild, at: datetime) -> str:
 
-		member_age = (datetime.utcnow() - at).total_seconds()
-		uage = {
-			"years": 0,
-			"months": 0,
-			"days": 0,
-			"hours": 0,
-			"minutes": 0,
-			"seconds": 0
-		}
 
-		text_list = []
+		timedelta = datetime.utcnow() - at
+
+		if type(timedelta) is not float:
+			timedelta = timedelta.total_seconds()
+
+		seconds = int(timedelta)
+
+		periods = [
+			('year', 60*60*24*365, 'years'),
+			('months', 60*60*24*30, "months"),
+			('day', 60*60*24, "days"),
+			('hour', 60*60, "hours"),
+			('minute', 60, "minutes"),
+			('second', 1, "seconds")
+		]
+
+		strings = []
+		for period_name, period_seconds, plural in periods:
+			if seconds >= period_seconds:
+				period_value, seconds = divmod(seconds, period_seconds)
+				if period_value > 0:
+					strings.append(
+						f"{period_value} {plural if period_value > 1 else period_name}"
+					)
+					
+		return ", ".join(strings[:2])
+
+	# async def sort_time(self, guild: discord.Guild, at: datetime) -> str:
+
+	# 	member_age = (datetime.utcnow() - at).total_seconds()
+	# 	uage = {
+	# 		"years": 0,
+	# 		"months": 0,
+	# 		"days": 0,
+	# 		"hours": 0,
+	# 		"minutes": 0,
+	# 		"seconds": 0
+	# 	}
+
+	# 	text_list = []
 
 
-		if (years := round(member_age / 31536000)) > 0:
-			text_list.append(f"{years} years")
-			member_age -= 31536000 * years
-			# uage['years'] = years
+	# 	if (years := round(member_age / 31536000)) > 0:
+	# 		text_list.append(f"{years} years")
+	# 		member_age -= 31536000 * years
+	# 		# uage['years'] = years
 
-		if (months := round(member_age / 2628288)) > 0:
-			text_list.append(f"{months} months")
-			member_age -= 2628288 * months
-			# uage['months'] = months
+	# 	if (months := round(member_age / 2628288)) > 0:
+	# 		text_list.append(f"{months} months")
+	# 		member_age -= 2628288 * months
+	# 		# uage['months'] = months
 
-		if not years and not months and (days := round(member_age / 86400)) > 0:
-			text_list.append(f"{days} days")
-			member_age -= 86400 * days
-			# uage['days'] = days
+	# 	if not years and not months and (days := round(member_age / 86400)) > 0:
+	# 		text_list.append(f"{days} days")
+	# 		member_age -= 86400 * days
+	# 		# uage['days'] = days
 
-		if not years and not months and not days and (hours := round(member_age / 3600)) > 0:
-			text_list.append(f"{hours} hours")
-			member_age -= 3600 * hours
+	# 	if not years and not months and not days and (hours := round(member_age / 3600)) > 0:
+	# 		text_list.append(f"{hours} hours")
+	# 		member_age -= 3600 * hours
 
-			# uage['hours'] = hours
+	# 		# uage['hours'] = hours
 
-		if not years and not months and not days and not hours and (minutes := round(member_age / 60)) > 0:
-			text_list.append(f"{minutes} minutes")
-			member_age -= 60 * minutes
-			# uage['minutes'] = minutes
+	# 	if not years and not months and not days and not hours and (minutes := round(member_age / 60)) > 0:
+	# 		text_list.append(f"{minutes} minutes")
+	# 		member_age -= 60 * minutes
+	# 		# uage['minutes'] = minutes
 
 
 
-		text = ' and '.join(text_list)
-		text += ' ago'
-		return text
+	# 	text = ' and '.join(text_list)
+	# 	text += ' ago'
+	# 	return text
 
 	@commands.command()
 	@commands.has_any_role(*[trial_mod_role_id, jr_mod_role_id, mod_role_id, admin_role_id, owner_role_id])

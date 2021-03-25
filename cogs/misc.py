@@ -32,7 +32,7 @@ class Misc(commands.Cog):
 	@commands.Cog.listener()
 	async def on_message(self, message) -> None:
 		""" Stores every message into the daily and weekly server status. """
-		return
+		# return
 
 		if not message.guild:
 			return

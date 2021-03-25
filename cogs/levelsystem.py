@@ -40,7 +40,7 @@ class LevelSystem(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message):
 
-        return
+        # return
 
         if not message.guild:
             return
