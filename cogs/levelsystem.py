@@ -326,10 +326,17 @@ class LevelSystem(commands.Cog):
 
 
         # Arranges the user's information into a well-formed embed
+        all_users = await self.get_all_users_by_xp()
+        position = [i+1 for i, u in enumerate(all_users) if u[0] == ctx.author.id]
+        position = position[0] if position else '??'
+
+
         embed = discord.Embed(title="__Profile__", colour=member.color, timestamp=ctx.message.created_at)
         embed.add_field(name="__**Level**__", value=f"{user[0][2]}.", inline=True)
+        embed.add_field(name="__**Rank**__", value=f"# {position}.", inline=True)
         embed.add_field(name="__**EXP**__", value=f"{user[0][1]} / {((user[0][2]+1)**5)}.", inline=False)
         embed.add_field(name="__**Messages**__", value=f"{user[0][4]}.", inline=True)
+
 
 
         mall, sall = divmod(user[0][5], 60)
