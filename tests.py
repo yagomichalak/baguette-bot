@@ -330,62 +330,112 @@
 # # Transform the time to UTC
 # converted_time = converted_time.astimezone(pytz.utc)
 # print(converted_time.strftime("%H:%M"), converted_time.tzinfo)
-epoch = datetime.utcfromtimestamp(0)
-current_ts = (datetime.utcnow() - epoch).total_seconds()
+
+
+
+# epoch = datetime.utcfromtimestamp(0)
+# current_ts = (datetime.utcnow() - epoch).total_seconds()
+
+# b!eval
+# from datetime import datetime
+# guild = ctx.guild
+# role = discord.utils.get(guild.roles, name="Shy")
+# await ctx.send(role.name)
+
+
+
+
+# b!eval
+# rnames = {
+# 	'Quiet': 10, 'Talktative': 15, 'Chatterbox': 25,
+# 	'Smooth Talker': 35, 'Charisma Bomb': 50, 'Tsunami Of Charisma': 75,
+# 	'Charisma Over 9000': 85, 'Charisma Superior :crown:': 100
+# }
+# guild = ctx.guild
+# roles = {discord.utils.get(guild.roles, name=rn):rv for rn, rv in rnames.items()}
+
+# current_ts = await client.get_cog('Misc').get_timestamp()
+
+# all_members = list(set([((lvl-1) ** 5, lvl, m.id) for m in guild.members for role, lvl in roles.items() if role in m.roles]))
+
+# try:
+# 	mycursor, db = await the_database()
+# 	await mycursor.executemany("UPDATE MemberStatus SET user_xp = %s, user_lvl = %s WHERE user_id = %s", all_members)
+# 	await db.commit()
+# 	await mycursor.close()
+# except Exception as e:
+# 	print('n', e)
+# else:
+# 	await ctx.send('Done')
+
+
+
+
+
+
+
+# b!eval
+
+# guild = ctx.guild
+# roles = discord.utils.get(guild.roles, name='Talkative')
+
+# current_ts = await client.get_cog('Misc').get_timestamp()
+
+# all_members = list(set([((15-1) ** 5, 15, m.id) for m in guild.members if role in m.roles]))
+
+# try:
+# 	mycursor, db = await the_database()
+# 	await mycursor.executemany("UPDATE MemberStatus SET user_xp = %s, user_lvl = %s WHERE user_id = %s", all_members)
+# 	await db.commit()
+# 	await mycursor.close()
+# except Exception as e:
+# 	print('n', e)
+# else:
+# 	await ctx.send('Done')
+
+
+
+
+
+
+
+
+
+
+# async with ctx.typing():
+# 	for member in guild.members:
+# 		for role in roles:
+# 			if role in member.roles:
+# 				try:
+# 					await member.remove_role(role)
+# 				except:
+# 					continue
+
+# 	else:
+# 		print('All set')
+
+
+
+
+# level = 10
+# xp = 200
+# lvl_end = int(xp ** (1 / 5))
+# print(lvl_end)
+
 
 b!eval
-from datetime import datetime
-guild = ctx.guild
-role = discord.utils.get(guild.roles, name="Shy")
-await ctx.send(role.name)
 
+from mysqldb import the_database
+from extra.useful_variables import xp_levels
 
-
-
-b!eval
-rnames = {
-	'Quiet': 10, 'Talktative': 15, 'Chatterbox': 25,
-	'Smooth Talker': 35, 'Charisma Bomb': 50, 'Tsunami Of Charisma': 75,
-	'Charisma Over 9000': 85, 'Charisma Superior :crown:': 100
-}
-guild = ctx.guild
-roles = {discord.utils.get(guild.roles, name=rn):rv for rn, rv in rnames.items()}
-
-current_ts = await client.get_cog('Misc').get_timestamp()
-
-all_members = list(set([((lvl-1) ** 5, lvl, m.id) for m in guild.members for role, lvl in roles.items() if role in m.roles]))
+all_levels = [(xp, lvl) for lvl, xp in xp_levels.items()]
 
 try:
 	mycursor, db = await the_database()
-	await mycursor.executemany("UPDATE MemberStatus SET user_xp = %s, user_lvl = %s WHERE user_id = %s", all_members)
+	await mycursor.executemany("UPDATE MemberStatus SET user_xp = %s WHERE user_lvl = %s", all_levels)
 	await db.commit()
 	await mycursor.close()
 except Exception as e:
-	print('n', e)
+	print("Failed!", e)
 else:
-	await ctx.send('Done')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-async with ctx.typing():
-	for member in guild.members:
-		for role in roles:
-			if role in member.roles:
-				try:
-					await member.remove_role(role)
-				except:
-					continue
-
-	else:
-		print('All set')
+	await ctx.send("Successfully updated users!")

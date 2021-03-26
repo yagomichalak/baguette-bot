@@ -7,6 +7,7 @@ import time
 from datetime import datetime
 import asyncio
 import os
+from extra.useful_variables import xp_levels
 
 owner_role_id = int(os.getenv('OWNER_ROLE_ID'))
 admin_role_id = int(os.getenv('ADMIN_ROLE_ID'))
@@ -22,7 +23,7 @@ class LevelSystem(commands.Cog):
 
     def __init__(self, client) -> None:
         self.client = client
-        self.xp_rate = 5
+        self.xp_rate = 50
         self.xp_multiplier = 1
 
 
@@ -145,16 +146,44 @@ class LevelSystem(commands.Cog):
         else:
             return await self.insert_user(user_id=user.id, xp=5, xp_time=time_xp)
 
+    # async def level_up(self, user: discord.Member, channel: discord.TextChannel) -> None:
+    #     epoch = datetime.utcfromtimestamp(0)
+    #     the_user = await self.get_specific_user(user.id)
+    #     lvl_end = int(the_user[0][1] ** (1 / 5))
+
+    #     if the_user[0][2] < lvl_end:
+    #         await self.update_user_lvl(user.id, the_user[0][2]+1)
+    #         # await self.check_level_role(user, the_user[0][2]+1)
+    #         await self.check_level_roles_deeply(user, the_user[0][2]+1)
+    #         return await channel.send(
+    #             f"""🇬🇧 {user.mention} has reached level **{the_user[0][2] + 1}!**\n🇫🇷 {user.mention} a atteint niveau **{the_user[0][2] + 1} !**""")
+
     async def level_up(self, user: discord.Member, channel: discord.TextChannel) -> None:
         epoch = datetime.utcfromtimestamp(0)
         the_user = await self.get_specific_user(user.id)
-        lvl_end = int(the_user[0][1] ** (1 / 5))
-        if the_user[0][2] < lvl_end:
-            await self.update_user_lvl(user.id, the_user[0][2]+1)
+        # lvl_end = int(the_user[0][1] ** (1 / 5))
+
+        user_level = the_user[0][2]
+        user_xp = the_user[0][1]
+
+        if user_xp >= await LevelSystem.get_xp(user_level):
+            await self.update_user_lvl(user.id, user_level+1)
             # await self.check_level_role(user, the_user[0][2]+1)
-            await self.check_level_roles_deeply(user, the_user[0][2]+1)
+            await self.check_level_roles_deeply(user, user_level+1)
             return await channel.send(
-                f"""🇬🇧 {user.mention} has reached level **{the_user[0][2] + 1}!**\n🇫🇷 {user.mention} a atteint niveau **{the_user[0][2] + 1} !**""")
+                f"""🇬🇧 {user.mention} has reached level **{user_level + 1}!**\n🇫🇷 {user.mention} a atteint niveau **{user_level + 1} !**""")
+
+
+    @staticmethod
+    async def get_xp(level: int) -> int:
+        """ Gets the amount of XP to get to a level. """
+
+        if xp := xp_levels.get(str(level)):
+            return xp
+
+        return level * 1000
+
+
 
     async def check_level_role(self, member: discord.Member, level: int) -> Union[None, int]:
         """ Checks if the member level has a role attached to it
@@ -334,7 +363,8 @@ class LevelSystem(commands.Cog):
         embed = discord.Embed(title="__Profile__", colour=member.color, timestamp=ctx.message.created_at)
         embed.add_field(name="__**Level**__", value=f"{user[0][2]}.", inline=True)
         embed.add_field(name="__**Rank**__", value=f"# {position}.", inline=True)
-        embed.add_field(name="__**EXP**__", value=f"{user[0][1]} / {((user[0][2]+1)**5)}.", inline=False)
+        # embed.add_field(name="__**EXP**__", value=f"{user[0][1]} / {((user[0][2]+1)**5)}.", inline=False)
+        embed.add_field(name="__**EXP**__", value=f"{user[0][1]} / {await LevelSystem.get_xp(user[0][2])}.", inline=False)
         embed.add_field(name="__**Messages**__", value=f"{user[0][4]}.", inline=True)
 
 
@@ -398,10 +428,12 @@ class LevelSystem(commands.Cog):
         if level >= the_user[0][2]:
             await self.update_user_lvl(member.id, level)
             await asyncio.sleep(0.1)
-            await self.set_user_xp(member.id, ((level-1)** 5))
+            # await self.set_user_xp(member.id, ((level-1)** 5))
+            await self.set_user_xp(member.id, await LevelSystem.get_xp(level-1))
 
         else:
-            await self.set_user_xp(member.id, ((level-1)** 5))
+            # await self.set_user_xp(member.id, ((level-1)** 5))
+            await self.set_user_xp(member.id, await LevelSystem.get_xp(level-1))
             await asyncio.sleep(0.1)
             await self.update_user_lvl(member.id, level)
 
