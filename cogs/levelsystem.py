@@ -309,20 +309,20 @@ class LevelSystem(commands.Cog):
 
         guild = ctx.guild
 
-        # Daily msg
-        c_msg_1 = (guild.get_channel(c_msg_1[5]), c_msg_1[3]) if (
-            c_msg_1 := await Misc.select_most_active_user_server_status(label='daily-messages', sublabel='messages')) else (None, None)
         # print(c_msg_1, await Misc.select_most_active_user_server_status(label='daily-messages', sublabel='messages'))
         # Weekly msg
         c_msg_7 = (guild.get_channel(c_msg_7[5]), c_msg_7[3]) if (
             c_msg_7 := await Misc.select_most_active_user_server_status(label='weekly-messages', sublabel='messages')) else (None, None)
-        # Daily time
-        c_time_1 = (guild.get_channel(c_time_1[5]), c_time_1[4]) if (
-            c_time_1 := await Misc.select_most_active_user_server_status(label='daily-time', sublabel='time')
-            ) else (None, None)
+        # Daily msg
+        c_msg_1 = (guild.get_channel(c_msg_1[5]), c_msg_1[3]) if (
+            c_msg_1 := await Misc.select_most_active_user_server_status(label='daily-messages', sublabel='messages')) else (None, None)
         # Weekly time
         c_time_7 = (guild.get_channel(c_time_7[5]), c_time_7[4]) if (
             c_time_7 := await Misc.select_most_active_user_server_status(label='weekly-time', sublabel='time')
+            ) else (None, None)
+        # Daily time
+        c_time_1 = (guild.get_channel(c_time_1[5]), c_time_1[4]) if (
+            c_time_1 := await Misc.select_most_active_user_server_status(label='daily-time', sublabel='time')
             ) else (None, None)
 
         embed.add_field(
