@@ -389,7 +389,7 @@ class LevelSystem(commands.Cog):
         elif sall: text_all = f"{sall}s"
         else: text_all = '0'
 
-        embed.add_field(name="__**Time in VC**__", value=text_all, inline=True)
+        embed.add_field(name="__**Overall Time**__", value=text_all, inline=True)
         embed.set_thumbnail(url=member.avatar_url)
         embed.set_footer(text=f"{member}", icon_url=member.avatar_url)
         return await ctx.send(embed=embed)
