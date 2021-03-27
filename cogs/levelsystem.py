@@ -244,7 +244,7 @@ class LevelSystem(commands.Cog):
 
         embed = discord.Embed(
             title="🌟 __Server Status__ 🌟",
-            description="Server status related to time spent in VCs and messages sent.",
+            description="Server status related to overall time in Voice Channels and messages sent.",
             color=member.color,
             timestamp=ctx.message.created_at
         )
@@ -303,7 +303,7 @@ class LevelSystem(commands.Cog):
 
 
         embed.add_field(
-            name="🗣️ __Time in VCs__",
+            name="🗣️ __Overall Time in VCs__",
             value=f"**Total:** {text_all}\n**Past 7 days:** {text_7}\n**Past 24 hours:** {text_1}\n",
             inline=True)
 
@@ -367,13 +367,12 @@ class LevelSystem(commands.Cog):
 
         # Arranges the user's information into a well-formed embed
         all_users = await self.get_all_users_by_xp()
-        position = [i+1 for i, u in enumerate(all_users) if u[0] == ctx.author.id]
-        position = position[0] if position else '??'
-
+        position = [[i+1, u[1]] for i, u in enumerate(all_users) if u[0] == ctx.author.id]
+        position = [it for subpos in position for it in subpos] if position else ['??', 0]
 
         embed = discord.Embed(title="__Profile__", colour=member.color, timestamp=ctx.message.created_at)
         embed.add_field(name="__**Level**__", value=f"{user[0][2]}.", inline=True)
-        embed.add_field(name="__**Rank**__", value=f"# {position}.", inline=True)
+        embed.add_field(name="__**Rank**__", value=f"# {position[0]}.", inline=True)
         # embed.add_field(name="__**EXP**__", value=f"{user[0][1]} / {((user[0][2]+1)**5)}.", inline=False)
         embed.add_field(name="__**EXP**__", value=f"{user[0][1]} / {await LevelSystem.get_xp(user[0][2])}.", inline=False)
         embed.add_field(name="__**Messages**__", value=f"{user[0][4]}.", inline=True)
@@ -403,7 +402,9 @@ class LevelSystem(commands.Cog):
 
         all_users = await self.get_all_users_by_xp()
         position = [[i+1, u[1]] for i, u in enumerate(all_users) if u[0] == ctx.author.id]
+        print('p1', position)
         position = [it for subpos in position for it in subpos] if position else ['??', 0]
+        print('p2', position)
 
         # Additional data:
         additional = {
