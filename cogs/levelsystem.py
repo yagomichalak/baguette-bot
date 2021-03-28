@@ -402,9 +402,7 @@ class LevelSystem(commands.Cog):
 
         all_users = await self.get_all_users_by_xp()
         position = [[i+1, u[1]] for i, u in enumerate(all_users) if u[0] == ctx.author.id]
-        print('p1', position)
         position = [it for subpos in position for it in subpos] if position else ['??', 0]
-        print('p2', position)
 
         # Additional data:
         additional = {
@@ -501,7 +499,7 @@ class LevelSystem(commands.Cog):
         member = ctx.author
 
         leaderboard = discord.Embed(
-            title="__The Language Sloth's Level Ranking Leaderboard__",
+            title="__Le Salon Français' Level Ranking Leaderboard__",
             description="All registered users and their levels and experience points.",
             colour=ctx.author.color, timestamp=ctx.message.created_at)
 

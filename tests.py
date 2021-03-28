@@ -423,19 +423,19 @@
 # print(lvl_end)
 
 
-b!eval
+# b!eval
 
-from mysqldb import the_database
-from extra.useful_variables import xp_levels
+# from mysqldb import the_database
+# from extra.useful_variables import xp_levels
 
-all_levels = [(xp, lvl) for lvl, xp in xp_levels.items()]
+# all_levels = [(xp, lvl) for lvl, xp in xp_levels.items()]
 
-try:
-	mycursor, db = await the_database()
-	await mycursor.executemany("UPDATE MemberStatus SET user_xp = %s WHERE user_lvl = %s", all_levels)
-	await db.commit()
-	await mycursor.close()
-except Exception as e:
-	print("Failed!", e)
-else:
-	await ctx.send("Successfully updated users!")
+# try:
+# 	mycursor, db = await the_database()
+# 	await mycursor.executemany("UPDATE MemberStatus SET user_xp = %s WHERE user_lvl = %s", all_levels)
+# 	await db.commit()
+# 	await mycursor.close()
+# except Exception as e:
+# 	print("Failed!", e)
+# else:
+# 	await ctx.send("Successfully updated users!")
