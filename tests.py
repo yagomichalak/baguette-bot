@@ -439,3 +439,81 @@
 # 	print("Failed!", e)
 # else:
 # 	await ctx.send("Successfully updated users!")
+
+
+
+# !eval
+# l = "https://google.com"
+# embed = discord.Embed(
+# 	title="__Language Classes Schedule__",
+# 	description="All classes are in the `CEST` timezone.",
+# 	color=ctx.author.color)
+
+# embed.add_field(name="Sunday", value=f"""
+# [English]({l}) (11am); [Portuguese]({l}) (11am); [Spanish]({l}) (12am);
+# """, inline=False)
+
+# embed.add_field(name="Monday", value=f"""
+# [Japanese]({l}) (2am); [Tagalog]({l}) (10am);
+# """, inline=False)
+
+# embed.add_field(name="Tuesday", value=f"""
+# [English]({l}) (1am); [Spanish]({l}) (11am);
+# """, inline=False)
+
+# embed.add_field(name="Wednesday", value=f"""
+# [English]({l}) (4am); [Tagalog]({l}) (5am); [English]({l}) (4pm); [Tagalog]({l}) (5pm)
+# """, inline=False)
+
+# embed.add_field(name="Thursday", value=f"""
+# [English]({l}) (4am); [Tagalog]({l}) (5am); [English]({l}) (4pm); [Tagalog]({l}) (5pm)
+# """, inline=False)
+
+# embed.add_field(name="Friday", value=f"""
+# [English]({l}) (4am); [Tagalog]({l}) (5am); [English]({l}) (4pm); [Tagalog]({l}) (5pm)
+# """, inline=False)
+
+# embed.add_field(name="Saturday", value=f"""
+# [English]({l}) (4am); [Tagalog]({l}) (5am); [English]({l}) (4pm); [Tagalog]({l}) (5pm)
+# """, inline=False)
+
+# embed.set_thumbnail(url=ctx.guild.icon_url)
+
+# await ctx.send(embed=embed)
+
+
+
+# !eval
+# l = "https://google.com"
+# embed = discord.Embed(
+# 	title="__Language Classes Schedule__",
+# 	description="All classes are in the `CEST` timezone.",
+# 	color=ctx.author.color)
+
+# embed.add_field(name="00:00", value=f"""🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l});""", inline=False)
+# embed.add_field(name="01:00", value=f"""🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l});""", inline=False)
+# embed.add_field(name="02:00", value=f"""🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l});""", inline=False)
+# embed.add_field(name="03:00", value=f"""🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l});""", inline=False)
+# embed.add_field(name="04:00", value=f"""🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l});""", inline=False)
+# embed.add_field(name="05:00", value=f"""🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l});""", inline=False)
+# embed.add_field(name="06:00", value=f"""🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l});""", inline=False)
+# embed.set_thumbnail(url=ctx.guild.icon_url)
+# await ctx.send(embed=embed)
+
+# embed.add_field(name="09:00", value=f"""🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l});""", inline=False)
+# embed.add_field(name="10:00", value=f"""🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l});""", inline=False)
+# embed.add_field(name="11:00", value=f"""🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l});""", inline=False)
+# embed.add_field(name="12:00", value=f"""🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l});""", inline=False)
+# embed.add_field(name="13:00", value=f"""🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l});""", inline=False)
+# embed.add_field(name="14:00", value=f"""🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l});""", inline=False)
+
+# embed.add_field(name="15:00", value=f"""🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧[English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l});""", inline=False)
+# embed.add_field(name="16:00", value=f"""🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧[English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l});""", inline=False)
+# embed.add_field(name="17:00", value=f"""🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧[English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l});""", inline=False)
+# embed.add_field(name="18:00", value=f"""🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧[English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l});""", inline=False)
+# embed.add_field(name="19:00", value=f"""🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧[English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l});""", inline=False)
+
+# add_field(name="20:00", value=f"""🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧[English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l});""", inline=False)
+# embed.add_field(name="21:00", value=f"""🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧[English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l});""", inline=False)
+# embed.add_field(name="22:00", value=f"""🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧[English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l});""", inline=False)
+# embed.add_field(name="23:00", value=f"""🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧[English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l});""", inline=False)

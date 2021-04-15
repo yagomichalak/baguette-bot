@@ -1,4 +1,4 @@
-discord.py==1.6.0
+discord.py==1.7.1
 git+https://github.com/Rapptz/discord-ext-menus
 aiomysql==0.0.21
 discord==1.0.1

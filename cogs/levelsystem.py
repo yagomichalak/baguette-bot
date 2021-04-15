@@ -25,7 +25,6 @@ class LevelSystem(commands.Cog):
         self.client = client
         self.xp_rate = 20
         self.xp_multiplier = 1
-        self.allowed_channel_ids: List[int] = []
 
 
     @commands.Cog.listener()
@@ -34,12 +33,6 @@ class LevelSystem(commands.Cog):
         if await self.table_important_vars_exists():
             if multiplier := await self.get_important_var(label="xp_multiplier"):
                 self.xp_multiplier = multiplier[2]
-
-
-        if channel_ids := await self.get_important_var(label="xp_channel", multiple=True):
-            self.allowed_channel_ids.extend([c[2] for c in channel_ids])
-
-
 
 
         print('LevelSystem cog is online')
@@ -62,7 +55,7 @@ class LevelSystem(commands.Cog):
 
         epoch = datetime.utcfromtimestamp(0)
         time_xp = (datetime.utcnow() - epoch).total_seconds()
-        if message.channel.id in self.allowed_channel_ids:
+        if await self.get_important_var(label="xp_channel", value_int=message.channel.id):
             await self.update_data(message.author, time_xp, message.channel)
             
         await self.update_user_server_messages(message.author.id, 1)
@@ -999,11 +992,7 @@ class LevelSystem(commands.Cog):
             return await ctx.send(f"**{channel.mention} is already enabled for XP, {member.mention}!** ⚠️")
 
         await self.insert_important_var(label='xp_channel', value_int=channel.id)
-        if channel.id not in self.allowed_channel_ids:
-            try:
-                self.allowed_channel_ids.append(channel.id)
-            except:
-                pass
+
         await ctx.send(f"**{channel.mention} has been enabled for XP, {member.mention}!** ✅")
 
 
@@ -1029,12 +1018,6 @@ class LevelSystem(commands.Cog):
             return await ctx.send(f"**{channel.mention} is not even enabled for XP, {member.mention}!** ⚠️")
 
         await self.delete_important_var(label='xp_channel', value_int=channel.id)
-        if channel.id in self.allowed_channel_ids:
-            try:
-                self.allowed_channel_ids.remove(channel.id)
-            except Exception as e:
-                print(e)
-                pass
         await ctx.send(f"**{channel.mention} has been disabled for XP, {member.mention}!** ✅")
 
     async def insert_important_var(self, label: str, value_str: str = None, value_int: int = None) -> None:
