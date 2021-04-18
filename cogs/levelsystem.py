@@ -755,7 +755,6 @@ class LevelSystem(commands.Cog):
 
 
     @commands.command(aliases=['showlevelroles', 'showlvlroles', 'show_lvlroles', 'level_roles', 'levelroles'])
-    @commands.has_permissions(administrator=True)
     async def show_level_roles(self, ctx) -> None:
         """ Shows the existing level roles. """
 
