@@ -76,7 +76,7 @@ class Misc(commands.Cog):
 				await self.update_user_server_status_vc_time(label='weekly-time', clear=True)
 
 
-	@tasks.loop(minutes=1)
+	@tasks.loop(minutes=5)
 	async def server_status(self) -> None:
 		""" Updates the server status; members and boosts counting. """
 
