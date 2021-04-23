@@ -8,5 +8,5 @@ chat_filter = [
 
 
 website_filter = [
-	
+	' https://giant.gfycat.com/WeirdShadowyGoa.mp4'
 ]

@@ -566,10 +566,15 @@ class Moderation(commands.Cog):
 					continue
 
 				if member_role < bot.top_role:
-					remove_roles.append(member_role)
+					if not member_role.is_premium_subscriber():
+						remove_roles.append(member_role)
+
+				if member_role.is_premium_subscriber():
+					keep_roles.append(member_role)
 
 				if member_role >= bot.top_role:
 					keep_roles.append(member_role)
+
 
 			await member.edit(roles=keep_roles)
 			user_role_ids = [(member.id, rr.id, None, None) for rr in remove_roles]
@@ -704,7 +709,11 @@ class Moderation(commands.Cog):
 					continue
 
 				if member_role < bot.top_role:
-					remove_roles.append(member_role)
+					if not member_role.is_premium_subscriber():
+						remove_roles.append(member_role)
+
+				if member_role.is_premium_subscriber():
+					keep_roles.append(member_role)
 
 				if member_role >= bot.top_role:
 					keep_roles.append(member_role)
