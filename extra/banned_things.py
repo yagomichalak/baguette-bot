@@ -3,7 +3,7 @@ chat_filter = [
 	'connard','connasse','putain','pute','nègre','négresse','salope',
 	'cago','chupamela','chupemela','concha','conchetumadre','coño','culo','escoria','follame','follar','fracasado','hijo perra','hija perra','idiota','joder','malparido','mamamela','marcia','mierda','nalga','parido','pelotudo','pija','pito','prostituta','puta','puto','sabrosa','sexo','vaginal','verga','violar','zorra',
 	'allahu akbar','allah','الله أكبر','مقاطعة','Orospu çocuğu','İtoğluit','Piç kurusu','orospu çocuğu oç','aptal','gerizekalı','ananı sikim','siktir','salak','amına koyim',
-	'arschloch','bastarde','ficker','fotze','hure','hurensohn','luder','Scheiße ','schlampe','schwuchtel','wichser','zicke',
+	'arschloch','bastarde','ficker','fotze','hure','hurensohn','luder','Scheiße ','schlampe','schwuchtel','wichser','zicke', 'allah'
 ]
 
 
