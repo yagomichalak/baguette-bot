@@ -291,7 +291,6 @@ class Moderation(commands.Cog):
 
 
 	@commands.command(aliases=['userinfo', 'whois'])
-	# @commands.has_any_role(*[trial_mod_role_id, jr_mod_role_id, mod_role_id, admin_role_id, owner_role_id])
 	async def user(self, ctx, member: discord.Member = None):
 		'''
 		Shows all the information about a member.
@@ -322,7 +321,6 @@ class Moderation(commands.Cog):
 		await ctx.send(embed=embed)
 
 	@commands.command(aliases=['si', 'server'])
-	# @commands.has_any_role(*[trial_mod_role_id, jr_mod_role_id, mod_role_id, admin_role_id, owner_role_id])
 	async def serverinfo(self, ctx):
 		""" Shows some information about the server. """
 		guild = ctx.guild
@@ -386,55 +384,14 @@ class Moderation(commands.Cog):
 					
 		return ", ".join(strings[:2])
 
-	# async def sort_time(self, guild: discord.Guild, at: datetime) -> str:
+	def is_allowed_members():
+		def predicate(ctx):
+			return ctx.message.author.id == 442770329409159188
 
-	# 	member_age = (datetime.utcnow() - at).total_seconds()
-	# 	uage = {
-	# 		"years": 0,
-	# 		"months": 0,
-	# 		"days": 0,
-	# 		"hours": 0,
-	# 		"minutes": 0,
-	# 		"seconds": 0
-	# 	}
-
-	# 	text_list = []
-
-
-	# 	if (years := round(member_age / 31536000)) > 0:
-	# 		text_list.append(f"{years} years")
-	# 		member_age -= 31536000 * years
-	# 		# uage['years'] = years
-
-	# 	if (months := round(member_age / 2628288)) > 0:
-	# 		text_list.append(f"{months} months")
-	# 		member_age -= 2628288 * months
-	# 		# uage['months'] = months
-
-	# 	if not years and not months and (days := round(member_age / 86400)) > 0:
-	# 		text_list.append(f"{days} days")
-	# 		member_age -= 86400 * days
-	# 		# uage['days'] = days
-
-	# 	if not years and not months and not days and (hours := round(member_age / 3600)) > 0:
-	# 		text_list.append(f"{hours} hours")
-	# 		member_age -= 3600 * hours
-
-	# 		# uage['hours'] = hours
-
-	# 	if not years and not months and not days and not hours and (minutes := round(member_age / 60)) > 0:
-	# 		text_list.append(f"{minutes} minutes")
-	# 		member_age -= 60 * minutes
-	# 		# uage['minutes'] = minutes
-
-
-
-	# 	text = ' and '.join(text_list)
-	# 	text += ' ago'
-	# 	return text
+		return commands.check(predicate)
 
 	@commands.command()
-	@commands.has_any_role(*[trial_mod_role_id, jr_mod_role_id, mod_role_id, admin_role_id, owner_role_id])
+	@commands.check_any(is_allowed_members(), commands.has_any_role(*allowed_roles))
 	async def snipe(self, ctx):
 		'''
 		(MOD) Snipes the last deleted message.
@@ -448,9 +405,11 @@ class Moderation(commands.Cog):
 		else:
 			await ctx.send("**I couldn't snipe any messages!**")
 
+
 	# Purge command
+	# [owner_role_id, admin_role_id, mod_role_id, jr_mod_role_id, trial_mod_role_id]
 	@commands.command()
-	@commands.has_any_role(*[jr_mod_role_id, mod_role_id, admin_role_id, owner_role_id])
+	@commands.check_any(is_allowed_members(), commands.has_any_role(*[jr_mod_role_id, mod_role_id, admin_role_id, owner_role_id]))
 	async def purge(self, ctx, amount=0, member: discord.Member = None):
 		'''
 		(MOD) Purges messages.
@@ -488,7 +447,7 @@ class Moderation(commands.Cog):
 
 	# Warns a member
 	@commands.command()
-	@commands.has_any_role(*[trial_mod_role_id, jr_mod_role_id, mod_role_id, admin_role_id, owner_role_id])
+	@commands.check_any(is_allowed_members(), commands.has_any_role(*allowed_roles))
 	async def warn(self, ctx, member: discord.Member = None, *, reason=None):
 		'''
 		(MOD) Warns a member.
@@ -535,17 +494,19 @@ class Moderation(commands.Cog):
 			# 	await self.mute(ctx=ctx, member=member, reason=reason)
 
 	@commands.command()
-	@commands.has_any_role(*[trial_mod_role_id, jr_mod_role_id, mod_role_id, admin_role_id, owner_role_id])
+	@commands.check_any(is_allowed_members(), commands.has_any_role(*allowed_roles))
 	async def mute(self, ctx, member: discord.Member = None, *, reason = None):
 		'''
 		(MOD) Mutes a member.
 		:param member: The @ or the ID of the user to mute.
 		:param reason: The reason for the mute.
 		'''
+
 		try:
 			await ctx.message.delete()
-		except:
+		except Exception:
 			pass
+
 
 		role = discord.utils.get(ctx.guild.roles, id=muted_role_id)
 		if not member:
@@ -661,7 +622,7 @@ class Moderation(commands.Cog):
 
 	# Mutes a member temporarily
 	@commands.command()
-	@commands.has_any_role(*[trial_mod_role_id, jr_mod_role_id, mod_role_id, admin_role_id, owner_role_id])
+	@commands.check_any(is_allowed_members(), commands.has_any_role(*allowed_roles))
 	async def tempmute(self, ctx, member: discord.Member = None, reason: str =  None, *, time: str = None):
 		"""
 		Mutes a member for a determined amount of time.
@@ -749,7 +710,7 @@ class Moderation(commands.Cog):
 
 	# Unmutes a member
 	@commands.command()
-	@commands.has_any_role(*[trial_mod_role_id, jr_mod_role_id, mod_role_id, admin_role_id, owner_role_id])
+	@commands.check_any(is_allowed_members(), commands.has_any_role(*allowed_roles))
 	async def unmute(self, ctx, member: discord.Member = None, *, reason = None):
 		'''
 		(MOD) Unmutes a member.
@@ -808,7 +769,7 @@ class Moderation(commands.Cog):
 			await ctx.send(f'**{member} is not even muted!**', delete_after=5)
 
 	@commands.command()
-	@commands.has_any_role(*[mod_role_id, admin_role_id, owner_role_id])
+	@commands.check_any(is_allowed_members(), commands.has_any_role(*[mod_role_id, admin_role_id, owner_role_id]))
 	async def kick(self, ctx, member: discord.Member = None, *, reason=None):
 		'''
 		(MOD) Kicks a member from the server.
@@ -851,7 +812,7 @@ class Moderation(commands.Cog):
 
 	# Bans a member
 	@commands.command()
-	@commands.has_any_role(*[mod_role_id, admin_role_id, owner_role_id])
+	@commands.check_any(is_allowed_members(), commands.has_any_role(*[mod_role_id, admin_role_id, owner_role_id]))
 	async def ban(self, ctx, member: discord.Member = None, *, reason=None) -> None:
 		""" Bans a member from the server.
 		:param member: The @ or ID of the user to ban.
@@ -900,7 +861,7 @@ class Moderation(commands.Cog):
 
 	# Hardbans a member
 	@commands.command()
-	@commands.has_any_role(*[mod_role_id, admin_role_id, owner_role_id])
+	@commands.check_any(is_allowed_members(), commands.has_any_role(*[mod_role_id, admin_role_id, owner_role_id]))
 	async def hardban(self, ctx, member: discord.Member = None, *, reason=None) -> None:
 		""" Hardbans a member from the server.
 		=> Bans and delete messages from the last 7 days,
@@ -1126,7 +1087,7 @@ class Moderation(commands.Cog):
 
 	# Infraction methods
 	@commands.command(aliases=['infr', 'show_warnings', 'sw', 'show_bans', 'sb', 'show_muted', 'sm', 'punishements'])
-	@commands.has_any_role(*[trial_mod_role_id, jr_mod_role_id, mod_role_id, admin_role_id, owner_role_id])
+	@commands.check_any(is_allowed_members(), commands.has_any_role(*allowed_roles))
 	async def infractions(self, ctx, member: discord.Member = None) -> None:
 		'''
 		Shows all infractions of a specific user.

@@ -47,6 +47,10 @@ async def on_command_error(ctx, error):
 	elif isinstance(error, commands.ChannelNotFound):
 		await ctx.send("**Channel not found!**")
 
+	elif isinstance(error, commands.CheckAnyFailure):
+		print('erroooooor', error.errors[0])
+		await on_command_error(ctx, error.errors[0])
+
 	print('='*10)
 	print(f"ERROR: {error} | Class: {error.__class__} | Cause: {error.__cause__}")
 	print('='*10)
