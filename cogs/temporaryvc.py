@@ -166,6 +166,14 @@ class TemporaryVc(commands.Cog):
 		if temp_vc[0] != author.id:
 			return await ctx.send(f"**You're not the owner of this temp vc, {author.mention}!**")
 
+		member_voice = member.voice
+		if member_voice and member_voice.channel:
+			if member_voice.channel.id == voice.channel.id:
+				try:
+					await member.move_to(None)
+				except:
+					pass
+
 		await voice.channel.set_permissions(member, connect=False, speak=False, view_channel=False)
 		await ctx.send(f"**{member.mention} has been forbade from {voice.channel.mention}, {author.mention}!**")
 
