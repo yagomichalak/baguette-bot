@@ -230,6 +230,7 @@ class TemporaryVc(commands.Cog):
 			await ctx.send(f"**Your temp vc user limit has been set to `{limit}`, {member.mention}!**")
 
 	@voice.command()
+	@commands.cooldown(2, 600, commands.BucketType.user)
 	async def name(self, ctx, *, name: str = None) -> None:
 		""" Renames your temp VC.
 		:param name: The new name to set your temp vc to. """
