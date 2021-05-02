@@ -39,8 +39,8 @@ class TemporaryVc(commands.Cog):
 					if vc and len(vc.members) == 0:
 						if temp_vc := await self.db.get_temp_vc_by_vc_id(vc.id):
 							try:
-								await self.db.delete_temp_vc(temp_vc[0], temp_vc[1])
 								await vc.delete()
+								await self.db.delete_temp_vc(temp_vc[0], temp_vc[1])
 							except Exception:
 								pass
 
@@ -121,9 +121,13 @@ class TemporaryVc(commands.Cog):
 			return await ctx.send(f"**{voice.channel.mention} is not a temp vc, {member.mention}!**")
 
 		vc = discord.utils.get(ctx.guild.channels, id=temp_vc[1])
-		await self.delete_things([vc])
-		await self.db.delete_temp_vc(temp_vc[0], vc.id)
-		await ctx.send(f"**Temp VC deleted, {member.mention}!**")
+		
+		try:
+			await vc.delete()
+		except:
+			await ctx.send(f"**Couldn't delete it, try it later, {member.mention}!**")
+		else:
+			await ctx.send(f"**Temp VC deleted, {member.mention}!**")
 
 	@voice.command(aliases=['permit'])
 	async def allow(self, ctx, member: discord.Member = None) -> None:
