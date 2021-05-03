@@ -40,9 +40,10 @@ class TemporaryVc(commands.Cog):
 						if temp_vc := await self.db.get_temp_vc_by_vc_id(vc.id):
 							try:
 								await vc.delete()
-								await self.db.delete_temp_vc(temp_vc[0], temp_vc[1])
 							except Exception:
 								pass
+							else:
+								await self.db.delete_temp_vc(temp_vc[0], temp_vc[1])
 
 
 		if after.channel and after.channel.category:
@@ -127,6 +128,7 @@ class TemporaryVc(commands.Cog):
 		except:
 			await ctx.send(f"**Couldn't delete it, try it later, {member.mention}!**")
 		else:
+			await self.db.delete_temp_vc(temp_vc[0], temp_vc[1])
 			await ctx.send(f"**Temp VC deleted, {member.mention}!**")
 
 	@voice.command(aliases=['permit'])
