@@ -180,7 +180,7 @@ class TemporaryVc(commands.Cog):
 				except:
 					pass
 
-		await voice.channel.set_permissions(member, connect=False, speak=False, view_channel=False)
+		await voice.channel.set_permissions(member, connect=False, speak=False, view_channel=True)
 		await ctx.send(f"**{member.mention} has been forbade from {voice.channel.mention}, {author.mention}!**")
 
 	@voice.command()
@@ -306,7 +306,7 @@ class TemporaryVc(commands.Cog):
 
 		overwrites = {
 			member.guild.default_role: discord.PermissionOverwrite(
-				connect=None, speak=None, view_channel=None),
+				connect=None, speak=None, view_channel=False),
 			member: discord.PermissionOverwrite(
 				connect=True, speak=True, view_channel=True)
 		}
