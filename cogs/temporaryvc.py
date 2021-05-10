@@ -306,7 +306,7 @@ class TemporaryVc(commands.Cog):
 
 		overwrites = {
 			member.guild.default_role: discord.PermissionOverwrite(
-				connect=None, speak=None, view_channel=False),
+				connect=None, speak=None, view_channel=True),
 			member: discord.PermissionOverwrite(
 				connect=True, speak=True, view_channel=True)
 		}
