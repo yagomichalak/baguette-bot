@@ -304,9 +304,15 @@ class TemporaryVc(commands.Cog):
 		""" Gets permissions for the temporary voice channel.
 		:param member: The voice channel's owner. """
 
+		muted_role = discord.utils.get(member.guild.roles, id=int(os.getenv('MUTED_ROLE_ID')))
+
 		overwrites = {
 			member.guild.default_role: discord.PermissionOverwrite(
 				connect=None, speak=None, view_channel=True),
+
+			muted_role: discord.PermissionOverwrite(
+				connect=None, speak=None, view_channel=True),
+
 			member: discord.PermissionOverwrite(
 				connect=True, speak=True, view_channel=True)
 		}
