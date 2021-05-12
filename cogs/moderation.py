@@ -24,6 +24,7 @@ owner_role_id = int(os.getenv('OWNER_ROLE_ID'))
 server_id = int(os.getenv('SERVER_ID'))
 nsfw_channel_id = int(os.getenv('NSFW_CHANNEL_ID'))
 staff_role_id = int(os.getenv('STAFF_ROLE_ID'))
+member_dot_role_id = int(os.getenv('MEMBER_DOT_ROLE_ID'))
 
 allowed_roles = [owner_role_id, admin_role_id, mod_role_id, jr_mod_role_id, trial_mod_role_id]
 
@@ -494,7 +495,7 @@ class Moderation(commands.Cog):
 			# 	await self.mute(ctx=ctx, member=member, reason=reason)
 
 	@commands.command()
-	@commands.check_any(is_allowed_members(), commands.has_any_role(*allowed_roles))
+	@commands.check_any(is_allowed_members(), commands.has_any_role(*allowed_roles, member_dot_role_id))
 	async def mute(self, ctx, member: discord.Member = None, *, reason = None):
 		'''
 		(MOD) Mutes a member.
@@ -622,7 +623,7 @@ class Moderation(commands.Cog):
 
 	# Mutes a member temporarily
 	@commands.command()
-	@commands.check_any(is_allowed_members(), commands.has_any_role(*allowed_roles))
+	@commands.check_any(is_allowed_members(), commands.has_any_role(*allowed_roles, member_dot_role_id))
 	async def tempmute(self, ctx, member: discord.Member = None, reason: str =  None, *, time: str = None):
 		"""
 		Mutes a member for a determined amount of time.
@@ -710,7 +711,7 @@ class Moderation(commands.Cog):
 
 	# Unmutes a member
 	@commands.command()
-	@commands.check_any(is_allowed_members(), commands.has_any_role(*allowed_roles))
+	@commands.check_any(is_allowed_members(), commands.has_any_role(*allowed_roles, member_dot_role_id))
 	async def unmute(self, ctx, member: discord.Member = None, *, reason = None):
 		'''
 		(MOD) Unmutes a member.

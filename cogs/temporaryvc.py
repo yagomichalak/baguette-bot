@@ -203,6 +203,8 @@ class TemporaryVc(commands.Cog):
 
 		if not owner or owner not in voice.channel.members:
 			await self.db.update_temp_vc_owner_id(owner.id, member.id, voice.channel.id)
+			await voice.channel.set_permissions(owner, overwrite=None)
+			await voice.channel.set_permissions(member, manage_channels=True)
 			await ctx.send(f"**You just claimed {voice.channel.mention}, {member.mention}!**")
 		else:
 			await ctx.send(f"**{owner} is still in their temp vc, {member.mention}!**")
@@ -311,10 +313,10 @@ class TemporaryVc(commands.Cog):
 				connect=None, speak=None, view_channel=True),
 
 			muted_role: discord.PermissionOverwrite(
-				connect=None, speak=None, view_channel=True),
+				connect=False, speak=None, view_channel=True),
 
 			member: discord.PermissionOverwrite(
-				connect=True, speak=True, view_channel=True)
+				connect=True, speak=True, view_channel=True, manage_channels=True)
 		}
 
 		return overwrites
