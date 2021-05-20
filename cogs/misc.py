@@ -669,7 +669,7 @@ class Misc(commands.Cog):
 	# Sends an embedded message
 	@commands.command()
 	@commands.has_permissions(administrator=True)
-	async def emb(self, ctx):
+	async def embed(self, ctx):
 		'''
 		(MOD) Sends an embedded message.
 		'''
