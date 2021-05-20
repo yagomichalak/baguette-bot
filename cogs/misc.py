@@ -666,6 +666,21 @@ class Misc(commands.Cog):
 		else:
 			await ctx.message.add_reaction('\u2705')
 
+	# Sends an embedded message
+	@commands.command()
+	@commands.has_permissions(administrator=True)
+	async def emb(self, ctx):
+		'''
+		(MOD) Sends an embedded message.
+		'''
+		await ctx.message.delete()
+		if len(ctx.message.content.split()) < 2:
+			return await ctx.send('You must inform all parameters!')
+
+		msg = ctx.message.content.split('!emb', 1)
+		embed = discord.Embed(description=msg[1], colour=discord.Colour.dark_green())
+		await ctx.send(embed=embed)
+
 
 """
 Setup:
