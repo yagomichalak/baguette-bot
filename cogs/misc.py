@@ -678,7 +678,7 @@ class Misc(commands.Cog):
 			return await ctx.send('You must inform all parameters!')
 
 		msg = ctx.message.content.split('b!embed', 1)
-		embed = discord.Embed(description=msg[1], colour=discord.Colour.dark_green())
+		embed = discord.Embed(description=msg[1], colour=discord.Colour.dark_red())
 		await ctx.send(embed=embed)
 
 
