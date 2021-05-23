@@ -49,6 +49,13 @@ class TemporaryVc(commands.Cog):
 		if after.channel and after.channel.category:
 			# Creates a voice channel and moves the user into there
 			if after.channel.id == self.temp_vc_id:
+				if not (user := await self.client.get_cog('LevelSystem').get_specific_user(member.id)):
+					return await member.send(f"**{member}, you're not in the system yet, try again!**")
+
+				if user[0][2] < 1:
+					return await member.send(f"**You need to be at least level 1 to use this command!")
+
+
 				# Checks whether user has an existing temp vc
 				if (temp_vc := await self.db.get_temp_vc_by_user_id(member.id)):
 					if (vc := discord.utils.get(member.guild.channels, id=temp_vc[1])):
@@ -98,6 +105,13 @@ class TemporaryVc(commands.Cog):
 		""" Creates a temporary voice channel. """
 
 		member = ctx.author
+
+		if not (user := await self.client.get_cog('LevelSystem').get_specific_user(member.id)):
+			return await ctx.send(f"**{member}, you're not in the system yet, try again!**")
+
+		if user[0][2] < 1:
+			return await ctx.send(f"**You need to be at least level 1 to use this command!")
+
 		if temp_vc := await self.db.get_temp_vc_by_user_id(member.id):
 			return await ctx.send(f"**You already have a temp vc, {member.mention}! (<#{temp_vc[1]}>)**")
 
