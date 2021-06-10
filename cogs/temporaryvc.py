@@ -135,6 +135,9 @@ class TemporaryVc(commands.Cog):
 		if not (temp_vc := await self.db.get_temp_vc_by_vc_id(voice.channel.id)):
 			return await ctx.send(f"**{voice.channel.mention} is not a temp vc, {member.mention}!**")
 
+		if temp_vc[0] != member.id:
+			return await ctx.send(f"**This is not your temp vc, {member.mention}!**")
+
 		vc = discord.utils.get(ctx.guild.channels, id=temp_vc[1])
 		
 		try:
@@ -243,6 +246,9 @@ class TemporaryVc(commands.Cog):
 		if not (temp_vc := await self.db.get_temp_vc_by_vc_id(voice.channel.id)):
 			return await ctx.send(f"**{voice.channel.mention} is not a temp vc, {member.mention}!**")
 
+		if temp_vc[0] != member.id:
+			return await ctx.send(f"**This is not your temp vc, {member.mention}!**")
+
 		vc = discord.utils.get(ctx.guild.channels, id=temp_vc[1])
 		try:
 			await vc.edit(user_limit=limit)
@@ -271,6 +277,9 @@ class TemporaryVc(commands.Cog):
 
 		if not (temp_vc := await self.db.get_temp_vc_by_vc_id(voice.channel.id)):
 			return await ctx.send(f"**{voice.channel.mention} is not a temp vc, {member.mention}!**")
+
+		if temp_vc[0] != member.id:
+			return await ctx.send(f"**This is not your temp vc, {member.mention}!**")
 
 		vc = discord.utils.get(ctx.guild.channels, id=temp_vc[1])
 		try:
