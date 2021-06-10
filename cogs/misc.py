@@ -13,6 +13,8 @@ import textwrap
 import traceback
 from contextlib import redirect_stdout
 
+patreon_supporter_role_id = int(os.getenv('PATREON_SUPPORTER_ROLE_ID'))
+
 
 
 class Misc(commands.Cog):
@@ -680,6 +682,30 @@ class Misc(commands.Cog):
 		msg = ctx.message.content.split('b!embed', 1)
 		embed = discord.Embed(description=msg[1], colour=discord.Colour.dark_red())
 		await ctx.send(embed=embed)
+
+
+	@commands.command()
+	async def patreon(self, ctx) -> None:
+		""" Shows a list with all Patreon supporters. """
+
+		patreon_supporter_role = discord.utils.get(ctx.guild.roles, id=patreon_supporter_role_id)
+
+		supporters = ', '.join([m.mention for m in ctx.guild.members if patreon_supporter_role in m.roles])
+
+		patreon_link = "https://www.patreon.com/user?u=24213557"
+
+		embed = discord.Embed(
+			title="__Patreon Supporters__",
+			description=supporters,
+			color=ctx.author.color,
+			timestamp=ctx.message.created_at,
+			url=patreon_link
+		)
+
+		component = discord.Component()
+		component.add_button(style=5, label="Support Us!", url=patreon_link, emoji="<:Patreon:844644789809971230>")
+
+		await ctx.send(embed=embed, components=[component])
 
 
 """
