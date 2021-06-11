@@ -1,7 +1,6 @@
 git+https://github.com/Rapptz/discord-ext-menus
 git+https://github.com/yagomichalak/discord.py.git@v1.x
 aiomysql==0.0.21
-discord==1.0.1
 pytz==2021.1
 emoji==1.2.0
 python-dotenv==0.17.1
