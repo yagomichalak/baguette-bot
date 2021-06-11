@@ -720,6 +720,7 @@ class Misc(commands.Cog):
 	# Sends an embedded message
 	@commands.command()
 	@commands.has_permissions(administrator=True)
+	@check_whitelist()
 	async def embed(self, ctx):
 		'''
 		(MOD) Sends an embedded message.
@@ -760,7 +761,6 @@ class Misc(commands.Cog):
 
 	# Shows the specific rule
 	@commands.command()
-	@commands.has_role(int(os.getenv('STAFF_ROLE_ID')))
 	async def rule(self, ctx, numb: int = None):
 		""" Shows a specific server rule.
 		:param numb: The number of the rule to show. """
@@ -779,7 +779,7 @@ class Misc(commands.Cog):
 		await ctx.send(embed=embed)
 
 	@commands.command()
-	@commands.has_role(int(os.getenv('STAFF_ROLE_ID')))
+	@commands.has_permissions(administrator=True)
 	async def rules(self, ctx):
 		""" (STAFF) Sends an embedded message containing all rules in it. """
 
