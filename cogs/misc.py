@@ -58,15 +58,18 @@ class Misc(commands.Cog):
 
 	@commands.Cog.listener()
 	async def on_member_update(self, before, after) -> None:
+		""" Checks users' last seen datetime and updates it. """
 		
 		if before.status == after.status:
 			return
 
-		if before.status == 'offline' or after.status == 'offline':
-			print('Member is not offline')
+		if str(before.status) == 'offline' or str(after.status) == 'offline':
 
 			current_ts = await Misc.get_timestamp()
-			# await self.update_member_last_seen(current_ts)
+			if await self.get_member_last_seen(after.id):
+				await self.update_member_last_seen(after.id, current_ts)
+			else:
+				await self.insert_member_last_seen(after.id, current_ts)
 
 	@tasks.loop(minutes=1)
 	async def check_server_activity_status(self):
@@ -106,15 +109,24 @@ class Misc(commands.Cog):
 		if members_channel := guild.get_channel(int(os.getenv('MEMBERS_CHANNEL_ID'))):
 			await members_channel.edit(name=f"Members: {len(guild.members)}")
 
-		if boosts_channel := guild.get_channel(int(os.getenv('BOOSTS_CHANNEL_ID'))):
-			await boosts_channel.edit(name=f"Boosts: {guild.premium_subscription_count}")
+		if clock_channel := guild.get_channel(int(os.getenv('CLOCK_CHANNEL_ID'))):
+			time_now = datetime.now()
+			tzone = timezone('Etc/GMT')
+
+			date_and_time = time_now.astimezone(tzone)
+			date_and_time_in_text = date_and_time.strftime('%H:%M')
+
+			print(clock_channel)
+			await clock_channel.edit(name=f'GMT - {date_and_time_in_text}')
+
+		# if boosts_channel := guild.get_channel(int(os.getenv('BOOSTS_CHANNEL_ID'))):
+		# 	await boosts_channel.edit(name=f"Boosts: {guild.premium_subscription_count}")
 
 
 	async def check_emoji(self, message: discord.Message) -> None:
 		""" Checks whether the message has emojis, if so, updates their counter in the database.
 		:param message: The message to check. """
 
-		# print(message.content)
 
 		text_de= emoji.demojize(message.content)
 		all_emojis = re.findall(r'[<]?[a]?:[!_\-\w]+:[0-9]{0,18}[>]?', text_de)
@@ -150,7 +162,6 @@ class Misc(commands.Cog):
 
 		if not member:
 			member = ctx.author
-
 
 		await ctx.send(member.avatar_url)
 
@@ -888,6 +899,105 @@ class Misc(commands.Cog):
 		the_emojis = await mycursor.fetchall()
 		await mycursor.close()
 		return the_emojis
+
+
+	@commands.command(hidden=True)
+	@commands.has_permissions(administrator=True)
+	async def create_table_last_seen(self, ctx) -> None:
+		""" (ADM) Creates the LastSeen table. """
+
+		if await self.check_table_last_seen():
+			return await ctx.send("**Table __LastSeen already exists!**")
+
+		await ctx.message.delete()
+		mycursor, db = await the_database()
+		await mycursor.execute("""CREATE TABLE LastSeen (
+			user_id BIGINT NOT NULL,
+			timestamp BIGINT NOT NULL,
+			PRIMARY KEY (user_id)
+			) """)
+		await db.commit()
+		await mycursor.close()
+
+		return await ctx.send("**Table __LastSeen created!**", delete_after=3)
+
+	@commands.command(hidden=True)
+	@commands.has_permissions(administrator=True)
+	async def drop_table_last_seen(self, ctx) -> None:
+		""" (ADM) Creates the LastSeen table """
+
+		if not await self.check_table_last_seen():
+			return await ctx.send("**Table __LastSeen doesn't exist!**")
+
+		await ctx.message.delete()
+		mycursor, db = await the_database()
+		await mycursor.execute("DROP TABLE LastSeen")
+		await db.commit()
+		await mycursor.close()
+
+		return await ctx.send("**Table __LastSeen dropped!**", delete_after=3)
+
+	@commands.command(hidden=True)
+	@commands.has_permissions(administrator=True)
+	async def reset_table_LastSeen(self, ctx) -> None:
+		""" (ADM) Creates the LastSeen table """
+
+		if not await self.check_table_last_seen():
+			return await ctx.send("**Table __LastSeen doesn't exist yet!**")
+
+		await ctx.message.delete()
+		mycursor, db = await the_database()
+		await mycursor.execute("DELETE FROM LastSeen")
+		await db.commit()
+		await mycursor.close()
+
+		return await ctx.send("**Table __LastSeen__ reset!**", delete_after=3)
+
+	async def check_table_last_seen(self) -> bool:
+		""" Checks if the LastSeen table exists """
+
+		mycursor, db = await the_database()
+		await mycursor.execute("SHOW TABLE STATUS LIKE 'LastSeen'")
+		table_info = await mycursor.fetchall()
+		await mycursor.close()
+
+		if len(table_info) == 0:
+			return False
+
+		else:
+			return True
+
+
+	async def insert_member_last_seen(self, user_id: int, timestamp: int) -> None:
+		""" Inserts an entry concerning the user's last seen datetime.
+		:param user_id: The ID of the user.
+		:param timestamp: The current timestamp. """
+
+		mycursor, db = await the_database()
+		await mycursor.execute("INSERT INTO LastSeen (user_id, timestamp) VALUES (%s, %s)", (user_id, timestamp))
+		await db.commit()
+		await mycursor.close()
+
+	async def update_member_last_seen(self, user_id: int, new_timestamp: int) -> None:
+		""" Updates the user's last seen datetime.
+		:param user_id: The ID of the user.
+		:param new_timestamp: The new timestamp. """
+
+		mycursor, db = await the_database()
+		await mycursor.execute("UPDATE LastSeen SET timestamp = %s WHERE user_id = %s", (new_timestamp, user_id))
+		await db.commit()
+		await mycursor.close()
+
+	async def get_member_last_seen(self, user_id: int) -> List[int]:
+		""" Gets the user's last seen datetime.
+		:param user_id: The ID of the user. """
+
+		mycursor, db = await the_database()
+		await mycursor.execute("SELECT * FROM LastSeen WHERE user_id = %s", (user_id,))
+		the_user = await mycursor.fetchone()
+		await mycursor.close()
+		return the_user
+
 	
 """
 Setup:

@@ -349,8 +349,10 @@ class Moderation(commands.Cog):
 
 		embed.add_field(name="Top role:", value=member.top_role.mention, inline=False)
 
-		if staff_member := await self.get_staff_member(member.id):
-			embed.add_field(name="Infractions Given:", value=f"{staff_member[1]} infractions.", inline=False)
+		if last_seen := await self.client.get_cog('Misc').get_member_last_seen(member.id):
+			last_seen_date = datetime.utcfromtimestamp(last_seen[1])
+			last_seen_date = await self.sort_time(ctx.guild, last_seen_date)
+			embed.add_field(name="Last Seen:", value=f"{last_seen_date} | **Current Status:** {member.status}", inline=False)
 
 		await ctx.send(embed=embed)
 
@@ -922,7 +924,7 @@ class Moderation(commands.Cog):
 				if staff_member_info[4] and current_ts - staff_member_info[4] >= 86400:
 					await self.update_staff_member_counter(
 						user_id=staff_member.id, infraction_increment=1, reset_ban=True, timestamp=current_ts)
-				elif staff_member_info[3] >= 5 and not ctx.channel.permissions_for(staff_member).administrator:
+				elif staff_member_info[3] >= 30 and not ctx.channel.permissions_for(staff_member).administrator:
 					try:
 						return await staff_member.send("**You have reached your daily ban limit. Please contact an admin.**")
 					except:
@@ -988,7 +990,7 @@ class Moderation(commands.Cog):
 				if staff_member_info[4] and current_ts - staff_member_info[4] >= 86400:
 					await self.update_staff_member_counter(
 						user_id=staff_member.id, infraction_increment=1, reset_ban=True, timestamp=current_ts)
-				elif staff_member_info[3] >= 5 and not ctx.channel.permissions_for(staff_member).administrator:
+				elif staff_member_info[3] >= 30 and not ctx.channel.permissions_for(staff_member).administrator:
 					try:
 						return await staff_member.send("**You have reached your daily ban limit. Please contact an admin.**")
 					except:

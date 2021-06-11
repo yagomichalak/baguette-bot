@@ -396,6 +396,10 @@ class LevelSystem(commands.Cog):
         else: text_all = '0'
 
         embed.add_field(name="__**Voice Time**__", value=text_all, inline=True)
+
+        if staff_member := await self.client.get_cog('Moderation').get_staff_member(member.id):
+            embed.add_field(name="Infractions Given:", value=f"{staff_member[1]} infractions.", inline=False)
+
         embed.set_thumbnail(url=member.avatar_url)
         embed.set_footer(text=f"{member}", icon_url=member.avatar_url)
         return await ctx.send(embed=embed)

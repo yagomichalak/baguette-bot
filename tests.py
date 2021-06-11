@@ -517,3 +517,4 @@
 # embed.add_field(name="21:00", value=f"""🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧[English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l});""", inline=False)
 # embed.add_field(name="22:00", value=f"""🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧[English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l});""", inline=False)
 # embed.add_field(name="23:00", value=f"""🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧[English]({l}); 🇵🇭 [Tagalog]({l}); 🇬🇧 [English]({l});""", inline=False)
+
