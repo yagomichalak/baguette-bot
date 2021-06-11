@@ -377,11 +377,11 @@ class LevelSystem(commands.Cog):
         position = [it for subpos in position for it in subpos] if position else ['??', 0]
 
         embed = discord.Embed(title="__Profile__", colour=member.color, timestamp=ctx.message.created_at)
-        embed.add_field(name="__**Level**__", value=f"{user[0][2]}.", inline=True)
-        embed.add_field(name="__**Rank**__", value=f"# {position[0]}.", inline=True)
+        embed.add_field(name="**Level**", value=f"{user[0][2]}.", inline=True)
+        embed.add_field(name="**Rank**", value=f"# {position[0]}.", inline=True)
         # embed.add_field(name="__**EXP**__", value=f"{user[0][1]} / {((user[0][2]+1)**5)}.", inline=False)
-        embed.add_field(name="__**EXP**__", value=f"{user[0][1]} / {await LevelSystem.get_xp(user[0][2])}.", inline=False)
-        embed.add_field(name="__**Messages**__", value=f"{user[0][4]}.", inline=True)
+        embed.add_field(name="**EXP**", value=f"{user[0][1]} / {await LevelSystem.get_xp(user[0][2])}.", inline=False)
+        embed.add_field(name="**Messages**", value=f"{user[0][4]}.", inline=True)
 
 
 
@@ -395,12 +395,12 @@ class LevelSystem(commands.Cog):
         elif sall: text_all = f"{sall}s"
         else: text_all = '0'
 
-        embed.add_field(name="__**Voice Time**__", value=text_all, inline=True)
+        embed.add_field(name="**Voice Time**", value=text_all, inline=True)
 
         if staff_member := await self.client.get_cog('Moderation').get_staff_member(member.id):
             joined_staff_at = datetime.utcfromtimestamp(staff_member[2])
             days_ago = await self.client.get_cog('Moderation').sort_time(ctx.guild, joined_staff_at)
-            embed.add_field(name="Joined Staff at:", value=f"`{joined_staff_at.strftime('%Y/%m/%d at %H:%M:%S')}` ({days_ago} ago)", inline=False)
+            embed.add_field(name="Joined Staff at:", value=f"{joined_staff_at.strftime('%Y/%m/%d at %H:%M:%S')} ({days_ago} ago)", inline=False)
 
             embed.add_field(name="Infractions Given:", value=f"{staff_member[1]} infractions.", inline=False)
 
