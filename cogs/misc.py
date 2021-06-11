@@ -33,6 +33,7 @@ class Misc(commands.Cog):
 	async def on_ready(self) -> None:
 		self.server_status.start()
 		self.check_server_activity_status.start()
+		self.look_for_due_reminders.start()
 		print('Misc cog is online')
 
 
@@ -116,11 +117,27 @@ class Misc(commands.Cog):
 			date_and_time = time_now.astimezone(tzone)
 			date_and_time_in_text = date_and_time.strftime('%H:%M')
 
-			print(clock_channel)
 			await clock_channel.edit(name=f'GMT - {date_and_time_in_text}')
 
 		# if boosts_channel := guild.get_channel(int(os.getenv('BOOSTS_CHANNEL_ID'))):
 		# 	await boosts_channel.edit(name=f"Boosts: {guild.premium_subscription_count}")
+
+	@tasks.loop(minutes=1)
+	async def look_for_due_reminders(self) -> None:
+		""" Looks for expired tempmutes and unmutes the users. """
+
+		current_ts = await Misc.get_timestamp()
+		reminders = await self.get_due_reminders(current_ts)
+		guild = self.client.get_guild(int(os.getenv('SERVER_ID')))
+		for reminder in reminders:
+			member = discord.utils.get(guild.members, id=reminder[1])
+			if member:
+				try:	
+					await member.send(f"**`Reminder:`** {reminder[2]}")
+				except:
+					pass
+			
+			await self.delete_member_reminder(reminder[0])
 
 
 	async def check_emoji(self, message: discord.Message) -> None:
@@ -200,13 +217,11 @@ class Misc(commands.Cog):
 
 		# Format given time
 		given_date = datetime.strptime(given_time, '%H:%M')
-		# print(f"Given date: {given_date.strftime('%H:%M')}")
 
 		# Convert given date to given timezone
 		tz = pytz.timezone(given_timezone)
 		converted_time = datetime.now(tz=tz)
 		converted_time = converted_time.replace(hour=given_date.hour, minute=given_date.minute)
-		# print(f"Given date formated to given timezone: {converted_time.strftime('%H:%M')}")
 
 		# Converting date to GMT (Etc/GMT-1)
 		GMT = timezone(default_timezone)
@@ -907,7 +922,7 @@ class Misc(commands.Cog):
 		""" (ADM) Creates the LastSeen table. """
 
 		if await self.check_table_last_seen():
-			return await ctx.send("**Table __LastSeen already exists!**")
+			return await ctx.send("**Table __LastSeen__ already exists!**")
 
 		await ctx.message.delete()
 		mycursor, db = await the_database()
@@ -919,7 +934,7 @@ class Misc(commands.Cog):
 		await db.commit()
 		await mycursor.close()
 
-		return await ctx.send("**Table __LastSeen created!**", delete_after=3)
+		return await ctx.send("**Table __LastSeen__ created!**", delete_after=3)
 
 	@commands.command(hidden=True)
 	@commands.has_permissions(administrator=True)
@@ -927,7 +942,7 @@ class Misc(commands.Cog):
 		""" (ADM) Creates the LastSeen table """
 
 		if not await self.check_table_last_seen():
-			return await ctx.send("**Table __LastSeen doesn't exist!**")
+			return await ctx.send("**Table __LastSeen__ doesn't exist!**")
 
 		await ctx.message.delete()
 		mycursor, db = await the_database()
@@ -935,15 +950,15 @@ class Misc(commands.Cog):
 		await db.commit()
 		await mycursor.close()
 
-		return await ctx.send("**Table __LastSeen dropped!**", delete_after=3)
+		return await ctx.send("**Table __LastSeen__ dropped!**", delete_after=3)
 
 	@commands.command(hidden=True)
 	@commands.has_permissions(administrator=True)
-	async def reset_table_LastSeen(self, ctx) -> None:
+	async def reset_table_last_seen(self, ctx) -> None:
 		""" (ADM) Creates the LastSeen table """
 
 		if not await self.check_table_last_seen():
-			return await ctx.send("**Table __LastSeen doesn't exist yet!**")
+			return await ctx.send("**Table __LastSeen__ doesn't exist yet!**")
 
 		await ctx.message.delete()
 		mycursor, db = await the_database()
@@ -998,6 +1013,165 @@ class Misc(commands.Cog):
 		await mycursor.close()
 		return the_user
 
+	# ===========
+
+	@commands.command(hidden=True)
+	@commands.has_permissions(administrator=True)
+	async def create_table_member_reminder(self, ctx) -> None:
+		""" (ADM) Creates the MemberReminder table. """
+
+		if await self.check_table_member_reminder():
+			return await ctx.send("**Table __MemberReminder__ already exists!**")
+
+		await ctx.message.delete()
+		mycursor, db = await the_database()
+		await mycursor.execute("""CREATE TABLE MemberReminder (
+			reminder_id BIGINT NOT NULL AUTO_INCREMENT,
+			user_id BIGINT NOT NULL,
+			text VARCHAR(100) NOT NULL,
+			reminder_timestamp BIGINT NOT NULL,
+			remind_in BIGINT NOT NULL,
+			PRIMARY KEY (reminder_id)
+			) """)
+		await db.commit()
+		await mycursor.close()
+
+		return await ctx.send("**Table __MemberReminder__ created!**", delete_after=3)
+
+	@commands.command(hidden=True)
+	@commands.has_permissions(administrator=True)
+	async def drop_table_member_reminder(self, ctx) -> None:
+		""" (ADM) Creates the MemberReminder table """
+
+		if not await self.check_table_member_reminder():
+			return await ctx.send("**Table __MemberReminder__ doesn't exist!**")
+
+		await ctx.message.delete()
+		mycursor, db = await the_database()
+		await mycursor.execute("DROP TABLE MemberReminder")
+		await db.commit()
+		await mycursor.close()
+
+		return await ctx.send("**Table __MemberReminder__ dropped!**", delete_after=3)
+
+	@commands.command(hidden=True)
+	@commands.has_permissions(administrator=True)
+	async def reset_table_member_reminder(self, ctx) -> None:
+		""" (ADM) Creates the MemberReminder table """
+
+		if not await self.check_table_member_reminder():
+			return await ctx.send("**Table __MemberReminder__ doesn't exist yet!**")
+
+		await ctx.message.delete()
+		mycursor, db = await the_database()
+		await mycursor.execute("DELETE FROM MemberReminder")
+		await db.commit()
+		await mycursor.close()
+
+		return await ctx.send("**Table __MemberReminder__ reset!**", delete_after=3)
+
+	async def check_table_member_reminder(self) -> bool:
+		""" Checks if the MemberReminder table exists """
+
+		mycursor, db = await the_database()
+		await mycursor.execute("SHOW TABLE STATUS LIKE 'MemberReminder'")
+		table_info = await mycursor.fetchall()
+		await mycursor.close()
+
+		if len(table_info) == 0:
+			return False
+
+		else:
+			return True
+
+	async def get_due_reminders(self, current_ts: int) -> List[int]:
+		""" Gets reminders that are due.. 
+		:param current_ts: The current timestamp. """
+
+		mycursor, db = await the_database()
+		await mycursor.execute("SELECT * FROM MemberReminder WHERE (%s -  reminder_timestamp) >= remind_in", (current_ts,))
+		reminders = [(m[0], m[1], m[2]) for m in await mycursor.fetchall()]
+		await mycursor.close()
+		return reminders
+
+
+	async def insert_member_reminder(self, user_id: int, text: str, reminder_timestamp: int, remind_in: int) -> None:
+		""" Inserts an entry concerning the user's last seen datetime.
+		:param user_id: The ID of the user.
+		:param text: The text that has to be reminded.
+		:param reminder_timestamp: The current timestamp.
+		:param remind_in: The amount of seconds to wait until reminding the user. """
+
+		mycursor, db = await the_database()
+		await mycursor.execute("""
+		INSERT INTO MemberReminder (user_id, text, reminder_timestamp, remind_in) 
+		VALUES (%s, %s, %s, %s)""", (user_id, text, reminder_timestamp, remind_in))
+		await db.commit()
+		await mycursor.close()
+
+	async def delete_member_reminder(self, reminder_id: int) -> None:
+		""" Updates the user's last seen datetime.
+		:param reminder_id: The ID of the reminder to delete. """
+
+		mycursor, db = await the_database()
+		await mycursor.execute("DELETE FROM MemberReminder WHERE reminder_id = %s", (reminder_id,))
+		await db.commit()
+		await mycursor.close()
+
+	async def get_member_reminders(self, user_id: int) -> List[List[Union[str, int]]]:
+		""" Gets the user's reminders.
+		:param user_id: The ID of the user. """
+
+		mycursor, db = await the_database()
+		await mycursor.execute("SELECT * FROM MemberReminder WHERE user_id = %s", (user_id,))
+		reminders = await mycursor.fetchall()
+		await mycursor.close()
+		return reminders
+
+
+	@commands.command(aliases=['reminder', 'remind', 'remindme', 'set_reminder'])
+	# @commands.cooldown(1, 10, commands.BucketType.user)
+	async def setreminder(self, ctx, text: str = None, *, time: str = None):
+		""" Sets a reminder for the user.
+		:param text: The descriptive text for the bot to remind you about.
+		:param time: The amount of time to wait before reminding you.
+
+		- Text Format: If it contains more than 1 word, put everything within " "
+		- Time Format: 12s 34m 56h 78d (Order doesn't matter).
+
+		Example:
+		b!setreminder "do the dishes" 3m 65s
+		= The bot will remind you in 4 minutes and 5 seconds.
+
+		PS: Seconds may not be always reliable, since the bot checks reminders every minute. """
+
+		member = ctx.author
+
+		if not text:
+			return await ctx.send(f"**Specify a text to remind you, {member.mention}**")
+
+		if len(text) > 100:
+			return await ctx.send(f"**Please, inform a text with a maximum of 100 characters, {member.mention}!**")
+
+		if not time:
+			return await ctx.send(f"**Inform a time, {member.mention}!**")
+
+		time_dict, seconds = await self.client.get_cog('Moderation').get_mute_time(ctx=ctx, time=time)
+		if not seconds:
+			return
+
+		reminders = await self.get_member_reminders(member.id)
+		if len(reminders) >= 3: # User reached limit of reminders.
+			return await ctx.send(
+				f"**You reached the limit of reminders, wait for them to finish before trying again, {member.mention}!**")
+
+		current_ts = await Misc.get_timestamp()
+		await self.insert_member_reminder(member.id, text, current_ts, seconds)
+		remind_at = datetime.utcfromtimestamp(current_ts + seconds)
+		await ctx.send(f"**Reminding you at `{remind_at}`, {member.mention}!**")
+
+
+
 	
 """
 Setup:
@@ -1005,7 +1179,8 @@ b!create_table_server_status
 b!create_table_user_timezones
 
 b!create_table_emojis
-b!create_table_last_seen [to-do]
+b!create_table_last_seen
+b!create_table_member_reminder
 """
 
 
