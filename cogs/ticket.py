@@ -110,6 +110,8 @@ class Ticket(commands.Cog):
     overwrites = {guild.default_role: discord.PermissionOverwrite(
       read_messages=False, send_messages=False, view_channel=False), 
     member: discord.PermissionOverwrite(
+      read_messages=True, send_messages=True, view_channel=True),
+    staff: discord.PermissionOverwrite(
       read_messages=True, send_messages=True, view_channel=True)
     }
     the_channel = await guild.create_text_channel(name=f"ticket-{counter}", category=case_cat, overwrites=overwrites)
