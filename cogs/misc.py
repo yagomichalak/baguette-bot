@@ -166,7 +166,7 @@ class Misc(commands.Cog):
 			if not await LevelSystem.get_important_var(label="bl_channel", value_int=ctx.channel.id):
 				return True
 
-			await ctx.send(f"**This command is blacklisted in this channel, {ctx.author.mention}!**")
+			await ctx.send(f"**This command is blacklisted in this channel, please use a bot channel, {ctx.author.mention}!**")
 
 		return commands.check(real_check)
 
@@ -184,7 +184,6 @@ class Misc(commands.Cog):
 
 	@commands.command()
 	@commands.cooldown(1, 5, commands.BucketType.user)
-	@check_whitelist()
 	async def time(self, ctx: commands.Context, time: str = None, my_timezone: str = None) -> None:
 		""" Tells the time in a given timezone, and compares to the CET one.
 		:param time: The time you want to check. Ex: 7pm

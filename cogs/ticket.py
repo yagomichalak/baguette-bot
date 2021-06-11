@@ -132,7 +132,7 @@ class Ticket(commands.Cog):
       description=f"Please, explain what's the problem or the situation.", 
       color=discord.Color.green()
     )
-    await the_channel.send(content=f"{member.mention}, {staff.mention}, {guild.owner.mention}", embed=embed)
+    await the_channel.send(content=f"{member.mention}, {staff.mention}", embed=embed)
 
  
   async def get_ticket_number(self) -> int:

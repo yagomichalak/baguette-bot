@@ -373,9 +373,22 @@ class Moderation(commands.Cog):
 		if last_seen := await self.client.get_cog('Misc').get_member_last_seen(member.id):
 			last_seen_date = datetime.utcfromtimestamp(last_seen[1])
 			last_seen_date = await self.sort_time(ctx.guild, last_seen_date)
-			embed.add_field(name="Last Seen:", value=f"{last_seen_date} | **Current Status:** {member.status}", inline=False)
+			emoji_status = await self.get_status_emoji(str(member.status))
+			embed.add_field(name="Last Seen:", value=f"{last_seen_date} | **Current Status:** {member.status} {emoji_status}", inline=False)
 
 		await ctx.send(embed=embed)
+
+	async def get_status_emoji(self, status: str) -> str:
+		""" Gets an emoji for a status.
+		:param status: The status to get the emoji for. """
+
+		" :green_circle: :yellow_circle: :red_circle: :black_circle: ?"
+
+		if status == "online": return ':green_circle:'
+		if status == "idle": return ':yellow_circle:'
+		if status == "dnd": return ':red_circle:'
+		if status == "offline": return ':black_circle:'
+
 
 	@commands.command(aliases=['si', 'server'])
 	@Misc.check_whitelist()
