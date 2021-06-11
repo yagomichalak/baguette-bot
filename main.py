@@ -47,6 +47,9 @@ async def on_command_error(ctx, error):
 	elif isinstance(error, commands.errors.RoleNotFound):
 		await ctx.send(f"**{error}**")
 
+	elif isinstance(error, commands.BadArgument):
+		await ctx.send(f"**Bad argument!**")
+
 	elif isinstance(error, commands.MemberNotFound):
 		await ctx.send(f"**{error}**")
 

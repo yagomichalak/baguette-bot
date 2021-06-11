@@ -43,12 +43,12 @@ class Ticket(commands.Cog):
       return
 
     if payload.message_id == self.ticket_message_id:
-        if str(payload.emoji) != '🥖':
+        if str(payload.emoji) != '❌':
             return
 
         channel = self.client.get_channel(payload.channel_id)
         message = await channel.fetch_message(payload.message_id)
-        await message.remove_reaction('🥖', user)
+        await message.remove_reaction('❌', user)
 
         # Tries to open a ticket channel
         return await self.open_ticket(user, guild)

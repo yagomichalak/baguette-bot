@@ -1128,9 +1128,20 @@ class Misc(commands.Cog):
 		await mycursor.close()
 		return reminders
 
+	async def get_reminder(self, reminder_id: int) -> List[Union[str, int]]:
+		""" Gets a reminder by ID.
+		:param reminder_id: The reminder ID. """
+		
+		mycursor, db = await the_database()
+		await mycursor.execute("SELECT * FROM MemberReminder WHERE reminder_id = %s", (reminder_id,))
+		reminder = await mycursor.fetchone()
+		await mycursor.close()
+		return reminder
+
 
 	@commands.command(aliases=['reminder', 'remind', 'remindme', 'set_reminder'])
-	# @commands.cooldown(1, 10, commands.BucketType.user)
+	@commands.cooldown(1, 10, commands.BucketType.user)
+	@check_whitelist()
 	async def setreminder(self, ctx, text: str = None, *, time: str = None):
 		""" Sets a reminder for the user.
 		:param text: The descriptive text for the bot to remind you about.
@@ -1167,10 +1178,68 @@ class Misc(commands.Cog):
 
 		current_ts = await Misc.get_timestamp()
 		await self.insert_member_reminder(member.id, text, current_ts, seconds)
-		remind_at = datetime.utcfromtimestamp(current_ts + seconds)
+		remind_at = datetime.utcfromtimestamp(current_ts + seconds).strftime('%Y/%m/%d at %H:%M:%S')
 		await ctx.send(f"**Reminding you at `{remind_at}`, {member.mention}!**")
 
+	@commands.command(aliases=['show_reminders', 'showreminders', 'rmdrs', 'rs'])
+	@commands.cooldown(1, 5, commands.BucketType.user)
+	@check_whitelist()
+	async def reminders(self, ctx) -> None:
+		""" Shows reminders that you've set. """
 
+		if not ctx.guild:
+			return await ctx.send(f"**You can only see your reminders in the server!**")
+
+		member = ctx.author
+
+		if not (reminders := await self.get_member_reminders(member.id)):
+			return await ctx.send(f"**You don't have any reminder set yet, {member.mention}!**")
+
+		embed = discord.Embed(
+			title="__Your Reminders__",
+			color=member.color,
+			timestamp=ctx.message.created_at
+		)
+
+		embed.set_author(name=member, url=member.avatar_url, icon_url=member.avatar_url)
+		embed.set_thumbnail(url=member.avatar_url)
+		embed.set_footer(text="Requested at:", icon_url=member.guild.icon_url)
+		
+		current_ts = await Misc.get_timestamp()
+
+		for reminder in reminders:	
+
+			remind_at = datetime.utcfromtimestamp(current_ts + reminder[4])
+			remind_at = remind_at.strftime('%Y-%m-%d at %H:%M:%S')
+
+			embed.add_field(
+				name=f"ID: {reminder[0]}", 
+				value=f"**Text:** {reminder[2]}\n**Set to:** `{remind_at}`",
+				inline=False)
+
+		await ctx.send(embed=embed)
+
+
+	@commands.command(aliases=["remove_reminder", "dr", "rr", "dontremind", "dont_remind"])
+	@commands.cooldown(1, 5, commands.BucketType.user)
+	@check_whitelist()
+	async def delete_reminder(self, ctx, reminder_id: int = None) -> None:
+		""" Deletes a member reminder.
+		:param reminder_id: The ID of the reminder to delete. """
+
+		member = ctx.author
+
+		if not reminder_id:
+			return await ctx.send(f"**Please, provide a reminder ID, {member.mention}!**")
+
+		if not (reminder := await self.get_reminder(reminder_id)):
+			return await ctx.send(f"**Reminder with ID `{reminder_id}` doesn't exist, {member.mention}!**")
+
+		if reminder[1] != member.id:
+			return await ctx.send(f"**You're not the owner of this reminder, {member.mention}!**")
+
+		await self.delete_member_reminder(reminder_id)
+		await ctx.send(f"**Successfully deleted reminder with ID `{reminder_id}`, {member.mention}!**")
 
 	
 """

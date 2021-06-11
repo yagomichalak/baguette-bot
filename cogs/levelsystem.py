@@ -398,6 +398,10 @@ class LevelSystem(commands.Cog):
         embed.add_field(name="__**Voice Time**__", value=text_all, inline=True)
 
         if staff_member := await self.client.get_cog('Moderation').get_staff_member(member.id):
+            joined_staff_at = datetime.utcfromtimestamp(staff_member[2])
+            days_ago = await self.client.get_cog('Moderation').sort_time(ctx.guild, joined_staff_at)
+            embed.add_field(name="Joined Staff at:", value=f"`{joined_staff_at.strftime('%Y/%m/%d at %H:%M:%S')}` ({days_ago} ago)", inline=False)
+
             embed.add_field(name="Infractions Given:", value=f"{staff_member[1]} infractions.", inline=False)
 
         embed.set_thumbnail(url=member.avatar_url)
@@ -1050,15 +1054,25 @@ class LevelSystem(commands.Cog):
     async def update_important_var(self, label: str, value_str: str = None, value_int: str = None) -> None:
         """ Gets an important var.
         :param label: The label o that var. """
-
+        
         mycursor, db = await the_database()
-        if value_str and value_int:
+        if value_str is not None and value_int is not None:
             await mycursor.execute("UPDATE ImportantVars SET value_str = %s, value_int = %s WHERE label = %s", (value_str, value_int, label))
-        elif value_str:
+        elif value_str is not None:
             await mycursor.execute("UPDATE ImportantVars SET value_str = %s WHERE label = %s", (value_str, label))
         else:
             await mycursor.execute("UPDATE ImportantVars SET value_int = %s WHERE label = %s", (value_int, label))
 
+        await db.commit()
+        await mycursor.close()
+
+    async def increment_important_var_int(self, label: str, increment: int = 1) -> None:
+        """ Increments an integer value of an important var by a value.
+        :param label: The lable of the important var.
+        :param increment: Ther increment value to apply. Default = 1. """
+
+        mycursor, db = await the_database()
+        await mycursor.execute("UPDATE ImportantVars SET value_int = value_int + %s WHERE label = %s", (increment, label))
         await db.commit()
         await mycursor.close()
 

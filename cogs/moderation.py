@@ -45,6 +45,7 @@ class Moderation(commands.Cog):
 	@commands.Cog.listener()
 	async def on_ready(self) -> None:
 		self.look_for_expired_tempmutes.start()
+		self.look_for_monthly_infractions_record_reset.start()
 		print("Moderation cog is online!")
 
 
@@ -114,6 +115,26 @@ class Moderation(commands.Cog):
 		tempmutes = list(map(lambda m: m[0], await mycursor.fetchall()))
 		await mycursor.close()
 		return tempmutes
+
+	@tasks.loop(minutes=1)
+	async def look_for_monthly_infractions_record_reset(self):
+		""" Resets monthly record of infractions given by Staff members, and adds it to the total amount. """
+
+		LevelSystem = self.client.get_cog('LevelSystem')
+		if not await LevelSystem.table_important_vars_exists():
+			return
+
+		month_today = datetime.utcnow().month
+		# Creates the Total-Infractions counter if it doesn't exist
+		if not await LevelSystem.get_important_var(label="t_infractions"):
+			await LevelSystem.insert_important_var(label="t_infractions", value_int=0)
+
+		# Creates, updates and increments Monthly and Total Infractions counter respectively
+		if (this_month := await LevelSystem.get_important_var(label="m_infractions")) is None:
+			await LevelSystem.insert_important_var(label="m_infractions", value_int=0, value_str=str(month_today))
+		elif this_month[1] != str(month_today):
+			await LevelSystem.increment_important_var_int(label="t_infractions", increment=this_month[2])
+			await LevelSystem.update_important_var(label="m_infractions", value_int=0, value_str=str(month_today))
 
 	@commands.Cog.listener()
 	async def on_member_join(self, member):
@@ -370,7 +391,8 @@ class Moderation(commands.Cog):
 		em.add_field(name="Owner", value=guild.owner.mention, inline=True)
 
 		staff_role = discord.utils.get(guild.roles, id=staff_role_id)
-		staff = ', '.join([m.mention for m in guild.members if staff_role in m.roles])
+		staff_members = [m.mention for m in guild.members if staff_role in m.roles]
+		staff = ', '.join(staff_members) if staff_members else None
 		em.add_field(name="Staff Members", value=staff, inline=False)
 		em.add_field(name="Members", value=f"🟢 {online} members ⚫ {len(guild.members)} members", inline=False)
 		em.add_field(name="Channels", value=f"⌨️ {len(guild.text_channels)} | 🔈 {len(guild.voice_channels)}", inline=True)
@@ -378,10 +400,14 @@ class Moderation(commands.Cog):
 		em.add_field(name="Emojis", value=len(guild.emojis), inline=True)
 		em.add_field(name="🌐 Region", value=str(guild.region).title() if guild.region else None, inline=False)
 		em.add_field(name="🔨 Bans", value=len(await guild.bans()), inline=False)
+
+		monthly_infractions = await self.client.get_cog('LevelSystem').get_important_var(label="m_infractions")
+		em.add_field(name="🗓️ Monthly Infractions", value=f"{monthly_infractions[2]} infractions in this month..", inline=False)
+		total_infractions = await self.client.get_cog('LevelSystem').get_important_var(label="t_infractions")
+		em.add_field(name="📋 Total Infractions", value=f"{total_infractions[2] + monthly_infractions[2]} infractions in total.", inline=False)
 		em.add_field(name="⚡ Boosts", value=f"{guild.premium_subscription_count} (Level {guild.premium_tier})", inline=False)
 		features = '\n'.join(list(map(lambda f: f.replace('_', ' ').capitalize(), guild.features)))
 		em.add_field(name="Server Features", value=features if features else None, inline=False)
-
 
 		em.set_thumbnail(url=None or guild.icon_url)
 		em.set_image(url=guild.banner_url)
@@ -524,6 +550,7 @@ class Moderation(commands.Cog):
 				print(e)
 				pass
 
+			await self.client.get_cog('LevelSystem').increment_important_var_int(label="m_infractions")
 			
 			if ctx.author.bot:
 				return
@@ -613,6 +640,8 @@ class Moderation(commands.Cog):
 				await member.send(embed=embed)
 			except:
 				pass
+
+			await self.client.get_cog('LevelSystem').increment_important_var_int(label="m_infractions")
 
 			if ctx.author.bot:
 				return
@@ -765,6 +794,8 @@ class Moderation(commands.Cog):
 			except:
 				pass
 
+			await self.client.get_cog('LevelSystem').increment_important_var_int(label="m_infractions")
+
 			if ctx.author.bot:
 				return
 
@@ -879,6 +910,8 @@ class Moderation(commands.Cog):
 				except:
 					pass
 
+				await self.client.get_cog('LevelSystem').increment_important_var_int(label="m_infractions")
+
 				if ctx.author.bot:
 					return
 
@@ -956,6 +989,8 @@ class Moderation(commands.Cog):
 			except:
 				pass
 
+			await self.client.get_cog('LevelSystem').increment_important_var_int(label="m_infractions")
+
 
 
 	# Hardbans a member
@@ -1023,6 +1058,8 @@ class Moderation(commands.Cog):
 			except:
 				pass
 
+			await self.client.get_cog('LevelSystem').increment_important_var_int(label="m_infractions")
+
 	# Unbans a member
 	@commands.command()
 	@commands.has_permissions(administrator=True)
@@ -1063,7 +1100,8 @@ class Moderation(commands.Cog):
 					await user.send(embed=general_embed)
 				except:
 					pass
-				return
+
+				return await self.client.get_cog('LevelSystem').increment_important_var_int(label="m_infractions")
 		else:
 			await ctx.send('**Member not found!**', delete_after=3)
 
@@ -1111,6 +1149,8 @@ class Moderation(commands.Cog):
 				await member.send(embed=embed)
 			except:
 				pass
+
+			await self.client.get_cog('LevelSystem').increment_important_var_int(label="m_infractions")
 
 		except discord.errors.NotFound:
 			return await ctx.send("**Invalid user id!**", delete_after=3)
