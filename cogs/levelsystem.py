@@ -526,7 +526,7 @@ class LevelSystem(commands.Cog):
         # Embeds each one of the top ten users.
         for i, sm in enumerate(entries, start=offset):
             member = discord.utils.get(ctx.guild.members, id=sm[0])
-            leaderboard.add_field(name=f"[{i}]#", value=f"{member.mention if member else f'{<@{sm[0]'}} | Level: `{sm[2]}` | XP: `{sm[1]}`",
+            leaderboard.add_field(name=f"[{i}]#", value=f"{member.mention if member else f'<@{sm[0]}>'} | Level: `{sm[2]}` | XP: `{sm[1]}`",
                                   inline=False)
 
         for i, v in enumerate(entries, start=offset):
