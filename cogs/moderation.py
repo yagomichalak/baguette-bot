@@ -11,6 +11,7 @@ from typing import List, Dict, Tuple
 from pprint import pprint
 import re
 import emoji
+from cogs.misc import Misc
 
 mod_log_id = int(os.getenv('MOD_LOG_CHANNEL_ID'))
 muted_role_id = int(os.getenv('MUTED_ROLE_ID'))
@@ -125,6 +126,35 @@ class Moderation(commands.Cog):
 			# general = discord.utils.get(member.guild.channels, id=general_channel)
 			await member.send(f"**{member.mention}, you were muted, left and rejoined the server, so you shall stay muted! 🔇**")
 	
+	@commands.Cog.listener()
+	async def on_member_update(self, before, after):
+		""" Checks whether the user got the Staff role. """
+
+		if not after.guild:
+			return
+
+		# Get roles from now and then
+		roles = before.roles
+		roles2 = after.roles
+		if len(roles2) < len(roles):
+			return
+
+		new_role = None
+
+		for r2 in roles2:
+			if r2 not in roles:
+				new_role = r2
+				break
+
+		if new_role:
+			# Checks ID of the new role and compares to the Staff role ID.
+			if new_role.id == staff_role_id:
+				if not await self.get_staff_member(after.id):
+					Misc = self.client.get_cog('Misc')
+					timestamp = await Misc.get_timestamp()
+					# Creates a new Staff member entry in the database.
+					await self.insert_staff_member(user_id=after.id, infractions_given=0, staff_timestamp=timestamp)
+
 
 	# Chat filter
 	@commands.Cog.listener()
@@ -292,6 +322,7 @@ class Moderation(commands.Cog):
 
 
 	@commands.command(aliases=['userinfo', 'whois'])
+	@Misc.check_whitelist()
 	async def user(self, ctx, member: discord.Member = None):
 		'''
 		Shows all the information about a member.
@@ -299,7 +330,6 @@ class Moderation(commands.Cog):
 		:return: An embedded message with the user's information
 		'''
 		member = ctx.author if not member else member
-		roles = [role for role in member.roles]
 
 		embed = discord.Embed(colour=member.color, timestamp=ctx.message.created_at)
 
@@ -319,9 +349,13 @@ class Moderation(commands.Cog):
 
 		embed.add_field(name="Top role:", value=member.top_role.mention, inline=False)
 
+		if staff_member := await self.get_staff_member(member.id):
+			embed.add_field(name="Infractions Given:", value=f"{staff_member[1]} infractions.", inline=False)
+
 		await ctx.send(embed=embed)
 
 	@commands.command(aliases=['si', 'server'])
+	@Misc.check_whitelist()
 	async def serverinfo(self, ctx):
 		""" Shows some information about the server. """
 		guild = ctx.guild
@@ -488,6 +522,18 @@ class Moderation(commands.Cog):
 				print(e)
 				pass
 
+			
+			if ctx.author.bot:
+				return
+
+			staff_member = ctx.author
+			if not await self.get_staff_member(staff_member.id):
+				return await self.insert_staff_member(
+					user_id=staff_member.id, infractions_given=1, staff_timestamp=current_ts)
+			else:
+				await self.update_staff_member_counter(
+					user_id=staff_member.id, infraction_increment=1)
+
 			# user_infractions = await self.get_user_infractions(member.id)
 			# user_warns = [w for w in user_infractions if w[1] == 'warn']
 			# if len(user_warns) >= 3:
@@ -565,6 +611,16 @@ class Moderation(commands.Cog):
 				await member.send(embed=embed)
 			except:
 				pass
+
+			if ctx.author.bot:
+				return
+			staff_member = ctx.author
+			if not await self.get_staff_member(staff_member.id):
+				return await self.insert_staff_member(
+					user_id=staff_member.id, infractions_given=1, staff_timestamp=current_ts)
+			else:
+				await self.update_staff_member_counter(
+					user_id=staff_member.id, infraction_increment=1)
 		
 		else:
 			await ctx.send(f'**{member} is already muted!**')
@@ -706,6 +762,17 @@ class Moderation(commands.Cog):
 				await member.send(embed=general_embed)
 			except:
 				pass
+
+			if ctx.author.bot:
+				return
+
+			staff_member = ctx.author
+			if not await self.get_staff_member(staff_member.id):
+				return await self.insert_staff_member(
+					user_id=staff_member.id, infractions_given=1, staff_timestamp=current_ts)
+			else:
+				await self.update_staff_member_counter(
+					user_id=staff_member.id, infraction_increment=1)
 		else:
 			await ctx.send(f'**{member} is already muted!**', delete_after=5)
 
@@ -810,6 +877,17 @@ class Moderation(commands.Cog):
 				except:
 					pass
 
+				if ctx.author.bot:
+					return
+
+				staff_member = ctx.author
+				if not await self.get_staff_member(staff_member.id):
+					return await self.insert_staff_member(
+						user_id=staff_member.id, infractions_given=1, staff_timestamp=current_ts)
+				else:
+					await self.update_staff_member_counter(
+						user_id=staff_member.id, infraction_increment=1)
+
 
 	# Bans a member
 	@commands.command()
@@ -824,16 +902,36 @@ class Moderation(commands.Cog):
 			return await ctx.send('**Please, specify a member!**', delete_after=3)
 
 
-		channel = ctx.channel
-
-		icon = ctx.author.avatar_url
-
 		# Bans and logs
 		try:
-			await member.ban(delete_message_days=0, reason=reason)
+			# await member.ban(delete_message_days=0, reason=reason)
+			pass
 		except Exception:
 			await ctx.send('**You cannot do that!**', delete_after=3)
 		else:
+			epoch = datetime.utcfromtimestamp(0)
+			current_ts = (datetime.utcnow() - epoch).total_seconds()
+
+			staff_member = ctx.author
+			if not (staff_member_info := await self.get_staff_member(staff_member.id)):
+				return await self.insert_staff_member(
+					user_id=staff_member.id, infractions_given=1, staff_timestamp=current_ts, 
+					bans_today=1, ban_timestamp=current_ts)
+			else:
+
+				if staff_member_info[4] and current_ts - staff_member_info[4] >= 86400:
+					await self.update_staff_member_counter(
+						user_id=staff_member.id, infraction_increment=1, reset_ban=True, timestamp=current_ts)
+				elif staff_member_info[3] >= 5 and not ctx.channel.permissions_for(staff_member).administrator:
+					try:
+						return await staff_member.send("**You have reached your daily ban limit. Please contact an admin.**")
+					except:
+						pass
+				else:
+					await self.update_staff_member_counter(
+						user_id=staff_member.id, infraction_increment=1, ban_increment=1, timestamp=current_ts)
+
+
 			# General embed
 			general_embed = discord.Embed(description=f'**Reason:** {reason}', colour=discord.Colour.dark_red())
 			general_embed.set_author(name=f'{member} has been banned', icon_url=member.avatar_url)
@@ -848,8 +946,6 @@ class Moderation(commands.Cog):
 			embed.set_thumbnail(url=member.avatar_url)
 			await moderation_log.send(embed=embed)
 			# Inserts a infraction into the database
-			epoch = datetime.utcfromtimestamp(0)
-			current_ts = (datetime.utcnow() - epoch).total_seconds()
 			await self.insert_user_infraction(
 				user_id=member.id, infr_type="ban", reason=reason, 
 				timestamp=current_ts , perpetrator=ctx.author.id)
@@ -872,17 +968,37 @@ class Moderation(commands.Cog):
 		if not member:
 			return await ctx.send('**Please, specify a member!**', delete_after=3)
 
-
-		channel = ctx.channel
-
-		icon = ctx.author.avatar_url
-
 		# Bans and logs
 		try:
 			await member.ban(delete_message_days=1, reason=reason)
 		except Exception:
 			await ctx.send('**You cannot do that!**', delete_after=3)
 		else:
+
+			epoch = datetime.utcfromtimestamp(0)
+			current_ts = (datetime.utcnow() - epoch).total_seconds()
+
+			staff_member = ctx.author
+			if not (staff_member_info := await self.get_staff_member(staff_member.id)):
+				return await self.insert_staff_member(
+					user_id=staff_member.id, infractions_given=1, staff_timestamp=current_ts, 
+					bans_today=1, ban_timestamp=current_ts)
+			else:
+
+				if staff_member_info[4] and current_ts - staff_member_info[4] >= 86400:
+					await self.update_staff_member_counter(
+						user_id=staff_member.id, infraction_increment=1, reset_ban=True, timestamp=current_ts)
+				elif staff_member_info[3] >= 5 and not ctx.channel.permissions_for(staff_member).administrator:
+					try:
+						return await staff_member.send("**You have reached your daily ban limit. Please contact an admin.**")
+					except:
+						pass
+				else:
+					await self.update_staff_member_counter(
+						user_id=staff_member.id, infraction_increment=1, ban_increment=1, timestamp=current_ts)
+
+
+
 			# General embed
 			general_embed = discord.Embed(description=f'**Reason:** {reason}', colour=discord.Colour.dark_red())
 			general_embed.set_author(name=f'{member} has been hardbanned', icon_url=member.avatar_url)
@@ -897,8 +1013,6 @@ class Moderation(commands.Cog):
 			embed.set_thumbnail(url=member.avatar_url)
 			await moderation_log.send(embed=embed)
 			# Inserts a infraction into the database
-			epoch = datetime.utcfromtimestamp(0)
-			current_ts = (datetime.utcnow() - epoch).total_seconds()
 			await self.insert_user_infraction(
 				user_id=member.id, infr_type="ban", reason=reason, 
 				timestamp=current_ts , perpetrator=ctx.author.id)
@@ -1323,11 +1437,224 @@ class Moderation(commands.Cog):
 			embed.description = f"**{channel.mention} is no longer on lockdown! 🔓**"
 			embed.color = discord.Color.green()
 			await ctx.send(embed=embed)
+
+
+	@commands.command(aliases=['bl_channels', 'blc'])
+	@commands.has_permissions(administrator=True)
+	async def blacklisted_channels(self, ctx) -> None:
+		""" Shows the blacklisted channels that commands except moderation ones are not allowed to be used in. """
+
+		LevelSystem = self.client.get_cog('LevelSystem')
+		if not await LevelSystem.table_important_vars_exists():
+			return await ctx.send(f"**This command is not ready to be used yet, {member.mention}!**")
+
+
+		member = ctx.author
+
+		if not (channels := await LevelSystem.get_important_var(label="bl_channel", multiple=True)):
+			return await ctx.send(f"**No channels have been blacklisted yet, {member.mention}!**")
+
+		guild = ctx.guild
+		channels = ', '.join([cm.mention if (cm := discord.utils.get(guild.channels, id=c[2])) else str(c[2]) for c in channels])
+
+		embed = discord.Embed(
+			title="Blacklisted Channels",
+			description=channels,
+			color=member.color,
+			timestamp=ctx.message.created_at
+			)
+
+		await ctx.send(embed=embed)
+
+
+	@commands.command(aliases=['bl'])
+	@commands.has_permissions(administrator=True)
+	async def blacklist(self, ctx, channel: discord.TextChannel = None) -> None:
+		""" Blacklists a channel for commands, except moderation ones.
+		:param channel: The channel to blacklist. (Optional)
+		Ps: If channel is not informed, it will use the context channel. """
+
+		member = ctx.author
+
+		LevelSystem = self.client.get_cog('LevelSystem')
+
+		if not await LevelSystem.table_important_vars_exists():
+			return await ctx.send(f"**This command is not ready to be used yet, {member.mention}!**")
+
+
+		if not ctx.guild:
+			return await ctx.send(f"**You cannot use this command in my DM's, {member.mention}!** ❌")
+
+
+		if not channel:
+			channel = ctx.channel
+
+		if await LevelSystem.get_important_var(label='bl_channel', value_int=channel.id):
+			return await ctx.send(f"**{channel.mention} is already blacklisted, {member.mention}!** ⚠️")
+
+		await LevelSystem.insert_important_var(label='bl_channel', value_int=channel.id)
+
+		await ctx.send(f"**{channel.mention} has been blacklisted, {member.mention}!** ✅")
+
+
+	@commands.command(aliases=['ubl'])
+	@commands.has_permissions(administrator=True)
+	async def unblacklist(self, ctx, channel: discord.TextChannel = None) -> None:
+		""" Unblacklists a channel for commands.
+		:param channel: The channel. (Optional)
+		Ps: If channel is not informed, it will use the context channel. """
+
+		member = ctx.author
+
+		LevelSystem = self.client.get_cog('LevelSystem')
+		if not await LevelSystem.table_important_vars_exists():
+			return await ctx.send(f"**This command is not ready to be used yet, {member.mention}!**")
+
+		if not ctx.guild:
+			return await ctx.send(f"**You cannot use this command in my DM's, {member.mention}!** ❌")
+
+		if not channel:
+			channel = ctx.channel
+
+		if not await LevelSystem.get_important_var(label='bl_channel', value_int=channel.id):
+			return await ctx.send(f"**{channel.mention} is not even blacklisted, {member.mention}!** ⚠️")
+
+		await LevelSystem.delete_important_var(label='bl_channel', value_int=channel.id)
+		await ctx.send(f"**{channel.mention} has been unblacklisted, {member.mention}!** ✅")
+
 		
+	@commands.command(hidden=True)
+	@commands.has_permissions(administrator=True)
+	async def create_table_staff_member(self, ctx) -> None:
+		""" (ADM) Creates the StaffMember table. """
+
+		if await self.check_table_staff_member():
+			return await ctx.send("**Table __StaffMember__ already exists!**")
+
+		await ctx.message.delete()
+		mycursor, db = await the_database()
+		await mycursor.execute("""CREATE TABLE StaffMember (
+			user_id BIGINT NOT NULL,
+			infractions_given INT NOT NULL DEFAULT 1,
+			joined_staff_timestamp BIGINT NOT NULL,
+			bans_today TINYINT(2) NOT NULL DEFAULT 0,
+			first_ban_timestamp BIGINT DEFAULT NULL,
+			PRIMARY KEY (user_id)
+			)""")
+		await db.commit()
+		await mycursor.close()
+
+		return await ctx.send("**Table __StaffMember__ created!**", delete_after=3)
+
+	@commands.command(hidden=True)
+	@commands.has_permissions(administrator=True)
+	async def drop_table_staff_member(self, ctx) -> None:
+		""" (ADM) Creates the StaffMember table """
+
+		if not await self.check_table_staff_member():
+			return await ctx.send("**Table __StaffMember__ doesn't exist!**")
+
+		await ctx.message.delete()
+		mycursor, db = await the_database()
+		await mycursor.execute("DROP TABLE StaffMember")
+		await db.commit()
+		await mycursor.close()
+
+		return await ctx.send("**Table __StaffMember__ dropped!**", delete_after=3)
+
+	@commands.command(hidden=True)
+	@commands.has_permissions(administrator=True)
+	async def reset_table_staff_member(self, ctx) -> None:
+		""" (ADM) Creates the StaffMember table """
+
+		if not await self.check_table_staff_member():
+			return await ctx.send("**Table __StaffMember__ doesn't exist yet!**")
+
+		await ctx.message.delete()
+		mycursor, db = await the_database()
+		await mycursor.execute("DELETE FROM StaffMember")
+		await db.commit()
+		await mycursor.close()
+
+		return await ctx.send("**Table __StaffMember__ reset!**", delete_after=3)
+
+	async def check_table_staff_member(self) -> bool:
+		""" Checks if the StaffMember table exists """
+
+		mycursor, db = await the_database()
+		await mycursor.execute("SHOW TABLE STATUS LIKE 'StaffMember'")
+		table_info = await mycursor.fetchall()
+		await mycursor.close()
+
+		if len(table_info) == 0:
+			return False
+
+		else:
+			return True
+
+	async def insert_staff_member(self, user_id: int, infractions_given: int, staff_timestamp: int, bans_today: int = 0, ban_timestamp: int = None) -> None:
+		""" Inserts a Staff member into the database.
+		:param user_id: The ID of the Staff member.
+		:param infractions_given: The infractions given by the Staff member.
+		:param staff_timestamp: Timestamp for the Staff joining time (not reliable for old Staff members).
+		:param bans_today: First value to the bans_today counter. Default = 0.
+		:param ban_timestamp: Timestamp for the first ban. """
+
+		mycursor, db = await the_database()
+		await mycursor.execute("""INSERT INTO StaffMember (
+			user_id, infractions_given, joined_staff_timestamp, bans_today, first_ban_timestamp
+			) VALUES (%s, %s, %s, %s, %s)""", (user_id, infractions_given, staff_timestamp, bans_today, ban_timestamp))
+		await db.commit()
+		await mycursor.close()
+
+
+	async def get_staff_member(self, user_id: int) -> List[int]:
+		""" Gets a Staff member.
+		:param user_id: The ID of the Staff member. """
+
+		mycursor, db = await the_database()
+		await mycursor.execute("SELECT * FROM StaffMember WHERE user_id = %s", (user_id,))
+		staff_member = await mycursor.fetchone()
+		await mycursor.close()
+		return staff_member
+
+	async def update_staff_member_counter(self, user_id: int, infraction_increment: int = 0, ban_increment: int = 0, timestamp: int = None, reset_ban: bool = False) -> None:
+		""" Updates the Staff member's counters by a value.
+		:param user_id: The ID of the Staff member.
+		:param infraction_increment: The value to increment the infractions-given counter. Default = 0.
+		:param ban_increment: The value to increment the bans-today counter. Default = 0.
+		:param timestamp: The ban timestamp. Default = Null.
+		:param reset_ban: Whether it should reset the bans-today counter. Default = False. """
+
+		mycursor, db = await the_database()
+		if timestamp and reset_ban:
+			await mycursor.execute("""
+				UPDATE StaffMember 
+				SET bans_today = 1, infractions_given = infractions_given + %s, first_ban_timestamp = %s WHERE user_id = %s
+				""", (infraction_increment, timestamp, user_id))
+
+		elif timestamp:
+			await mycursor.execute("""
+				UPDATE StaffMember 
+				SET bans_today = bans_today + %s, infractions_given = infractions_given + %s, first_ban_timestamp = %s WHERE user_id = %s
+				""", (ban_increment, infraction_increment, timestamp, user_id))
+
+		else:
+			await mycursor.execute("""
+				UPDATE StaffMember 
+				SET infractions_given = infractions_given + %s, bans_today = bans_today + %s WHERE user_id = %s
+				""", (infraction_increment, ban_increment, user_id))
+
+		await db.commit()
+		await mycursor.close()
+
+
 """
 Setup:
-create_table_mutedmember
-create_table_user_infractions
+b!create_table_mutedmembers
+b!create_table_user_infractions
+
+b!create_table_staff_member
 """
 def setup(client) -> None:
 	client.add_cog(Moderation(client))

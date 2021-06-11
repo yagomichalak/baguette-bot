@@ -8,6 +8,8 @@ from datetime import datetime
 import asyncio
 import os
 from extra.useful_variables import xp_levels
+import emoji
+from cogs.misc import Misc
 
 owner_role_id = int(os.getenv('OWNER_ROLE_ID'))
 admin_role_id = int(os.getenv('ADMIN_ROLE_ID'))
@@ -229,6 +231,7 @@ class LevelSystem(commands.Cog):
 
 
     @commands.command(aliases=['stats', 'statuses'])
+    @Misc.check_whitelist()
     async def status(self, ctx) -> None:
         """ Shows server status related to time spent in VCs and messages sent. """
 
@@ -318,10 +321,19 @@ class LevelSystem(commands.Cog):
             c_time_1 := await Misc.select_most_active_user_server_status(label='daily-time', sublabel='time')
             ) else (None, None)
 
+        the_emojis = await Misc.get_top_emojis()
+
+        the_emojis = [f"{emoji.emojize(emj[0])} ({emj[1]}x)" for emj in the_emojis]
+
+        embed.add_field(
+            name="__Top 3 Most Used Emojis__",
+            value='\n'.join(the_emojis)
+        )
+
         embed.add_field(
             name="__Most Active Message Channels__", 
             value=f"**🕖 Last 7 days:** {c_msg_7[0].mention if c_msg_7[0] else None}\n**🕛 Last 24 hours:** {c_msg_1[0].mention if c_msg_1[0] else None}", 
-            inline=False)
+            inline=True)
 
         embed.add_field(
             name="__Most Active Voice Channels__", 
@@ -337,6 +349,7 @@ class LevelSystem(commands.Cog):
 
 
     @commands.command(aliases=['profile'])
+    @Misc.check_whitelist()
     async def level(self, ctx, member: discord.Member = None) -> None:
         """ Shows a user profile. 
         :param member: The member to show the profile. [Optional]
@@ -388,6 +401,7 @@ class LevelSystem(commands.Cog):
         return await ctx.send(embed=embed)
 
     @commands.command(aliases=['score', 'level_board', 'levelboard', 'levels', 'level_score'])
+    @Misc.check_whitelist()
     async def leaderboard(self, ctx):
         """ Shows the top ten members in the level leaderboard. """
 
@@ -755,6 +769,7 @@ class LevelSystem(commands.Cog):
 
 
     @commands.command(aliases=['showlevelroles', 'showlvlroles', 'show_lvlroles', 'level_roles', 'levelroles'])
+    @Misc.check_whitelist()
     async def show_level_roles(self, ctx) -> None:
         """ Shows the existing level roles. """
 
@@ -952,7 +967,7 @@ class LevelSystem(commands.Cog):
         member = ctx.author
 
         if not (channels := await self.get_important_var(label="xp_channel", multiple=True)):
-            return await ctx.send(f"**No channels have seen set yet, {member.mention}!**")
+            return await ctx.send(f"**No channels have been set yet, {member.mention}!**")
 
         guild = ctx.guild
         channels = ', '.join([cm.mention if (cm := discord.utils.get(guild.channels, id=c[2])) else str(c[2]) for c in channels])

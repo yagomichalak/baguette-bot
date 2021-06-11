@@ -114,3 +114,33 @@ xp_levels: Dict[str, int] = {
 	"109": 1050000,
 	"110": 1060000
 }
+
+rules = {
+    "NSFW is forbidden": """This applies to, among others, pornographic, gore, violent, foul, offensive content/conversations. They will not be tolerated in either VCs or text channels.
+This rule also applies to profile pictures, usernames, and discord status.""",
+
+    "Be respectful": """Discrimination on the grounds of race, nationality, religion, gender, or sexual orientation is forbidden. 
+Do not insult other users.
+Do not harass other users.
+Do not swear mindlessly.
+Do not make people feel uncomfortable, or otherwise bother them in any unwanted way.
+This rule applies to both activity on the server and dms. """,
+
+    "Avoid Controversy": """As the Language Sloth is an international server of educational nature, we have people from all over the world here. To avoid unnecessary conflicts, topics considered controversial are only allowed in the Debate Club. 
+This applies to, among others, politics, religion, self-harm, suicide, gender identity, sexual orientation.
+This rule also applies to profile pictures.""",
+
+    "Advertising is forbidden": """Advertising Discord servers or self-promoting via text/voice channels or dms is not allowed. If you would like to get permission, get in touch with our Staff.""",
+
+    "No not dox": "Do not share other users' personal information without their consent.",
+
+    "No not spam": """Do not flood or spam text channels.
+Do not spam react in messages.
+Do not ping staff members repeatedly without a reason.
+Do not mic spam/earrape in voice channels.""",
+
+    "Do not impersonate others": "Do not impersonate other users or Staff members.",
+
+    "No not beg": """No asking to be granted roles/moderator roles. You may apply for these positions by accessing the link in #:star2:announcements:star2: but repeatedly begging the staff may result in warnings or ban."""
+
+}

@@ -5,6 +5,8 @@ from datetime import datetime
 from dotenv import load_dotenv
 load_dotenv()
 
+from cogs.misc import Misc
+
 
 server_id = int(os.getenv('SERVER_ID'))
 moderator_role_id = int(os.getenv('MOD_ROLE_ID'))
@@ -37,6 +39,10 @@ async def on_command_error(ctx, error):
 	elif isinstance(error, commands.MissingAnyRole):
 		role_names = [f"**{str(discord.utils.get(ctx.guild.roles, id=role_id))}**" for role_id in error.missing_roles]
 		await ctx.send(f"You are missing at least one of the required roles: {', '.join(role_names)}")
+
+	elif isinstance(error, commands.MissingRole):
+		role_name = f"{str(discord.utils.get(ctx.guild.roles, id=error.missing_role))}"
+		await ctx.send(f"**You are missing the required role: `{role_name}`**")
 
 	elif isinstance(error, commands.errors.RoleNotFound):
 		await ctx.send(f"**{error}**")
@@ -148,6 +154,7 @@ async def on_bulk_message_delete(messages):
 
 
 @client.command()
+@Misc.check_whitelist(client)
 async def help(ctx, cmd: str = None):
 	'''
 	Shows some information about commands and categories.

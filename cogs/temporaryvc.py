@@ -3,6 +3,7 @@ from discord.ext import commands
 import os
 from mysqldb import the_database
 from typing import List, Dict, Union, Any
+from cogs.misc import Misc
 
 class TemporaryVc(commands.Cog):
 	""" Category for managing temporary voice channels. """
@@ -79,6 +80,7 @@ class TemporaryVc(commands.Cog):
 
 
 	@commands.group(aliases=['vc', 'voice_channel', 'voicechannel'])
+	@Misc.check_whitelist()
 	async def voice(self, ctx) -> None:
 		""" A command for managing temporary voice channels. """
 
@@ -101,6 +103,7 @@ class TemporaryVc(commands.Cog):
 
 
 	@voice.command(aliases=['c', 'crt', 'make', 'build'])
+	@Misc.check_whitelist()
 	async def create(self, ctx) -> None:
 		""" Creates a temporary voice channel. """
 
@@ -124,6 +127,7 @@ class TemporaryVc(commands.Cog):
 			await ctx.send(f"**Something went wrong and I couldn't create your temp vc, {member.mention}!**")
 
 	@voice.command(aliases=['remove', 'rm', 'dell', 'dlt'])
+	@Misc.check_whitelist()
 	async def delete(self, ctx) -> None:
 		""" Deletes a temporary voice channel. """
 
@@ -149,6 +153,7 @@ class TemporaryVc(commands.Cog):
 			await ctx.send(f"**Temp VC deleted, {member.mention}!**")
 
 	@voice.command(aliases=['permit'])
+	@Misc.check_whitelist()
 	async def allow(self, ctx, member: discord.Member = None) -> None:
 		""" Allows a member into your temp VC.
 		:param member: The member to allow. """
@@ -171,6 +176,7 @@ class TemporaryVc(commands.Cog):
 		await ctx.send(f"**{member.mention} has been allowed to {voice.channel.mention}, {author.mention}!**")
 
 	@voice.command(aliases=['prohibit', 'reject'])
+	@Misc.check_whitelist()
 	async def forbid(self, ctx, member: discord.Member = None) -> None:
 		""" Forbids a member from your temp VC.
 		:param member: The member to forbid. """
@@ -201,6 +207,7 @@ class TemporaryVc(commands.Cog):
 		await ctx.send(f"**{member.mention} has been forbade from {voice.channel.mention}, {author.mention}!**")
 
 	@voice.command()
+	@Misc.check_whitelist()
 	async def claim(self, ctx) -> None:
 		""" Takes the possession of an abandonned temp vc. """
 
@@ -227,6 +234,7 @@ class TemporaryVc(commands.Cog):
 			await ctx.send(f"**{owner} is still in their temp vc, {member.mention}!**")
 
 	@voice.command()
+	@Misc.check_whitelist()
 	async def limit(self, ctx, limit: int = None) -> None:
 		""" Changes the user limit of your temp VC.
 		:param limit: The new limit to set your temp vc to. """
@@ -259,6 +267,7 @@ class TemporaryVc(commands.Cog):
 
 	@voice.command()
 	@commands.cooldown(2, 600, commands.BucketType.user)
+	@Misc.check_whitelist()
 	async def name(self, ctx, *, name: str = None) -> None:
 		""" Renames your temp VC.
 		:param name: The new name to set your temp vc to. """

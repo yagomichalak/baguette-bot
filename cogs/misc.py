@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands, tasks
+
 import asyncio
 from datetime import datetime
 import os
@@ -7,15 +8,19 @@ import pytz
 from pytz import timezone
 from mysqldb import the_database
 from typing import List, Union
+
 import inspect
 import io
 import textwrap
 import traceback
+
 from contextlib import redirect_stdout
+from extra.useful_variables import rules
+
+import emoji
+import re
 
 patreon_supporter_role_id = int(os.getenv('PATREON_SUPPORTER_ROLE_ID'))
-
-
 
 class Misc(commands.Cog):
 	""" A miscellaneous category. """
@@ -48,7 +53,20 @@ class Misc(commands.Cog):
 		channel = message.channel
 		await self.update_user_server_status_messages(status_ts=current_ts, label="daily-messages", past_days=1, channel_id=channel.id)
 		await self.update_user_server_status_messages(status_ts=current_ts, label="weekly-messages", past_days=7, channel_id=channel.id)
+		await self.check_emoji(message)
 
+
+	@commands.Cog.listener()
+	async def on_member_update(self, before, after) -> None:
+		
+		if before.status == after.status:
+			return
+
+		if before.status == 'offline' or after.status == 'offline':
+			print('Member is not offline')
+
+			current_ts = await Misc.get_timestamp()
+			# await self.update_member_last_seen(current_ts)
 
 	@tasks.loop(minutes=1)
 	async def check_server_activity_status(self):
@@ -92,7 +110,39 @@ class Misc(commands.Cog):
 			await boosts_channel.edit(name=f"Boosts: {guild.premium_subscription_count}")
 
 
+	async def check_emoji(self, message: discord.Message) -> None:
+		""" Checks whether the message has emojis, if so, updates their counter in the database.
+		:param message: The message to check. """
+
+		# print(message.content)
+
+		text_de= emoji.demojize(message.content)
+		all_emojis = re.findall(r'[<]?[a]?:[!_\-\w]+:[0-9]{0,18}[>]?', text_de)
+		all_emojis = list(set(all_emojis))
+
+		for emj in all_emojis:
+			try:
+				if the_emoji := await self.get_emoji(emj):
+					await self.update_emoji(str(the_emoji[0]))
+				else:
+					await self.insert_emoji(emj)
+			except Exception as e:
+				print(e)
+
+	def check_whitelist(client=None):
+		async def real_check(ctx):
+			the_client = ctx.command.cog.client if ctx.command.cog else client
+			LevelSystem = the_client.get_cog('LevelSystem')
+
+			if not await LevelSystem.get_important_var(label="bl_channel", value_int=ctx.channel.id):
+				return True
+
+			await ctx.send(f"**This command is blacklisted in this channel, {ctx.author.mention}!**")
+
+		return commands.check(real_check)
+
 	@commands.command()
+	@check_whitelist()
 	async def avatar(self, ctx, member: discord.Member = None) -> None:
 		""" Shows the avatar of a member.
 		:param member: The member to show (Optional).
@@ -106,6 +156,7 @@ class Misc(commands.Cog):
 
 	@commands.command()
 	@commands.cooldown(1, 5, commands.BucketType.user)
+	@check_whitelist()
 	async def time(self, ctx: commands.Context, time: str = None, my_timezone: str = None) -> None:
 		""" Tells the time in a given timezone, and compares to the CET one.
 		:param time: The time you want to check. Ex: 7pm
@@ -155,6 +206,7 @@ class Misc(commands.Cog):
 
 	@commands.command()
 	@commands.cooldown(1, 300, commands.BucketType.user)
+	@check_whitelist()
 	async def timezones(self, ctx) -> None:
 		""" Sends a full list with the timezones into the user's DM's. 
 		(Cooldown) = 5 minutes. """
@@ -193,6 +245,7 @@ class Misc(commands.Cog):
 					await channel.send(embed=embed)
 
 	@commands.command()
+	@check_whitelist()
 	async def settimezone(self, ctx, my_timezone: str = None) -> None:
 		""" Sets the timezone.
 		:param my_timezone: Your timezone.
@@ -213,37 +266,6 @@ class Misc(commands.Cog):
 		else:
 			await self.insert_user_timezone(member.id, my_timezone)
 			await ctx.send(f"**Set timezone to `{my_timezone}`, {member.mention}!**")
-
-
-	# async def sort_time(self, guild: discord.Guild, at: datetime) -> str:
-
-	# 	member_age = (datetime.utcnow() - at).total_seconds()
-	# 	uage = {
-	# 		"years": 0,
-	# 		"months": 0,
-	# 		"days": 0,
-	# 		"hours": 0,
-	# 		"minutes": 0,
-	# 		"seconds": 0
-	# 	}
-
-	# 	text_list = []
-
-
-	# 	if (years := round(member_age / 31536000)) > 0:
-	# 		text_list.append(f"{years} years")
-	# 		member_age -= 31536000 * years
-	# 		# uage['years'] = years
-
-	# 	if (months := round(member_age / 2628288)) > 0:
-	# 		text_list.append(f"{months} months")
-	# 		member_age -= 2628288 * months
-	# 		# uage['months'] = months
-
-
-	# 	text = ' and '.join(text_list)
-	# 	text += ' ago'
-	# 	return text
 
 
 	# Database (CRUD)
@@ -292,6 +314,7 @@ class Misc(commands.Cog):
 
 	@commands.command(hidden=True)
 	@commands.has_permissions(administrator=True)
+	@check_whitelist()
 	async def create_table_user_timezones(self, ctx) -> None:
 		""" (ADM) Creates the UserTimezones table. """
 
@@ -685,6 +708,7 @@ class Misc(commands.Cog):
 
 
 	@commands.command()
+	@check_whitelist()
 	async def patreon(self, ctx) -> None:
 		""" Shows a list with all Patreon supporters. """
 
@@ -708,10 +732,170 @@ class Misc(commands.Cog):
 		await ctx.send(embed=embed, components=[component])
 
 
+	# Shows the specific rule
+	@commands.command()
+	@commands.has_role(int(os.getenv('STAFF_ROLE_ID')))
+	async def rule(self, ctx, numb: int = None):
+		""" Shows a specific server rule.
+		:param numb: The number of the rule to show. """
+
+		await ctx.message.delete()
+		if numb is None:
+			return await ctx.send('**Invalid parameter!**')
+
+		if numb > len(rules) or numb <= 0:
+			return await ctx.send(f'**Inform a rule from `1-{len(rules)}` rules!**')
+
+		rule_index = list(rules)[numb - 1]
+		embed = discord.Embed(title=f'Rule - {numb}# {rule_index}', description=rules[rule_index],
+								colour=discord.Colour.dark_green())
+		embed.set_footer(text=ctx.author.guild.name)
+		await ctx.send(embed=embed)
+
+	@commands.command()
+	@commands.has_role(int(os.getenv('STAFF_ROLE_ID')))
+	async def rules(self, ctx):
+		""" (STAFF) Sends an embedded message containing all rules in it. """
+
+		guild = ctx.guild
+
+		embed = discord.Embed(title="Discord’s Terms of Service and Community Guidelines",
+								description="Rules Of The Server", url='https://discordapp.com/guidelines',
+								colour=1406210,
+								timestamp=ctx.message.created_at)
+		i = 1
+		for rule, rule_value in rules.items():
+			embed.add_field(name=f"{i} - {rule}", value=rule_value, inline=False)
+			i += 1
+
+		embed.add_field(name="🇫🇷", value="Enjoy our Server!", inline=True)
+		embed.add_field(name="🤖", value="Discover our Features!", inline=True)
+		embed.add_field(name="🥖", value="We love chocolatine ~~and pain au chocolat~~!", inline=True)
+		embed.set_footer(text=guild.owner,
+							icon_url=guild.owner.avatar_url)
+		embed.set_thumbnail(
+			url=guild.icon_url)
+		embed.set_author(name=guild.name, url='https://discordapp.com',
+							icon_url=guild.icon_url)
+		await ctx.send(
+			content=f"Hello, **{guild.name}** is a public Discord server for people all across the globe to meet, learn French and exchange knowledge and cultures. here are our rules of conduct.",
+			embed=embed)
+
+
+	@commands.command(hidden=True)
+	@commands.has_permissions(administrator=True)
+	async def create_table_emojis(self, ctx) -> None:
+		""" (ADM) Creates the Emojis table. """
+
+		if await self.check_table_emojis():
+			return await ctx.send("**Table __Emojis__ already exists!**")
+
+		await ctx.message.delete()
+		mycursor, db = await the_database()
+		await mycursor.execute("""CREATE TABLE Emojis (
+			emoji varchar(100) NOT NULL,
+			count int NOT NULL DEFAULT 1,
+			PRIMARY KEY (emoji)
+			) CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci""")
+		await db.commit()
+		await mycursor.close()
+
+		return await ctx.send("**Table __Emojis__ created!**", delete_after=3)
+
+	@commands.command(hidden=True)
+	@commands.has_permissions(administrator=True)
+	async def drop_table_emojis(self, ctx) -> None:
+		""" (ADM) Creates the Emojis table """
+
+		if not await self.check_table_emojis():
+			return await ctx.send("**Table __Emojis__ doesn't exist!**")
+
+		await ctx.message.delete()
+		mycursor, db = await the_database()
+		await mycursor.execute("DROP TABLE Emojis")
+		await db.commit()
+		await mycursor.close()
+
+		return await ctx.send("**Table __Emojis__ dropped!**", delete_after=3)
+
+	@commands.command(hidden=True)
+	@commands.has_permissions(administrator=True)
+	async def reset_table_emojis(self, ctx) -> None:
+		""" (ADM) Creates the Emojis table """
+
+		if not await self.check_table_emojis():
+			return await ctx.send("**Table __Emojis__ doesn't exist yet!**")
+
+		await ctx.message.delete()
+		mycursor, db = await the_database()
+		await mycursor.execute("DELETE FROM Emojis")
+		await db.commit()
+		await mycursor.close()
+
+		return await ctx.send("**Table __Emojis__ reset!**", delete_after=3)
+
+	async def check_table_emojis(self) -> bool:
+		""" Checks if the Emojis table exists """
+
+		mycursor, db = await the_database()
+		await mycursor.execute("SHOW TABLE STATUS LIKE 'Emojis'")
+		table_info = await mycursor.fetchall()
+		await mycursor.close()
+
+		if len(table_info) == 0:
+			return False
+
+		else:
+			return True
+
+
+	async def get_emoji(self, emj: str) -> List[Union[str, int]]:
+		""" Gets an emoji from the database.
+		:param emj: The emoji to get. """
+
+		mycursor, db = await the_database()
+		await mycursor.execute("SELECT * FROM Emojis WHERE emoji = %s", (emj,))
+		the_emoji = await mycursor.fetchone()
+		await mycursor.close()
+		return the_emoji
+
+	async def update_emoji(self, emj: str, increment: int = 1) -> None:
+		""" Updates the counter of an emoji by a value.
+		:param emj: The emoji to update.
+		:param increment: The incremention to apply to the counter. Default = 1. """
+
+		mycursor, db = await the_database()
+		await mycursor.execute("UPDATE Emojis SET count = count + %s WHERE emoji = %s", (increment, emj))
+		await db.commit()
+		await mycursor.close()
+
+	async def insert_emoji(self, emj: str, counter: int = 1) -> None:
+		""" Inserts an emoji into the database.
+		:param emj: The emoji to insert.
+		:param counter: The emoji's initial counter. Default = 1. """
+
+		mycursor, db = await the_database()
+		await mycursor.execute("INSERT INTO Emojis (emoji, count) VALUES (%s, %s)", (emj, counter))
+		await db.commit()
+		await mycursor.close()
+
+	async def get_top_emojis(self, limit: int = 3) -> List[List[Union[str, int]]]:
+		""" Get top X more used emojis.
+		:param limit: The amount of emojis to retrieve. """
+
+		mycursor, db = await the_database()
+		await mycursor.execute("SELECT * FROM Emojis ORDER BY count DESC LIMIT %s", (limit,))
+		the_emojis = await mycursor.fetchall()
+		await mycursor.close()
+		return the_emojis
+	
 """
 Setup:
 b!create_table_server_status
 b!create_table_user_timezones
+
+b!create_table_emojis
+b!create_table_last_seen [to-do]
 """
 
 
