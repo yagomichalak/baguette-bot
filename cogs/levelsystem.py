@@ -28,6 +28,8 @@ class LevelSystem(commands.Cog):
         self.xp_rate = 20
         self.xp_multiplier = 1
 
+        self.ticket_category_id: int = int(os.getenv('TICKET_CAT_ID'))
+
 
     @commands.Cog.listener()
     async def on_ready(self) -> None:
@@ -57,6 +59,12 @@ class LevelSystem(commands.Cog):
 
         epoch = datetime.utcfromtimestamp(0)
         time_xp = (datetime.utcnow() - epoch).total_seconds()
+        if not message.channel or not message.channel.category:
+            return
+
+        if message.channel.category.id == self.ticket_category_id:
+            return
+
         if await self.get_important_var(label="xp_channel", value_int=message.channel.id):
             await self.update_data(message.author, time_xp, message.channel)
             

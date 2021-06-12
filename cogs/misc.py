@@ -117,7 +117,7 @@ class Misc(commands.Cog):
 			date_and_time = time_now.astimezone(tzone)
 			date_and_time_in_text = date_and_time.strftime('%H:%M')
 
-			await clock_channel.edit(name=f'GMT - {date_and_time_in_text}')
+			await clock_channel.edit(name=f'🕐 GMT - {date_and_time_in_text}')
 
 		# if boosts_channel := guild.get_channel(int(os.getenv('BOOSTS_CHANNEL_ID'))):
 		# 	await boosts_channel.edit(name=f"Boosts: {guild.premium_subscription_count}")
@@ -1177,7 +1177,11 @@ class Misc(commands.Cog):
 
 		current_ts = await Misc.get_timestamp()
 		await self.insert_member_reminder(member.id, text, current_ts, seconds)
-		remind_at = datetime.utcfromtimestamp(current_ts + seconds).strftime('%Y/%m/%d at %H:%M:%S')
+
+		tzone = timezone('Etc/GMT')
+		time_now = datetime.utcfromtimestamp(current_ts + seconds)
+		date_and_time = time_now.astimezone(tzone)
+		remind_at = date_and_time.strftime('%Y/%m/%d at %H:%M:%S')
 		await ctx.send(f"**Reminding you at `{remind_at}`, {member.mention}!**")
 
 	@commands.command(aliases=['show_reminders', 'showreminders', 'rmdrs', 'rs'])

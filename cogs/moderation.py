@@ -374,7 +374,7 @@ class Moderation(commands.Cog):
 			last_seen_date = datetime.utcfromtimestamp(last_seen[1])
 			last_seen_date = await self.sort_time(ctx.guild, last_seen_date)
 			emoji_status = await self.get_status_emoji(str(member.status))
-			embed.add_field(name="Last Seen:", value=f"{last_seen_date} | **Current Status:** {member.status} {emoji_status}", inline=False)
+			embed.add_field(name="Last Seen:", value=f"{last_seen_date} | {emoji_status} **Current Status:** {member.status}", inline=False)
 
 		await ctx.send(embed=embed)
 
@@ -414,10 +414,11 @@ class Moderation(commands.Cog):
 		em.add_field(name="🌐 Region", value=str(guild.region).title() if guild.region else None, inline=False)
 		em.add_field(name="🔨 Bans", value=len(await guild.bans()), inline=False)
 
-		monthly_infractions = await self.client.get_cog('LevelSystem').get_important_var(label="m_infractions")
-		em.add_field(name="🗓️ Monthly Infractions", value=f"{monthly_infractions[2]} infractions in this month..", inline=False)
+		
 		total_infractions = await self.client.get_cog('LevelSystem').get_important_var(label="t_infractions")
+		monthly_infractions = await self.client.get_cog('LevelSystem').get_important_var(label="m_infractions")
 		em.add_field(name="📋 Total Infractions", value=f"{total_infractions[2] + monthly_infractions[2]} infractions in total.", inline=False)
+		em.add_field(name="🗓️ Monthly Infractions", value=f"{monthly_infractions[2]} infractions in this month..", inline=False)
 		em.add_field(name="⚡ Boosts", value=f"{guild.premium_subscription_count} (Level {guild.premium_tier})", inline=False)
 		features = '\n'.join(list(map(lambda f: f.replace('_', ' ').capitalize(), guild.features)))
 		em.add_field(name="Server Features", value=features if features else None, inline=False)
@@ -972,6 +973,11 @@ class Moderation(commands.Cog):
 				elif staff_member_info[3] >= 30 and not ctx.channel.permissions_for(staff_member).administrator:
 					try:
 						return await staff_member.send("**You have reached your daily ban limit. Please contact an admin.**")
+					except:
+						pass
+				elif staff_member_info[3] >= 70 and ctx.channel.permissions_for(staff_member).administrator:
+					try:
+						return await staff_member.send("**You have reached your daily ban limit. Please contact the owner.**")
 					except:
 						pass
 				else:
