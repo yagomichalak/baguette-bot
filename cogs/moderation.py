@@ -414,11 +414,6 @@ class Moderation(commands.Cog):
 		em.add_field(name="🌐 Region", value=str(guild.region).title() if guild.region else None, inline=False)
 		em.add_field(name="🔨 Bans", value=len(await guild.bans()), inline=False)
 
-		
-		total_infractions = await self.client.get_cog('LevelSystem').get_important_var(label="t_infractions")
-		monthly_infractions = await self.client.get_cog('LevelSystem').get_important_var(label="m_infractions")
-		em.add_field(name="📋 Total Infractions", value=f"{total_infractions[2] + monthly_infractions[2]} infractions in total.", inline=False)
-		em.add_field(name="🗓️ Monthly Infractions", value=f"{monthly_infractions[2]} infractions in this month..", inline=False)
 		em.add_field(name="⚡ Boosts", value=f"{guild.premium_subscription_count} (Level {guild.premium_tier})", inline=False)
 		features = '\n'.join(list(map(lambda f: f.replace('_', ' ').capitalize(), guild.features)))
 		em.add_field(name="Server Features", value=features if features else None, inline=False)

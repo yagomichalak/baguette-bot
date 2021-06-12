@@ -348,6 +348,12 @@ class LevelSystem(commands.Cog):
             value=f"**🕖 Last 7 days:** {c_time_7[0].mention if c_time_7[0] else None}\n**🕛 Last 24 hours:** {c_time_1[0].mention if c_time_1[0] else None}",
             inline=True)
 
+
+        total_infractions = await self.client.get_cog('LevelSystem').get_important_var(label="t_infractions")
+        monthly_infractions = await self.client.get_cog('LevelSystem').get_important_var(label="m_infractions")
+        embed.add_field(name="📋 Total Infractions", value=f"{total_infractions[2] + monthly_infractions[2]} infractions in total.", inline=False)
+        embed.add_field(name="🗓️ Monthly Infractions", value=f"{monthly_infractions[2]} infractions in this month..", inline=False)
+
         embed.set_thumbnail(url=ctx.guild.icon_url)
         embed.set_footer(text=member, icon_url=member.avatar_url)
 
