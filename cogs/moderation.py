@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands, tasks
 import asyncio
 from mysqldb import the_database
-from datetime import datetime
+from datetime import MAXYEAR, datetime
 import time
 from typing import List, Union
 import os
@@ -171,10 +171,9 @@ class Moderation(commands.Cog):
 			# Checks ID of the new role and compares to the Staff role ID.
 			if new_role.id == staff_role_id:
 				if not await self.get_staff_member(after.id):
-					Misc = self.client.get_cog('Misc')
-					timestamp = await Misc.get_timestamp()
+					staff_at = await self.client.get_cog('Misc').get_gtm_now().strftime('%Y/%m/%d at %H:%M:%S')
 					# Creates a new Staff member entry in the database.
-					await self.insert_staff_member(user_id=after.id, infractions_given=0, staff_timestamp=timestamp)
+					await self.insert_staff_member(user_id=after.id, infractions_given=0, staff_at=staff_at)
 
 
 	# Chat filter
@@ -566,8 +565,9 @@ class Moderation(commands.Cog):
 
 			staff_member = ctx.author
 			if not await self.get_staff_member(staff_member.id):
+				staff_at = await self.client.get_cog('Misc').get_gtm_now().strftime('%Y/%m/%d at %H:%M:%S')
 				return await self.insert_staff_member(
-					user_id=staff_member.id, infractions_given=1, staff_timestamp=current_ts)
+					user_id=staff_member.id, infractions_given=1, staff_at=staff_at)
 			else:
 				await self.update_staff_member_counter(
 					user_id=staff_member.id, infraction_increment=1)
@@ -656,8 +656,9 @@ class Moderation(commands.Cog):
 				return
 			staff_member = ctx.author
 			if not await self.get_staff_member(staff_member.id):
+				staff_at = await self.client.get_cog('Misc').get_gtm_now().strftime('%Y/%m/%d at %H:%M:%S')
 				return await self.insert_staff_member(
-					user_id=staff_member.id, infractions_given=1, staff_timestamp=current_ts)
+					user_id=staff_member.id, infractions_given=1, staff_at=staff_at)
 			else:
 				await self.update_staff_member_counter(
 					user_id=staff_member.id, infraction_increment=1)
@@ -810,8 +811,9 @@ class Moderation(commands.Cog):
 
 			staff_member = ctx.author
 			if not await self.get_staff_member(staff_member.id):
+				staff_at = await self.client.get_cog('Misc').get_gtm_now().strftime('%Y/%m/%d at %H:%M:%S')
 				return await self.insert_staff_member(
-					user_id=staff_member.id, infractions_given=1, staff_timestamp=current_ts)
+					user_id=staff_member.id, infractions_given=1, staff_at=staff_at)
 			else:
 				await self.update_staff_member_counter(
 					user_id=staff_member.id, infraction_increment=1)
@@ -926,8 +928,9 @@ class Moderation(commands.Cog):
 
 				staff_member = ctx.author
 				if not await self.get_staff_member(staff_member.id):
+					staff_at = await self.client.get_cog('Misc').get_gtm_now().strftime('%Y/%m/%d at %H:%M:%S')
 					return await self.insert_staff_member(
-						user_id=staff_member.id, infractions_given=1, staff_timestamp=current_ts)
+						user_id=staff_member.id, infractions_given=1, staff_at=staff_at)
 				else:
 					await self.update_staff_member_counter(
 						user_id=staff_member.id, infraction_increment=1)
@@ -957,8 +960,9 @@ class Moderation(commands.Cog):
 
 			staff_member = ctx.author
 			if not (staff_member_info := await self.get_staff_member(staff_member.id)):
+				staff_at = await self.client.get_cog('Misc').get_gtm_now().strftime('%Y/%m/%d at %H:%M:%S')
 				return await self.insert_staff_member(
-					user_id=staff_member.id, infractions_given=1, staff_timestamp=current_ts, 
+					user_id=staff_member.id, infractions_given=1, staff_at=staff_at, 
 					bans_today=1, ban_timestamp=current_ts)
 			else:
 
@@ -1030,8 +1034,9 @@ class Moderation(commands.Cog):
 
 			staff_member = ctx.author
 			if not (staff_member_info := await self.get_staff_member(staff_member.id)):
+				staff_at = await self.client.get_cog('Misc').get_gtm_now().strftime('%Y/%m/%d at %H:%M:%S')
 				return await self.insert_staff_member(
-					user_id=staff_member.id, infractions_given=1, staff_timestamp=current_ts, 
+					user_id=staff_member.id, infractions_given=1, staff_at=staff_at, 
 					bans_today=1, ban_timestamp=current_ts)
 			else:
 
@@ -1591,7 +1596,7 @@ class Moderation(commands.Cog):
 		await mycursor.execute("""CREATE TABLE StaffMember (
 			user_id BIGINT NOT NULL,
 			infractions_given INT NOT NULL DEFAULT 1,
-			joined_staff_timestamp BIGINT NOT NULL,
+			joined_staff_at VARCHAR(50) DEFAULT NULL,
 			bans_today TINYINT(2) NOT NULL DEFAULT 0,
 			first_ban_timestamp BIGINT DEFAULT NULL,
 			PRIMARY KEY (user_id)
@@ -1647,18 +1652,18 @@ class Moderation(commands.Cog):
 		else:
 			return True
 
-	async def insert_staff_member(self, user_id: int, infractions_given: int, staff_timestamp: int, bans_today: int = 0, ban_timestamp: int = None) -> None:
+	async def insert_staff_member(self, user_id: int, infractions_given: int, staff_at: str, bans_today: int = 0, ban_timestamp: int = None) -> None:
 		""" Inserts a Staff member into the database.
 		:param user_id: The ID of the Staff member.
 		:param infractions_given: The infractions given by the Staff member.
-		:param staff_timestamp: Timestamp for the Staff joining time (not reliable for old Staff members).
+		:param staff_at: Timestamp for the Staff joining time (not reliable for old Staff members).
 		:param bans_today: First value to the bans_today counter. Default = 0.
 		:param ban_timestamp: Timestamp for the first ban. """
 
 		mycursor, db = await the_database()
 		await mycursor.execute("""INSERT INTO StaffMember (
-			user_id, infractions_given, joined_staff_timestamp, bans_today, first_ban_timestamp
-			) VALUES (%s, %s, %s, %s, %s)""", (user_id, infractions_given, staff_timestamp, bans_today, ban_timestamp))
+			user_id, infractions_given, joined_staff_at, bans_today, first_ban_timestamp
+			) VALUES (%s, %s, %s, %s, %s)""", (user_id, infractions_given, staff_at, bans_today, ban_timestamp))
 		await db.commit()
 		await mycursor.close()
 
@@ -1702,6 +1707,43 @@ class Moderation(commands.Cog):
 
 		await db.commit()
 		await mycursor.close()
+
+	async def update_staff_member_join_date(self, user_id: int, joining_date: str) -> None:
+		""" Updates a user's joining Staff date.
+		:param user_id: The ID of the staff member.
+		:param joining_date: The joining date in text. """
+
+		mycursor, db = await the_database()
+		await mycursor.execute("UPDATE StaffMember SET joined_staff_at = %s WHERE user_id = %s", (joining_date, user_id))
+		await db.commit()
+		await mycursor.close()
+
+	
+	@commands.command(aliases=['change_join_date', 'cjd', 'csjd'])
+	@commands.has_permissions(administrator=True)
+	async def change_staff_join_date(self, ctx: commands.Context, member: discord.Member = None, new_date: str = None) -> None:
+		""" Changes the Staff member's join date, if they are not in the table,
+		it inserts them in there with the given joinin date.
+		:param member: The Staff member to insert.
+		:param new_date: The (new) joining date. """
+
+
+		if not member:
+			return await ctx.send(f"**Please, inform a member, {ctx.author.mention}!**")
+
+		if not new_date:
+			return await ctx.send(f"**Please, inform a date, {ctx.author.mention}!**")
+
+		if len(new_date) > 50:
+			return await ctx.send(f"**Please, inform a date with a max. of 50 characters, {ctx.author.mention}!**")
+
+		
+		if await self.get_staff_member(member.id):
+			await self.update_staff_member_join_date(member.id, new_date)
+			await ctx.send(f"**Successfully updated joining-date for `{member}`, {ctx.author.mention}!**")
+		else:
+			await self.insert_staff_member(user_id=member.id, infractions_given=0, staff_at=new_date)
+			await ctx.send(f"**Successfully inserted `{member}` with the given joining-date, {ctx.author.mention}!**")
 
 
 """

@@ -4,7 +4,7 @@ from mysqldb import the_database
 from extra.menu import Confirm, SwitchPages
 from typing import List, Dict, Union, Any
 import time
-from datetime import datetime
+from datetime import date, datetime
 import asyncio
 import os
 from extra.useful_variables import xp_levels
@@ -412,9 +412,12 @@ class LevelSystem(commands.Cog):
         embed.add_field(name="**Voice Time**", value=text_all, inline=True)
 
         if staff_member := await self.client.get_cog('Moderation').get_staff_member(member.id):
-            joined_staff_at = datetime.utcfromtimestamp(staff_member[2])
-            days_ago = await self.client.get_cog('Moderation').sort_time(ctx.guild, joined_staff_at)
-            embed.add_field(name="Joined Staff at:", value=f"{joined_staff_at.strftime('%Y/%m/%d at %H:%M:%S')} ({days_ago} ago)", inline=False)
+            try:
+                joined_staff_at = datetime.utcfromtimestamp(int(staff_member[2])).strftime('%Y/%m/%d at %H:%M:%S')
+            except:
+                joined_staff_at = str(staff_member[2])
+
+            embed.add_field(name="Joined Staff at:", value=joined_staff_at, inline=False)
 
             embed.add_field(name="Infractions Given:", value=f"{staff_member[1]} infractions.", inline=False)
 

@@ -404,7 +404,17 @@ class Misc(commands.Cog):
 
 		epoch = datetime.utcfromtimestamp(0)
 		the_time = (datetime.utcnow() - epoch).total_seconds()
-		return the_time		
+		return the_time
+
+	@staticmethod
+	async def get_gmt_now() -> str:
+		""" Gets the current time in GMT. """
+
+		time_now = datetime.now()
+		tzone = timezone('Etc/GMT')
+
+		date_and_time = time_now.astimezone(tzone)
+		return date_and_time
 
 	@commands.command(hidden=True)
 	@commands.has_permissions(administrator=True)
