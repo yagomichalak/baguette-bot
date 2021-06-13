@@ -15,7 +15,6 @@ import textwrap
 import traceback
 
 from contextlib import redirect_stdout
-from extra.useful_variables import rules
 
 import emoji
 import re
@@ -71,6 +70,41 @@ class Misc(commands.Cog):
 				await self.update_member_last_seen(after.id, current_ts)
 			else:
 				await self.insert_member_last_seen(after.id, current_ts)
+
+	@commands.Cog.listener()
+	async def on_interaction_update(self, message, member, button, response) -> None:
+
+		if not message.guild:
+			return
+
+		if not button.custom_id.startswith(('english_translation', 'french_translation')):
+			return
+
+		custom_ids = button.custom_id.split(':')
+		
+		if int(custom_ids[1]) != member.id:
+			return
+		
+		guild = message.guild
+
+		if custom_ids[0] == 'english_translation':
+			if custom_ids[2].endswith('all'):
+				new_embed = await self.make_rules_embed(guild, 1)
+			else:
+				new_embed = await self.make_rule_embed(guild, custom_ids[2], 1)
+			await message.edit(embed=new_embed)
+
+		elif custom_ids[0] == 'french_translation':
+			if custom_ids[2].endswith('all'):
+				new_embed = await self.make_rules_embed(guild, 2)
+			else:
+				new_embed = await self.make_rule_embed(guild, custom_ids[2], 2)
+				
+			await message.edit(embed=new_embed)
+
+		button.ping(response)
+		
+	
 
 	@tasks.loop(minutes=1)
 	async def check_server_activity_status(self):
@@ -729,7 +763,6 @@ class Misc(commands.Cog):
 	# Sends an embedded message
 	@commands.command()
 	@commands.has_permissions(administrator=True)
-	@check_whitelist()
 	async def embed(self, ctx):
 		'''
 		(MOD) Sends an embedded message.
@@ -778,30 +811,57 @@ class Misc(commands.Cog):
 		if numb is None:
 			return await ctx.send('**Invalid parameter!**')
 
-		if numb > len(rules) or numb <= 0:
-			return await ctx.send(f'**Inform a rule from `1-{len(rules)}` rules!**')
+		if numb <= 0 or numb > 15:
+			return await ctx.send(f'**Inform a rule from `1-15` rules!**')
 
-		rule_index = list(rules)[numb - 1]
-		embed = discord.Embed(title=f'Rule - {numb}# {rule_index}', description=rules[rule_index],
-								colour=discord.Colour.dark_green())
-		embed.set_footer(text=ctx.author.guild.name)
-		await ctx.send(embed=embed)
+		the_rule = await self.get_rule(numb)
+		embed = await self.make_rule_embed(ctx.guild, numb)
 
-	@commands.command()
-	@commands.has_permissions(administrator=True)
-	async def rules(self, ctx):
-		""" (STAFF) Sends an embedded message containing all rules in it. """
+		compo = discord.Component()
+		compo.add_button(style=1, label="English", emoji="🇬🇧", custom_id=f"english_translation:{ctx.author.id}:{numb}")
+		compo.add_button(style=1, label="French", emoji="🇫🇷", custom_id=f"french_translation:{ctx.author.id}:{numb}")
 
-		guild = ctx.guild
+
+		the_msg = await ctx.send(embed=embed, components=[compo])
+		await asyncio.sleep(60)
+		await the_msg.edit(components=None)
+
+
+	async def make_rule_embed(self, guild, number: int , index: int = 1) -> discord.Embed:
+		""" Makes an embed for a specific rule.
+		:param number: The number of the rule.
+		:param index: Whether it should be in English or French. Default = 1.
+		1 - English; 2 - French. """
+
+
+
+		rule = await self.get_rule(number)
+
+		embed = discord.Embed(
+			title=f"Rule number {rule[0]}",
+			description=rule[index], url='https://discordapp.com/guidelines', colour=1406210)
+
+		embed.set_footer(text=guild.owner,
+							icon_url=guild.owner.avatar_url)
+		embed.set_thumbnail(
+			url=guild.icon_url)
+		embed.set_author(name=guild.name, url='https://discordapp.com',icon_url=guild.icon_url)
+		return embed
+
+	async def make_rules_embed(self, guild, index: int = 1) -> discord.Embed:
+		""" Makes an embed for the rules.
+		:param index: Whether it should be in English or French. Default = 1.
+		1 - English; 2 - French. """
 
 		embed = discord.Embed(title="Discord’s Terms of Service and Community Guidelines",
 								description="Rules Of The Server", url='https://discordapp.com/guidelines',
-								colour=1406210,
-								timestamp=ctx.message.created_at)
-		i = 1
-		for rule, rule_value in rules.items():
-			embed.add_field(name=f"{i} - {rule}", value=rule_value, inline=False)
-			i += 1
+								colour=1406210)
+
+		rules = await self.get_rules()
+		rules = [r for r in rules if r[1] or r[2]]
+
+		for rule in rules:
+			embed.add_field(name=f"__{rule[0]}__:", value=rule[index], inline=False)
 
 		embed.add_field(name="🇫🇷", value="Enjoy our Server!", inline=True)
 		embed.add_field(name="🤖", value="Discover our Features!", inline=True)
@@ -812,9 +872,29 @@ class Misc(commands.Cog):
 			url=guild.icon_url)
 		embed.set_author(name=guild.name, url='https://discordapp.com',
 							icon_url=guild.icon_url)
-		await ctx.send(
+
+		return embed
+
+	@commands.command()
+	@commands.has_permissions(administrator=True)
+	async def rules(self, ctx):
+		""" (STAFF) Sends an embedded message containing all rules in it. """
+
+		guild = ctx.guild
+
+		embed = await self.make_rules_embed(guild)
+
+		compo = discord.Component()
+		compo.add_button(style=1, label="English", emoji="🇬🇧", custom_id=f"english_translation:{ctx.author.id}:all")
+		compo.add_button(style=1, label="French", emoji="🇫🇷", custom_id=f"french_translation:{ctx.author.id}:all")
+
+		the_msg = await ctx.send(
 			content=f"Hello, **{guild.name}** is a public Discord server for people all across the globe to meet, learn French and exchange knowledge and cultures. here are our rules of conduct.",
-			embed=embed)
+			embed=embed,
+			components=[compo])
+		await asyncio.sleep(60)
+		await the_msg.edit(components=None)
+
 
 
 	@commands.command(hidden=True)
@@ -1254,15 +1334,206 @@ class Misc(commands.Cog):
 		await self.delete_member_reminder(reminder_id)
 		await ctx.send(f"**Successfully deleted reminder with ID `{reminder_id}`, {member.mention}!**")
 
+
+	@commands.command(hidden=True)
+	@commands.has_permissions(administrator=True)
+	async def create_table_rules(self, ctx) -> None:
+		""" (ADM) Creates the Rules table. """
+
+		if await self.check_table_rules():
+			return await ctx.send("**Table __Rules__ already exists!**")
+
+		await ctx.message.delete()
+		mycursor, db = await the_database()
+		await mycursor.execute("""CREATE TABLE Rules (
+			rule_number TINYINT(2) NOT NULL, 
+			english_text VARCHAR(500) DEFAULT NULL, french_text VARCHAR(500) DEFAULT NULL)""")
+
+		for i in range(15):
+			await mycursor.execute("INSERT INTO Rules (rule_number) VALUES (%s)", (i+1,))
+
+		await db.commit()
+		await mycursor.close()
+
+		return await ctx.send("**Table __Rules__ created!**", delete_after=3)
+
+	@commands.command(hidden=True)
+	@commands.has_permissions(administrator=True)
+	async def drop_table_rules(self, ctx) -> None:
+		""" (ADM) Creates the Rules table """
+
+		if not await self.check_table_rules():
+			return await ctx.send("**Table __Rules__ doesn't exist!**")
+
+		await ctx.message.delete()
+		mycursor, db = await the_database()
+		await mycursor.execute("DROP TABLE Rules")
+		await db.commit()
+		await mycursor.close()
+
+		return await ctx.send("**Table __Rules__ dropped!**", delete_after=3)
+
+	@commands.command(hidden=True)
+	@commands.has_permissions(administrator=True)
+	async def reset_table_rules(self, ctx) -> None:
+		""" (ADM) Creates the Rules table """
+
+		if not await self.check_table_rules():
+			return await ctx.send("**Table __Rules__ doesn't exist yet!**")
+
+		await ctx.message.delete()
+		mycursor, db = await the_database()
+		await mycursor.execute("DELETE FROM Rules")
+		await db.commit()
+		await mycursor.close()
+
+		return await ctx.send("**Table __Rules__ reset!**", delete_after=3)
+
+	async def check_table_rules(self) -> bool:
+		""" Checks if the Rules table exists """
+
+		mycursor, db = await the_database()
+		await mycursor.execute("SHOW TABLE STATUS LIKE 'Rules'")
+		table_info = await mycursor.fetchall()
+		await mycursor.close()
+
+		if len(table_info) == 0:
+			return False
+
+		else:
+			return True
+
+	async def update_rule(self, rule_number: int, english_text: str = None, french_text: str = None) -> None:
+		""" Updates a rule in the database.
+		:param rule_number: The number of the rule (1-15).
+		:param english_text: The rule text in English.
+		:param french_text: The rule text in French. """
+
+		mycursor, db = await the_database()
+		if english_text and french_text:
+			await mycursor.execute(
+				"UPDATE Rules SET english_text = %s, french_text = %s WHERE rule_number = %s", (
+					english_text, french_text, rule_number))
+
+		elif english_text:
+			await mycursor.execute("UPDATE Rules SET english_text = %s WHERE rule_number = %s", (english_text, rule_number))
+
+		elif french_text:
+			await mycursor.execute("UPDATE Rules SET french_text = %s WHERE rule_number = %s", (french_text, rule_number))
+		await db.commit()
+		await mycursor.close()
+
+	async def get_rules(self) -> List[List[Union[int, str]]]:
+		""" Get all rules from the database. """
+
+		mycursor, db = await the_database()
+		await mycursor.execute("SELECT * FROM Rules")
+		rules = await mycursor.fetchall()
+		await mycursor.close()
+		return rules
+
+	async def get_rule(self, rule_number: int) -> List[Union[int, str]]:
+		""" Get a specific rule from the database.
+		:param rule_number: The number of the rule. """
+
+		mycursor, db = await the_database()
+		await mycursor.execute("SELECT * FROM Rules WHERE rule_number = %s", (rule_number,))
+		the_rule = await mycursor.fetchone()
+		await mycursor.close()
+		return the_rule
+
+	@commands.command(aliases=['setrule', 'sr'])
+	@commands.has_permissions(administrator=True)
+	async def set_rule(self, ctx, rule_number: int, english_text: str = None, french_text: str = None) -> None:
+		""" Sets a rule.
+		:param rule_number: The rule number. (1-15)
+		:param english_text: The text for that rule. (MAX = 500 chars.)
+		:param french_text: The text for that rule. (MAX = 500 chars.) """
+
+		member = ctx.author
+
+		if not rule_number:
+			return await ctx.send(f"**Please, inform a rule number, {member.mention}!**")
+
+		if rule_number <= 0 or rule_number > 15:
+			return await ctx.send(f"**Please, inform a rule number from 1-15, {member.mention}!**")
+
+		if not english_text:
+			return await ctx.send(f"**Please, inform a rule in english, {member.mention}!**")
+
+		if len(english_text) > 500:
+			return await ctx.send(f"**Please, inform an English text with a max. of 500 characters, {member.mention}!**")
+
+		if not french_text:
+			return await ctx.send(f"**Please, inform a rule in french, {member.mention}!**")
+
+		if len(french_text) > 500:
+			return await ctx.send(f"**Please, inform a French text with a max. of 500 characters, {member.mention}!**")
+
+		
+		await self.update_rule(rule_number=rule_number, english_text=english_text, french_text=french_text)
+		await ctx.send(f"**Successfully updated rule number `{rule_number}`, {member.mention}!**")
+
+
+	@commands.command(aliases=['updatefrenchrule', 'ufr'])
+	@commands.has_permissions(administrator=True)
+	async def update_french_rule(self, ctx, rule_number: int, french_text: str = None) -> None:
+		""" Sets a rule.
+		:param rule_number: The rule number. (1-15)
+		:param french_text: The text for that rule. (MAX = 500 chars.) """
+
+		member = ctx.author
+
+		if not rule_number:
+			return await ctx.send(f"**Please, inform a rule number, {member.mention}!**")
+
+		if rule_number <= 0 or rule_number > 15:
+			return await ctx.send(f"**Please, inform a rule number from 1-15, {member.mention}!**")
+
+		if not french_text:
+			return await ctx.send(f"**Please, inform a rule in French, {member.mention}!**")
+
+		if len(french_text) > 500:
+			return await ctx.send(f"**Please, inform a French text with a max. of 500 characters, {member.mention}!**")
+
+		
+		await self.update_rule(rule_number=rule_number, french_text=french_text)
+		await ctx.send(f"**Successfully updated the French text for rule number `{rule_number}`, {member.mention}!**")
+
+
+	@commands.command(aliases=['updateenglishrule', 'uer'])
+	@commands.has_permissions(administrator=True)
+	async def update_english_rule(self, ctx, rule_number: int, english_text: str = None) -> None:
+		""" Sets a rule.
+		:param rule_number: The rule number. (1-15)
+		:param english_text: The text for that rule. (MAX = 500 chars.) """
+
+		member = ctx.author
+
+		if not rule_number:
+			return await ctx.send(f"**Please, inform a rule number, {member.mention}!**")
+
+		if rule_number <= 0 or rule_number > 15:
+			return await ctx.send(f"**Please, inform a rule number from 1-15, {member.mention}!**")
+
+		if not english_text:
+			return await ctx.send(f"**Please, inform a rule in English, {member.mention}!**")
+
+		if len(english_text) > 500:
+			return await ctx.send(f"**Please, inform a English text with a max. of 500 characters, {member.mention}!**")
+
+		await self.update_rule(rule_number=rule_number, english_text=english_text)
+		await ctx.send(f"**Successfully updated the English text for rule number `{rule_number}`, {member.mention}!**")
 	
 """
 Setup:
 b!create_table_server_status
 b!create_table_user_timezones
-
 b!create_table_emojis
 b!create_table_last_seen
 b!create_table_member_reminder
+
+b!create_table_rules
 """
 
 
