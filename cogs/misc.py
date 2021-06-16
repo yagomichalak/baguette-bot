@@ -20,6 +20,7 @@ import emoji
 import re
 
 patreon_supporter_role_id = int(os.getenv('PATREON_SUPPORTER_ROLE_ID'))
+staff_role_id = int(os.getenv('STAFF_ROLE_ID'))
 
 class Misc(commands.Cog):
 	""" A miscellaneous category. """
@@ -765,7 +766,7 @@ class Misc(commands.Cog):
 	@commands.has_permissions(administrator=True)
 	async def embed(self, ctx):
 		'''
-		(MOD) Sends an embedded message.
+		(ADM) Sends an embedded message.
 		'''
 		await ctx.message.delete()
 		if len(ctx.message.content.split()) < 2:
@@ -803,6 +804,7 @@ class Misc(commands.Cog):
 
 	# Shows the specific rule
 	@commands.command()
+	@commands.has_role(staff_role_id)
 	async def rule(self, ctx, numb: int = None):
 		""" Shows a specific server rule.
 		:param numb: The number of the rule to show. """

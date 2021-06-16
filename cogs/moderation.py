@@ -1745,7 +1745,6 @@ class Moderation(commands.Cog):
 			await self.insert_staff_member(user_id=member.id, infractions_given=0, staff_at=new_date)
 			await ctx.send(f"**Successfully inserted `{member}` with the given joining-date, {ctx.author.mention}!**")
 
-
 """
 Setup:
 b!create_table_mutedmembers
