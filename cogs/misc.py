@@ -445,11 +445,9 @@ class Misc(commands.Cog):
 	async def get_gmt_now() -> str:
 		""" Gets the current time in GMT. """
 
-		time_now = datetime.now()
 		tzone = timezone('Etc/GMT')
-
-		date_and_time = time_now.astimezone(tzone)
-		return date_and_time
+		time_now = datetime.now(tzone)
+		return time_now
 
 	@commands.command(hidden=True)
 	@commands.has_permissions(administrator=True)
@@ -1267,11 +1265,11 @@ class Misc(commands.Cog):
 			return await ctx.send(
 				f"**You reached the limit of reminders, wait for them to finish before trying again, {member.mention}!**")
 
-		current_ts = await Misc.get_timestamp()
+		current_ts = await Misc.get_gmt_now()
 		await self.insert_member_reminder(member.id, text, current_ts, seconds)
 
 		tzone = timezone('Etc/GMT')
-		time_now = datetime.utcfromtimestamp(current_ts + seconds)
+		time_now = datetime.fromtimestamp(current_ts + seconds)
 		date_and_time = time_now.astimezone(tzone)
 		remind_at = date_and_time.strftime('%Y/%m/%d at %H:%M:%S')
 		await ctx.send(f"**Reminding you at `{remind_at}`, {member.mention}!**")
@@ -1300,11 +1298,11 @@ class Misc(commands.Cog):
 		embed.set_thumbnail(url=member.avatar_url)
 		embed.set_footer(text="Requested at:", icon_url=member.guild.icon_url)
 		
-		current_ts = await Misc.get_timestamp()
+		current_ts = await Misc.get_gmt_now()
 
 		for reminder in reminders:	
 
-			remind_at = datetime.utcfromtimestamp(current_ts + reminder[4])
+			remind_at = datetime.fromtimestamp(reminder[3] + reminder[4])
 			remind_at = remind_at.strftime('%Y-%m-%d at %H:%M:%S')
 
 			embed.add_field(
