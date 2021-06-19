@@ -3,7 +3,7 @@ from discord.ext import commands
 import aiomysql
 from os import getenv
 import asyncio
-from typing import List, Union, Any
+from typing import List, Union, Any, Dict
 import time
 
 from discord.ext.commands.core import check
@@ -64,7 +64,9 @@ class Ticket(commands.Cog):
         self.cache[payload.member.id] = time.time()
 
         try:
-          msg = await payload.member.send(f":flag_gb: Please confirm by saying yes that you need assistance. This will open a ticket notifying staff of your enquiry.")
+          msg = await payload.member.send(f"""🇬🇧 Please confirm by saying __**yes**__ that you need assistance. This will open a ticket notifying staff of your enquiry.
+
+🇫🇷 Veuillez confirmer que vous avez besoin d'aide en écrivant __**oui**__. Un ticket sera alors ouvert et le staff sera informé.""")
           msg_resp = await self.client.wait_for('message', timeout=60, 
           check=lambda m: m.author.id == payload.member.id and not m.guild \
             and m.content.lower() in ['yes', 'oui', 'y', 'no', 'non', 'nope', 'non'])
