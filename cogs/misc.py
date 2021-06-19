@@ -434,12 +434,12 @@ class Misc(commands.Cog):
 			return True
 
 	@staticmethod
-	async def get_timestamp() -> int:
+	async def get_timestamp(tz: str = 'Etc/GMT') -> int:
 		""" Gets the current timestamp. """
 
-		epoch = datetime.utcfromtimestamp(0)
-		the_time = (datetime.utcnow() - epoch).total_seconds()
-		return the_time
+		tzone = timezone(tz)
+		the_time = datetime.now(tzone)
+		return the_time.timestamp()
 
 	@staticmethod
 	async def get_gmt_now() -> str:
@@ -1265,7 +1265,7 @@ class Misc(commands.Cog):
 			return await ctx.send(
 				f"**You reached the limit of reminders, wait for them to finish before trying again, {member.mention}!**")
 
-		current_ts = await Misc.get_gmt_now()
+		current_ts = await Misc.get_timestamp()
 		await self.insert_member_reminder(member.id, text, current_ts, seconds)
 
 		tzone = timezone('Etc/GMT')
