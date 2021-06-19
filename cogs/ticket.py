@@ -4,6 +4,9 @@ import aiomysql
 from os import getenv
 import asyncio
 from typing import List, Union, Any
+import time
+
+from discord.ext.commands.core import check
 
 
 class Ticket(commands.Cog):
@@ -19,6 +22,7 @@ class Ticket(commands.Cog):
     self.loop = asyncio.get_event_loop()
     self.ticket_message_id: int = int(getenv('TICKET_MESSAGE_ID'))
     self.ticket_category_id: int = int(getenv('TICKET_CAT_ID'))
+    self.cache: Dict[int, int] = {}
 
   @commands.Cog.listener()
   async def on_ready(self) -> None:
@@ -50,8 +54,33 @@ class Ticket(commands.Cog):
         message = await channel.fetch_message(payload.message_id)
         await message.remove_reaction('❌', user)
 
-        # Tries to open a ticket channel
-        return await self.open_ticket(user, guild)
+        member_ts = self.cache.get(payload.member.id)
+        time_now = time.time()
+        if member_ts:
+            sub = time_now - member_ts
+            if sub <= 60:
+                return
+
+        self.cache[payload.member.id] = time.time()
+
+        try:
+          msg = await payload.member.send(f":flag_gb: Please confirm by saying yes that you need assistance. This will open a ticket notifying staff of your enquiry.")
+          msg_resp = await self.client.wait_for('message', timeout=60, 
+          check=lambda m: m.author.id == payload.member.id and not m.guild \
+            and m.content.lower() in ['yes', 'oui', 'y', 'no', 'non', 'nope', 'non'])
+
+        except asyncio.TimeoutError:
+          await payload.member.send("**Timeout!**")
+          self.cache[payload.member.id] = 0
+
+        else:
+          if msg_resp.content.lower() in ['yes', 'oui']:
+
+            # Tries to open a ticket channel
+            await self.open_ticket(user, guild)
+          else:
+            await payload.member.send("**Comprehensible, have a good day!**")
+            self.cache[payload.member.id] = 0
 
   @commands.command(aliases=['close_ticket', 'cc', 'ct'])
   @commands.has_permissions(administrator=True)
