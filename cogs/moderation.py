@@ -1,12 +1,14 @@
+from pytz import timezone
 import discord
 from discord.ext import commands, tasks
 import asyncio
 from mysqldb import the_database
-from datetime import MAXYEAR, datetime
+from datetime import datetime
 import time
 from typing import List, Union
 import os
 from extra.banned_things import chat_filter, website_filter
+from extra import utils
 from typing import List, Dict, Tuple
 from pprint import pprint
 import re
@@ -53,8 +55,7 @@ class Moderation(commands.Cog):
 	async def look_for_expired_tempmutes(self) -> None:
 		""" Looks for expired tempmutes and unmutes the users. """
 
-		epoch = datetime.utcfromtimestamp(0)
-		current_ts = (datetime.utcnow() - epoch).total_seconds()
+		current_ts = await utils.get_timestamp()
 		tempmutes = await self.get_expired_tempmutes(current_ts)
 		guild = self.client.get_guild(server_id)
 
@@ -81,9 +82,8 @@ class Moderation(commands.Cog):
 							member_roles.remove(role)
 
 						await member.edit(roles=member_roles)
-						user_role_ids = [(member.id, mrole[1]) for mrole in user_roles]
 						try:
-							await self.remove_role_from_system(user_role_ids)
+							await self.remove_all_roles_from_system(member.id)
 						except Exception as e:
 							print(e)
 							pass
@@ -124,7 +124,8 @@ class Moderation(commands.Cog):
 		if not await LevelSystem.table_important_vars_exists():
 			return
 
-		month_today = datetime.utcnow().month
+		tzone = timezone('Etc/GMT')
+		month_today = datetime.now(tzone).month
 		# Creates the Total-Infractions counter if it doesn't exist
 		if not await LevelSystem.get_important_var(label="t_infractions"):
 			await LevelSystem.insert_important_var(label="t_infractions", value_int=0)
@@ -1192,6 +1193,16 @@ class Moderation(commands.Cog):
 	async def remove_role_from_system(self, user_role_ids: int):
 		mycursor, db = await the_database()
 		await mycursor.executemany("DELETE FROM MutedMember WHERE user_id = %s AND role_id = %s", user_role_ids)
+		await db.commit()
+		await mycursor.close()
+
+
+	async def remove_all_roles_from_system(self, user_id: int):
+		""" Removes all muted-roles linked to a user from the system.
+		:param user_id: The ID of the user. """
+
+		mycursor, db = await the_database()
+		await mycursor.executemany("DELETE FROM mutedmember WHERE user_id = %s", (user_id,))
 		await db.commit()
 		await mycursor.close()
 
