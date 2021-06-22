@@ -88,20 +88,21 @@ class Moderation(commands.Cog):
 							print(e)
 							pass
 
+						else:
 
 
-					# Moderation log embed
-					moderation_log = discord.utils.get(guild.channels, id=mod_log_id)
-					embed = discord.Embed(
-						description=F"**Unmuted** {member.mention}\n**Reason:** Tempmute is over",
-						color=discord.Color.light_gray())
-					embed.set_author(name=f"{self.client.user} (ID {self.client.user.id})", icon_url=self.client.user.avatar_url)
-					embed.set_thumbnail(url=member.avatar_url)
-					await moderation_log.send(embed=embed)
-					try:
-						await member.send(embed=embed)
-					except:
-						pass
+							# Moderation log embed
+							moderation_log = discord.utils.get(guild.channels, id=mod_log_id)
+							embed = discord.Embed(
+								description=F"**Unmuted** {member.mention}\n**Reason:** Tempmute is over",
+								color=discord.Color.light_gray())
+							embed.set_author(name=f"{self.client.user} (ID {self.client.user.id})", icon_url=self.client.user.avatar_url)
+							embed.set_thumbnail(url=member.avatar_url)
+							await moderation_log.send(embed=embed)
+							try:
+								await member.send(embed=embed)
+							except:
+								pass
 
 			except Exception as e:
 				continue
@@ -1202,7 +1203,7 @@ class Moderation(commands.Cog):
 		:param user_id: The ID of the user. """
 
 		mycursor, db = await the_database()
-		await mycursor.executemany("DELETE FROM mutedmember WHERE user_id = %s", (user_id,))
+		await mycursor.executemany("DELETE FROM MutedMember WHERE user_id = %s", (user_id,))
 		await db.commit()
 		await mycursor.close()
 
