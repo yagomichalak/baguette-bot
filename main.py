@@ -60,9 +60,11 @@ async def on_command_error(ctx, error):
 		print('erroooooor', error.errors[0])
 		await on_command_error(ctx, error.errors[0])
 
-	print('='*10)
-	print(f"ERROR: {error} | Class: {error.__class__} | Cause: {error.__cause__}")
-	print('='*10)
+
+	if ctx.channel and ctx.channel.id == 857631575223435285:
+		await ctx.send('='*10)
+		await ctx.send(f"ERROR: {error} | Class: {error.__class__} | Cause: {error.__cause__}")
+		await ctx.send('='*10)
 
 
 # Members status update
