@@ -10,6 +10,14 @@ async def get_timestamp(tz: str = 'Etc/GMT') -> int:
     the_time = datetime.now(tzone)
     return the_time.timestamp()
 
+async def get_time(tz: str = 'Etc/GMT') -> datetime:
+    """ Gets the current timestamp.
+    :param tz: The timezone to get the timstamp from. Default = Etc/GMT """
+
+    tzone = timezone(tz)
+    the_time = datetime.now(tzone)
+    return the_time
+
 async def parse_time(tz: str = 'Etc/GMT') -> str:
     """ Parses time from the current timestamp.
     :param tz: The timezone to get the timstamp from. Default = Etc/GMT """
