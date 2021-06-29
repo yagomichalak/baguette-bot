@@ -581,93 +581,6 @@ class Moderation(commands.Cog):
 			# 	ctx.author = self.client.user
 			# 	await self.mute(ctx=ctx, member=member, reason=reason)
 
-	# @commands.command()
-	# @commands.check_any(is_allowed_members(), commands.has_any_role(*allowed_roles, member_dot_role_id))
-	# async def mute(self, ctx, member: discord.Member = None, *, reason = None):
-	# 	'''
-	# 	(MOD) Mutes a member.
-	# 	:param member: The @ or the ID of the user to mute.
-	# 	:param reason: The reason for the mute.
-	# 	'''
-
-	# 	try:
-	# 		await ctx.message.delete()
-	# 	except Exception:
-	# 		pass
-
-
-	# 	role = discord.utils.get(ctx.guild.roles, id=muted_role_id)
-	# 	if not member:
-	# 		return await ctx.send("**Please, specify a member!**")
-	# 	if role not in member.roles:
-	# 		# await member.add_roles(role)
-	# 		await member.move_to(None)
-	# 		remove_roles = []
-	# 		keep_roles = [role]
-
-	# 		bot = discord.utils.get(ctx.guild.members, id=self.client.user.id)
-
-	# 		for i, member_role in enumerate(member.roles):
-	# 			if i == 0:
-	# 				continue
-
-	# 			if member_role.id == role.id:
-	# 				continue
-
-	# 			if member_role < bot.top_role:
-	# 				if not member_role.is_premium_subscriber():
-	# 					remove_roles.append(member_role)
-
-	# 			if member_role.is_premium_subscriber():
-	# 				keep_roles.append(member_role)
-
-	# 			if member_role >= bot.top_role:
-	# 				keep_roles.append(member_role)
-
-
-	# 		await member.edit(roles=keep_roles)
-	# 		user_role_ids = [(member.id, rr.id, None, None) for rr in remove_roles]
-	# 		await self.insert_in_muted(user_role_ids)
-
-	# 		# General embed
-	# 		general_embed = discord.Embed(description=f'**Reason:** {reason}', colour=discord.Colour.dark_grey(), timestamp=ctx.message.created_at)
-	# 		general_embed.set_author(name=f'{member} has been muted', icon_url=member.avatar_url)
-	# 		await ctx.send(embed=general_embed)
-	# 		# Moderation log embed
-	# 		moderation_log = discord.utils.get(ctx.guild.channels, id=mod_log_id)
-	# 		embed = discord.Embed(
-	# 			description=F"**Muted** {member.mention}\n**Reason:** {reason}\n**Location:** {ctx.channel.mention}",
-	# 			color=discord.Color.dark_gray(),
-	# 			timestamp=ctx.message.created_at)
-	# 		embed.set_author(name=f"{ctx.author} (ID {ctx.author.id})", icon_url=ctx.author.avatar_url)
-	# 		embed.set_thumbnail(url=member.avatar_url)
-	# 		await moderation_log.send(embed=embed)
-	# 		# Inserts a infraction into the database
-	# 		epoch = datetime.utcfromtimestamp(0)
-	# 		current_ts = (datetime.utcnow() - epoch).total_seconds()
-	# 		await self.insert_user_infraction(
-	# 			user_id=member.id, infr_type="mute", reason=reason, 
-	# 			timestamp=current_ts , perpetrator=ctx.author.id)
-	# 		try:
-	# 			await member.send(embed=embed)
-	# 		except:
-	# 			pass
-
-	# 		await self.client.get_cog('LevelSystem').increment_important_var_int(label="m_infractions")
-
-	# 		if ctx.author.bot:
-	# 			return
-	# 		staff_member = ctx.author
-	# 		if not await self.get_staff_member(staff_member.id):
-	# 			staff_at = await self.client.get_cog('Misc').get_gtm_now().strftime('%Y/%m/%d at %H:%M:%S')
-	# 			return await self.insert_staff_member(
-	# 				user_id=staff_member.id, infractions_given=1, staff_at=staff_at)
-	# 		else:
-	# 			await self.update_staff_member_counter(
-	# 				user_id=staff_member.id, infraction_increment=1)
-		
-	# 	else:
-	# 		await ctx.send(f'**{member} is already muted!**')
 
 
 	async def get_mute_time(self, ctx: commands.Context, time: List[str]) -> Dict[str, int]:
@@ -726,11 +639,10 @@ class Moderation(commands.Cog):
 	@commands.check_any(is_allowed_members(), commands.has_any_role(*allowed_roles, member_dot_role_id))
 	async def mute(self, ctx, member: discord.Member = None, reason: str =  None, *, time: str = None):
 		"""
-		Mutes a member for a determined amount of time.
+		Mutes a member for a determined amount of time or indefinitely.
 		:param member: The @ or the ID of the user to tempmute.
-		:param minutes: The amount of minutes that the user will be muted.
 		:param reason: The reason for the tempmute.
-		:param time: The time for the mute.
+		:param time: The time for the mute (Optional). Default = Forever
 		"""
 		await ctx.message.delete()
 
