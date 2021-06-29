@@ -441,14 +441,6 @@ class Misc(commands.Cog):
 		the_time = datetime.now(tzone)
 		return the_time.timestamp()
 
-	@staticmethod
-	async def get_gmt_now() -> str:
-		""" Gets the current time in GMT. """
-
-		tzone = timezone('Etc/GMT')
-		time_now = datetime.now(tzone)
-		return time_now
-
 	@commands.command(hidden=True)
 	@commands.has_permissions(administrator=True)
 	async def create_table_server_status(self, ctx) -> None:
@@ -1297,8 +1289,7 @@ class Misc(commands.Cog):
 		embed.set_author(name=member, url=member.avatar_url, icon_url=member.avatar_url)
 		embed.set_thumbnail(url=member.avatar_url)
 		embed.set_footer(text="Requested at:", icon_url=member.guild.icon_url)
-		
-		current_ts = await Misc.get_gmt_now()
+
 
 		for reminder in reminders:	
 

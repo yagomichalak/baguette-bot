@@ -8,6 +8,7 @@ from datetime import date, datetime
 import asyncio
 import os
 from extra.useful_variables import xp_levels
+from extra import utils
 import emoji
 from cogs.misc import Misc
 
@@ -57,8 +58,8 @@ class LevelSystem(commands.Cog):
             return
 
 
-        epoch = datetime.utcfromtimestamp(0)
-        time_xp = (datetime.utcnow() - epoch).total_seconds()
+        time_xp = await utils.get_timestamp()
+
         if not message.channel or not message.channel.category:
             return
 
@@ -91,8 +92,7 @@ class LevelSystem(commands.Cog):
         if before.self_stream != after.self_stream: return
         if before.self_video != after.self_video: return
 
-        epoch = datetime.utcfromtimestamp(0)
-        current_ts = (datetime.utcnow() - epoch).total_seconds()
+        current_ts = await utils.get_timestamp()
 
         bc = before.channel
         ac = after.channel
