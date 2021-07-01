@@ -35,7 +35,7 @@ class TemporaryVc(commands.Cog):
 		if before.channel and before.channel.category:
 			if before.channel.category.id == self.temp_vc_cat_id:
 				if before.channel.id != self.temp_vc_id:
-					vc = discord.utils.get(member.guild.channels, id=before.channel.id)
+					vc = discord.utils.get(member.guild.voice_channels, id=before.channel.id)
 					# Checks whether the VC is empty
 					if vc and len(vc.members) == 0:
 						if temp_vc := await self.db.get_temp_vc_by_vc_id(vc.id):
@@ -116,7 +116,10 @@ class TemporaryVc(commands.Cog):
 			return await ctx.send(f"**You need to be at least level 1 to use this command!")
 
 		if temp_vc := await self.db.get_temp_vc_by_user_id(member.id):
-			return await ctx.send(f"**You already have a temp vc, {member.mention}! (<#{temp_vc[1]}>)**")
+			if the_vc := discord.utils.get(ctx.guild.voice_channels, id={temp_vc[1]}):
+				return await ctx.send(f"**You already have a temp vc, {member.mention}! ({the_vc})**")
+			else:
+				self.db.delete_temp_vc(member.id, temp_vc[1])
 
 		overwrites = await self.get_channel_perms(member)
 		category = discord.utils.get(ctx.guild.categories, id=self.temp_vc_cat_id)
@@ -345,7 +348,7 @@ class TemporaryVc(commands.Cog):
 				connect=None, speak=None, view_channel=True),
 
 			muted_role: discord.PermissionOverwrite(
-				connect=False, speak=False, video=False, view_channel=True),
+				connect=False, speak=False, view_channel=True),
 
 			member: discord.PermissionOverwrite(
 				connect=True, speak=True, view_channel=True, manage_channels=True)
