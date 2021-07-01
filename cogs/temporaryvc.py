@@ -345,7 +345,7 @@ class TemporaryVc(commands.Cog):
 				connect=None, speak=None, view_channel=True),
 
 			muted_role: discord.PermissionOverwrite(
-				connect=False, speak=None, view_channel=True),
+				connect=False, speak=False, video=False, view_channel=True),
 
 			member: discord.PermissionOverwrite(
 				connect=True, speak=True, view_channel=True, manage_channels=True)
