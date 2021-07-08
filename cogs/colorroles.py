@@ -133,8 +133,6 @@ class ColourRoles(commands.Cog):
 							await member.remove_roles(crole)
 						except:
 							pass
-						else:
-							break
 
 
 				if previous_role:
