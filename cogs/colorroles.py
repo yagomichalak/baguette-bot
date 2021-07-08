@@ -29,8 +29,15 @@ class ColourRoles(commands.Cog):
 			"Charisma over 9000": 740186469649350696,
 			"Charisma Superior": 740186498498035793,
 			"Event Winner": 764120155428356107,
-			"Patron Black": 862731111339393034 ,
-			"Booster Pink": 862732594188648478 ,
+			"Patron Black": 862731111339393034,
+			"Booster Pink": 862732594188648478,
+			
+			"Admin": 821216341041086495,
+			"Moderator": 821215885858963508,
+			"muted": 792401656226119681,
+			"patreon supporter": 852545808318201876,
+
+
 		}
 
 
@@ -99,7 +106,7 @@ class ColourRoles(commands.Cog):
 	@commands.command(aliases=['switch_colour', 'switchcolour', 'switch_color', 'switchcolor'])
 	@commands.cooldown(1, 5, commands.BucketType.user)
 	@Misc.check_whitelist()
-	async def switch(self, ctx, colour_role: discord.Role = None) -> None:
+	async def switch(self, ctx, *, colour_role: discord.Role = None) -> None:
 		""" Switches your current role colour to a given one from your inventory.
 		:param colour_role: The name/id/tag of the colour role to switch to. """
 
@@ -142,7 +149,7 @@ class ColourRoles(commands.Cog):
 		
 	@commands.command(aliases=['removecolour', 'delete_colour', 'del_colour', 'delcolour', 'remove_color', 'deletecolor', 'del_color', 'delcolor'])
 	@commands.has_permissions(administrator=True)
-	async def remove_colour(self, ctx, member: discord.Member = None, colour_role: discord.Role = None) -> None:
+	async def remove_colour(self, ctx, member: discord.Member = None, *, colour_role: discord.Role = None) -> None:
 		""" Removes a Colour Role from a given member.
 		:param member: The member to remove the Colour Role from.
 		:param colour_role: The name/id/tag of the colour role to remove from the user. """
@@ -160,8 +167,9 @@ class ColourRoles(commands.Cog):
 			await self.delete_user_colour_role(member.id, colour_role.id)
 			try:
 				await member.remove_roles(colour_role)
-			except:
-				pass
+			except Exception as e:
+				print(e)
+				await ctx.send(f"**For some reason I couldn't")
 			
 			await ctx.send(f"**Removed Colour Role `{colour_role}` from {member.mention}, {ctx.author.mention}!**")
 
@@ -175,7 +183,7 @@ class ColourRoles(commands.Cog):
 			return await ctx.send(f"**Please, inform a member, {ctx.author.mention}!**")
 
 		if not (colour_role_ids := await self.get_user_colour_roles(member.id)):
-			return await ctx.send(f"**{member.mention} doesn't have that role, {ctx.author.mention}!**")
+			return await ctx.send(f"**{member.mention} doesn't have roles, {ctx.author.mention}!**")
 
 		colour_roles: List[discord.Role] = [
 			crole for colour_id in colour_role_ids 
