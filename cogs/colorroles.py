@@ -136,34 +136,27 @@ class ColourRoles(commands.Cog):
 		if not await self.get_user_colour_role(member.id, colour_role.id):
 			return await ctx.send(f"**You don't have that colour role, {member.mention}!**")
 
-		if colour_role in member.roles:
-			await ctx.send(f"**You are already using that colour role, {member.mention}!**")
+		try:
+			await member.add_roles(colour_role)
+		except Exception as e:
+			print(e)
+			await ctx.send(f"**For some reason I couldn't give you that role, {member.mention}!** 😭")
+
+
+		roles_to_check: List[discord.Role] = [
+			crole for colour_id in self.colour_roles.values() 
+			if colour_id != colour_role.id and (crole := discord.utils.get(ctx.guild.roles, id=colour_id))
+		]
+
+		for crole in roles_to_check:
+			if crole in member.roles:
+				try:
+					await member.remove_roles(crole)
+				except:
+					pass
+
 		else:
-			try:
-				await member.add_roles(colour_role)
-			except Exception as e:
-				print(e)
-				await ctx.send(f"**For some reason I couldn't give you that role, {member.mention}!** 😭")
-			else:
-				previous_role = None
-
-				roles_to_check: List[discord.Role] = [
-					crole for colour_id in self.colour_roles.values() 
-					if colour_id != colour_role.id and (crole := discord.utils.get(ctx.guild.roles, id=colour_id))
-				]
-
-				for crole in roles_to_check:
-					if crole in member.roles:
-						try:
-							await member.remove_roles(crole)
-						except:
-							pass
-
-
-				if previous_role:
-					await ctx.send(f"**{member.mention} has switched their colour role from `{previous_role}` to `{colour_role}`!**")
-				else:
-					await ctx.send(f"**{member.mention} has switched their colour role to `{colour_role}`!**")
+			await ctx.send(f"**{member.mention} has switched their colour role to `{colour_role}`!**")
 
 	@commands.command(aliases=['removecolour', 'delete_colour', 'del_colour', 'delcolour', 'remove_color', 'deletecolor', 'del_color', 'delcolor'])
 	@commands.has_permissions(administrator=True)
