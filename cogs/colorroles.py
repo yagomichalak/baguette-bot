@@ -6,12 +6,12 @@ from typing import List, Optional
 from cogs.misc import Misc
 
 
-class ColorRoles(commands.Cog):
-	""" Category for Color Roles management and commands. """
+class ColourRoles(commands.Cog):
+	""" Category for Colour Roles management and commands. """
 
 	def __init__(self, client) -> None:
 		self.client = client
-		self.color_roles: Dict[str, int] = {
+		self.colour_roles: Dict[str, int] = {
 			"Kraken Purple": 838076939553603616,
 			"Dark Aqua": 838076937787932672,
 			"Royal Azure": 755573019526823967,
@@ -28,12 +28,15 @@ class ColorRoles(commands.Cog):
 			"Tsunami of Charisma": 740186445784023071,
 			"Charisma over 9000": 740186469649350696,
 			"Charisma Superior": 740186498498035793,
+			"Event Winner": 764120155428356107,
+			"Patron Black": 862731111339393034 ,
+			"Booster Pink": 862732594188648478 ,
 		}
 
 
 	@commands.Cog.listener()
 	async def on_ready(self) -> None:
-		print('ColorRoles cog is online!')
+		print('ColourRoles cog is online!')
 
 	@commands.Cog.listener()
 	async def on_member_update(self, before, after):
@@ -57,33 +60,33 @@ class ColorRoles(commands.Cog):
 
 		if new_role:
 			# Checks ID of the new role and compares to the Staff role ID.
-			if new_role.id in self.color_roles.values():
+			if new_role.id in self.colour_roles.values():
 				try:
-					await self.insert_user_color_role(after.id, new_role.id)
+					await self.insert_user_colour_role(after.id, new_role.id)
 				except:
 					pass
 
 	
-	@commands.command(aliases=['color', 'color_inventory', 'inventory', 'inv'])
+	@commands.command(aliases=['colour', 'colour_inventory', 'color', 'colors', 'color_inventory', 'inventory', 'inv'])
 	@commands.cooldown(1, 5, commands.BucketType.user)
 	@Misc.check_whitelist()
-	async def colors(self, ctx, member: Optional[discord.Member] = None) -> None:
-		""" Shows all color roles that the user has.
-		:param member: The member to show the colors from. [Optional].
+	async def colours(self, ctx, member: Optional[discord.Member] = None) -> None:
+		""" Shows all colour roles that the user has.
+		:param member: The member to show the colours from. [Optional].
 		PS: If member not provided, it'll show from who ran the command. """
 
 		if not member:
 			member = ctx.author
 
-		color_roles = await self.get_user_color_roles(member.id)
-		if not color_roles:
-			return await ctx.send(f"**{member.mention} doesn't have any color role in their inventory!**")
+		colour_roles = await self.get_user_colour_roles(member.id)
+		if not colour_roles:
+			return await ctx.send(f"**{member.mention} doesn't have any colour role in their inventory!**")
 
-		colors = [color.mention for color_role in color_roles if (color := discord.utils.get(ctx.guild.roles, id=color_role[1]))]
+		colours = [colour.mention for colour_role in colour_roles if (colour := discord.utils.get(ctx.guild.roles, id=colour_role[1]))]
 		embed = discord.Embed(
-			title="__Color Role Inventory__",
-			description=', '.join(colors),
-			color=member.color,
+			title="__Colour Role Inventory__",
+			description=', '.join(colours),
+			colour=member.colour,
 			timestamp=ctx.message.created_at,
 			url=member.avatar_url
 		)
@@ -93,26 +96,26 @@ class ColorRoles(commands.Cog):
 
 		await ctx.send(embed=embed)
 
-	@commands.command(aliases=['switch_color', 'switchcolor'])
+	@commands.command(aliases=['switch_colour', 'switchcolour', 'switch_color', 'switchcolor'])
 	@commands.cooldown(1, 5, commands.BucketType.user)
 	@Misc.check_whitelist()
-	async def switch(self, ctx, color_role: discord.Role = None) -> None:
-		""" Switches your current role color to a given one from your inventory.
-		:param color_role: The name/id/tag of the color role to switch to. """
+	async def switch(self, ctx, colour_role: discord.Role = None) -> None:
+		""" Switches your current role colour to a given one from your inventory.
+		:param colour_role: The name/id/tag of the colour role to switch to. """
 
 		member = ctx.author
 
-		if not color_role:
-			return await ctx.send(f"**Please, inform a color role, {member.mention}!**")
+		if not colour_role:
+			return await ctx.send(f"**Please, inform a colour role, {member.mention}!**")
 
-		if not await self.get_user_color_role(member.id, color_role.id):
-			return await ctx.send(f"**You don't have that color role, {member.mention}!**")
+		if not await self.get_user_colour_role(member.id, colour_role.id):
+			return await ctx.send(f"**You don't have that colour role, {member.mention}!**")
 
-		if color_role in member.roles:
-			await ctx.send(f"**You are already using that color role, {member.mention}!**")
+		if colour_role in member.roles:
+			await ctx.send(f"**You are already using that colour role, {member.mention}!**")
 		else:
 			try:
-				await member.add_roles(color_role)
+				await member.add_roles(colour_role)
 			except Exception as e:
 				print(e)
 				await ctx.send(f"**For some reason I couldn't give you that role, {member.mention}!** 😭")
@@ -120,8 +123,8 @@ class ColorRoles(commands.Cog):
 				previous_role = None
 
 				roles_to_check: List[discord.Role] = [
-					crole for color_id in self.color_roles.values() 
-					if color_id != color_role.id and (crole := discord.utils.get(ctx.guild.roles, id=color_id))
+					crole for colour_id in self.colour_roles.values() 
+					if colour_id != colour_role.id and (crole := discord.utils.get(ctx.guild.roles, id=colour_id))
 				]
 
 				for crole in roles_to_check:
@@ -135,78 +138,78 @@ class ColorRoles(commands.Cog):
 
 
 				if previous_role:
-					await ctx.send(f"**{member.mention} has switched their color role from `{previous_role}` to `{color_role}`!**")
+					await ctx.send(f"**{member.mention} has switched their colour role from `{previous_role}` to `{colour_role}`!**")
 				else:
-					await ctx.send(f"**{member.mention} has switched their color role to `{color_role}`!**")
+					await ctx.send(f"**{member.mention} has switched their colour role to `{colour_role}`!**")
 		
-	@commands.command(aliases=['removecolor', 'delete_color', 'deletecolor', 'del_color', 'delcolor'])
+	@commands.command(aliases=['removecolour', 'delete_colour', 'del_colour', 'delcolour', 'remove_color', 'deletecolor', 'del_color', 'delcolor'])
 	@commands.has_permissions(administrator=True)
-	async def remove_color(self, ctx, member: discord.Member = None, color_role: discord.Role = None) -> None:
-		""" Removes a Color Role from a given member.
-		:param member: The member to remove the Color Role from.
-		:param color_role: The name/id/tag of the color role to remove from the user. """
+	async def remove_colour(self, ctx, member: discord.Member = None, colour_role: discord.Role = None) -> None:
+		""" Removes a Colour Role from a given member.
+		:param member: The member to remove the Colour Role from.
+		:param colour_role: The name/id/tag of the colour role to remove from the user. """
 
 		member = ctx.author
 
 		if not member:
 			return await ctx.send(f"**Please, inform a member, {ctx.author.mention}!**")
 
-		if not color_role:
-			return await ctx.send(f"**Please, inform a color role, {ctx.author.mention}!**")
+		if not colour_role:
+			return await ctx.send(f"**Please, inform a colour role, {ctx.author.mention}!**")
 
-		if not await self.get_user_color_role(member.id, color_role.id):
+		if not await self.get_user_colour_role(member.id, colour_role.id):
 			return await ctx.send(f"**{member.mention} doesn't have that role, {ctx.author.mention}!**")
 
-		if color_role in member.roles:
-			await self.delete_user_color_role(member.id, color_role.id)
+		if colour_role in member.roles:
+			await self.delete_user_colour_role(member.id, colour_role.id)
 			try:
-				await member.remove_roles(color_role)
+				await member.remove_roles(colour_role)
 			except:
 				pass
 			
-			await ctx.send(f"**Removed Color Role `{color_role}` from {member.mention}, {ctx.author.mention}!**")
+			await ctx.send(f"**Removed Colour Role `{colour_role}` from {member.mention}, {ctx.author.mention}!**")
 
-	@commands.command(aliases=['removecolors', 'delete_colors', 'deletecolors', 'del_colosr', 'delcolors'])
+	@commands.command(aliases=['removecolours', 'delete_colours', 'removecolors', 'remove_colors', 'deletecolours', 'del_colosr', 'delcolours'])
 	@commands.has_permissions(administrator=True)
-	async def remove_colors(self, ctx, member: discord.Member = None) -> None:
-		""" Removes a Color Role from a given member.
-		:param member: The member to remove the Color Role from. """
+	async def remove_colours(self, ctx, member: discord.Member = None) -> None:
+		""" Removes a Colour Role from a given member.
+		:param member: The member to remove the Colour Role from. """
 
 		member = ctx.author
 
 		if not member:
 			return await ctx.send(f"**Please, inform a member, {ctx.author.mention}!**")
 
-		if not (color_role_ids := await self.get_user_color_roles(member.id)):
+		if not (colour_role_ids := await self.get_user_colour_roles(member.id)):
 			return await ctx.send(f"**{member.mention} doesn't have that role, {ctx.author.mention}!**")
 
-		color_roles: List[discord.Role] = [
-			crole for color_id in color_role_ids 
-			if (crole := discord.utils.get(ctx.guild.roles, id=color_id[1]))
+		colour_roles: List[discord.Role] = [
+			crole for colour_id in colour_role_ids 
+			if (crole := discord.utils.get(ctx.guild.roles, id=colour_id[1]))
 		]
 
-		await self.delete_user_color_roles(member.id)
-		for color_role in color_roles:
-			if color_role in member.roles:
+		await self.delete_user_colour_roles(member.id)
+		for colour_role in colour_roles:
+			if colour_role in member.roles:
 				try:
-					await member.remove_roles(color_role)
+					await member.remove_roles(colour_role)
 				except:
 					pass
 
 		else:	
-			await ctx.send(f"**Removed Color Role `{color_role}` from {member.mention}, {ctx.author.mention}!**")
+			await ctx.send(f"**Removed Colour Role `{colour_role}` from {member.mention}, {ctx.author.mention}!**")
 
 
 	# ===== Database commands/methods =====
 
 
-	@commands.command(hidden=True)
+	@commands.command(hidden=True, aliases=['create_table_color_roles'])
 	@commands.has_permissions(administrator=True)
-	async def create_table_color_roles(self, ctx) -> None:
-		""" (ADM) Creates the ColorRoles table. """
+	async def create_table_colour_roles(self, ctx) -> None:
+		""" (ADM) Creates the ColourRoles table. """
 
-		if await self.check_table_color_roles_exists():
-			return await ctx.send("**Table __ColorRoles__ already exists!**")
+		if await self.check_table_colour_roles_exists():
+			return await ctx.send("**Table __ColourRoles__ already exists!**")
 		
 		await ctx.message.delete()
 		mycursor, db = await the_database()
@@ -219,31 +222,31 @@ class ColorRoles(commands.Cog):
 		await db.commit()
 		await mycursor.close()
 
-		return await ctx.send("**Table __ColorRoles__ created!**", delete_after=3)
+		return await ctx.send("**Table __ColourRoles__ created!**", delete_after=3)
 
-	@commands.command(hidden=True)
+	@commands.command(hidden=True, aliases=['drop_table_color_roles'])
 	@commands.has_permissions(administrator=True)
-	async def drop_table_color_roles(self, ctx) -> None:
-		""" (ADM) Creates the UserInfractions table """
+	async def drop_table_colour_roles(self, ctx) -> None:
+		""" (ADM) Creates the ColourRoles table """
 
-		if not await self.check_table_color_roles_exists():
-			return await ctx.send("**Table __ColorRoles__ doesn't exist!**")
+		if not await self.check_table_colour_roles_exists():
+			return await ctx.send("**Table __ColourRoles__ doesn't exist!**")
 		await ctx.message.delete()
 		mycursor, db = await the_database()
-		await mycursor.execute("DROP TABLE MutedMember")
+		await mycursor.execute("DROP TABLE ColorRoles")
 		await db.commit()
 		await mycursor.close()
 
-		return await ctx.send("**Table __ColorRoles__ dropped!**", delete_after=3)
+		return await ctx.send("**Table __ColourRoles__ dropped!**", delete_after=3)
 
-	@commands.command(hidden=True)
+	@commands.command(hidden=True, aliases=['reset_table_color_roles'])
 	@commands.has_permissions(administrator=True)
-	async def reset_table_color_roles(self, ctx):
+	async def reset_table_colour_roles(self, ctx):
 		'''
-		(ADM) Resets the ColorRoles table.
+		(ADM) Resets the ColourRoles table.
 		'''
-		if not await self.check_table_color_roles_exists():
-			return await ctx.send("**Table __ColorRoles__ doesn't exist yet**")
+		if not await self.check_table_colour_roles_exists():
+			return await ctx.send("**Table __ColourRoles__ doesn't exist yet**")
 
 		await ctx.message.delete()
 		mycursor, db = await the_database()
@@ -251,11 +254,11 @@ class ColorRoles(commands.Cog):
 		await db.commit()
 		await mycursor.close()
 
-		return await ctx.send("**Table __ColorRoles__ reset!**", delete_after=3)
+		return await ctx.send("**Table __ColourRoles__ reset!**", delete_after=3)
 
-	async def check_table_color_roles_exists(self) -> bool:
+	async def check_table_colour_roles_exists(self) -> bool:
 		'''
-		Checks if the ColorRoles table exists
+		Checks if the ColourRoles table exists
 		'''
 		mycursor, db = await the_database()
 		await mycursor.execute("SHOW TABLE STATUS LIKE 'ColorRoles'")
@@ -269,8 +272,8 @@ class ColorRoles(commands.Cog):
 			return True
 
 
-	async def insert_user_color_role(self, user_id: int, role_id: int) -> None:
-		""" Inserts a color role for a user into the database.
+	async def insert_user_colour_role(self, user_id: int, role_id: int) -> None:
+		""" Inserts a colour role for a user into the database.
 		:param user_id: The ID of the user to insert.
 		:param role_id: The ID of the role to attach to the user. """
 
@@ -279,30 +282,30 @@ class ColorRoles(commands.Cog):
 		await db.commit()
 		await mycursor.close()
 
-	async def get_user_color_role(self, user_id: int, role_id: int) -> List[int]:
-		""" Gets the a user's color role from the database.
+	async def get_user_colour_role(self, user_id: int, role_id: int) -> List[int]:
+		""" Gets the a user's colour role from the database.
 		:param user_id: The ID of the user to get the role from.
 		:param role_id: The ID of the role to get from the user. """
 
 		mycursor, db = await the_database()
 		await mycursor.execute("SELECT * FROM ColorRoles WHERE user_id = %s AND role_id = %s", (user_id, role_id))
-		color_role = await mycursor.fetchone()
+		colour_role = await mycursor.fetchone()
 		await mycursor.close()
-		return color_role
+		return colour_role
 
 
-	async def get_user_color_roles(self, user_id: int) -> List[List[int]]:
-		""" Gets the user's color roles from the database.
+	async def get_user_colour_roles(self, user_id: int) -> List[List[int]]:
+		""" Gets the user's colour roles from the database.
 		:param user_id: The ID of the user to get the roles from. """
 
 		mycursor, db = await the_database()
 		await mycursor.execute("SELECT * FROM ColorRoles WHERE user_id = %s", (user_id,))
-		color_roles = await mycursor.fetchall()
+		colour_roles = await mycursor.fetchall()
 		await mycursor.close()
-		return color_roles
+		return colour_roles
 
-	async def delete_user_color_role(self, user_id: int, role_id: int) -> None:
-		""" Deletes a user's color role.
+	async def delete_user_colour_role(self, user_id: int, role_id: int) -> None:
+		""" Deletes a user's colour role.
 		:param user_id: The ID of the user to delete the role from.
 		:param role_id: The ID of the role to remove from the user. """
 
@@ -311,8 +314,8 @@ class ColorRoles(commands.Cog):
 		await db.commit()
 		await mycursor.close()
 
-	async def delete_user_color_roles(self, user_id: int) -> None:
-		""" Deletes the user's color roles
+	async def delete_user_colour_roles(self, user_id: int) -> None:
+		""" Deletes the user's colour roles
 		:param user_id: The ID of the user to delete the role from. """
 
 		mycursor, db = await the_database()
@@ -322,4 +325,4 @@ class ColorRoles(commands.Cog):
 
 
 def setup(client) -> None:
-	client.add_cog(ColorRoles(client))
+	client.add_cog(ColourRoles(client))
