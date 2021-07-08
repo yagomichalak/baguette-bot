@@ -147,8 +147,6 @@ class ColourRoles(commands.Cog):
 		:param member: The member to remove the Colour Role from.
 		:param colour_role: The name/id/tag of the colour role to remove from the user. """
 
-		member = ctx.author
-
 		if not member:
 			return await ctx.send(f"**Please, inform a member, {ctx.author.mention}!**")
 
@@ -172,8 +170,6 @@ class ColourRoles(commands.Cog):
 	async def remove_colours(self, ctx, member: discord.Member = None) -> None:
 		""" Removes a Colour Role from a given member.
 		:param member: The member to remove the Colour Role from. """
-
-		member = ctx.author
 
 		if not member:
 			return await ctx.send(f"**Please, inform a member, {ctx.author.mention}!**")
