@@ -219,23 +219,23 @@ class LevelSystem(commands.Cog):
         if not role_id or not (current_role := discord.utils.get(member.guild.roles, id=role_id)):
             return
 
-        if current_role in member.roles:
-            return
+        # if current_role in member.roles:
+        #     return
 
+        special_roles = [862742944243253279, 862742944729268234]
         try:
             await member.add_roles(current_role)
         except Exception as e:
             print(e)
-        else:
-            if list_index and (previous_role_id := level_roles[list_index-1][1]):
-                if previous_role := discord.utils.get(member.guild.roles, id=previous_role_id):
-                    if previous_role in member.roles:
-                        try:
-                            await member.remove_roles(previous_role)
-                        except Exception as ee:
-                            print(ee)
+        if list_index and (previous_role_id := level_roles[list_index-1][1]):
+            if previous_role := discord.utils.get(member.guild.roles, id=previous_role_id):
+                if previous_role in member.roles and previous_role.id not in special_roles:
+                    try:
+                        await member.remove_roles(previous_role)
+                    except Exception as ee:
+                        print(ee)
 
-            return role_id
+        return role_id
 
 
     @commands.command(aliases=['stats', 'statuses'])
@@ -504,11 +504,14 @@ class LevelSystem(commands.Cog):
                     ) and lvl_role[1] != updated
                 ]
             )
+
+            special_roles = [862742944243253279, 862742944729268234]
+
             member_roles = member.roles
             excluded = level_roles & set(member_roles)
             if excluded:
                 for ex in excluded:
-                    if ex in member_roles:
+                    if ex in member_roles and ex.id not in special_roles:
                         member_roles.remove(ex)
                 await member.edit(roles=member_roles)
 
@@ -734,7 +737,7 @@ class LevelSystem(commands.Cog):
 
     @commands.command(aliases=['setlevelrole', 'set_levelrole', 'set_lvlrole', 'set_lvl_role'])
     @commands.has_permissions(administrator=True)
-    async def set_level_role(self, ctx, level: int = None, role: discord.Role = None) -> None:
+    async def set_level_role(self, ctx, level: int = None, *, role: discord.Role = None) -> None:
         """ Sets a level role to the level system.
         :param level: The level to set.
         :param role: The role to attach to the level. """
