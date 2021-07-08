@@ -806,7 +806,6 @@ class Misc(commands.Cog):
 		if numb <= 0 or numb > 15:
 			return await ctx.send(f'**Inform a rule from `1-15` rules!**')
 
-		the_rule = await self.get_rule(numb)
 		embed = await self.make_rule_embed(ctx.guild, numb)
 
 		compo = discord.Component()
