@@ -37,6 +37,10 @@ class ColourRoles(commands.Cog):
 			"muted": 792401656226119681,
 			"patreon supporter": 852545808318201876,
 
+			"Lvl 10 Perms": 862742943072780308,
+			"Lvl 5 Perms": 862742944243253279,
+			"Lvl 1 Perms": 862742944729268234,
+
 
 		}
 
@@ -56,22 +60,36 @@ class ColourRoles(commands.Cog):
 		roles = before.roles
 		roles2 = after.roles
 		if len(roles2) < len(roles):
-			return
+			old_role = None
 
-		new_role = None
+			for r in roles:
+				if r not in roles2:
+					old_role = r
+					break
 
-		for r2 in roles2:
-			if r2 not in roles:
-				new_role = r2
-				break
+			if old_role:
+				# Checks ID of the new role and compares to the Staff role ID.
+				if old_role.id == self.colour_roles.get('Booster Pink'):
+					try:
+						await self.delete_user_colour_role(after.id, old_role.id)
+					except:
+						pass
 
-		if new_role:
-			# Checks ID of the new role and compares to the Staff role ID.
-			if new_role.id in self.colour_roles.values():
-				try:
-					await self.insert_user_colour_role(after.id, new_role.id)
-				except:
-					pass
+		else:
+			new_role = None
+
+			for r2 in roles2:
+				if r2 not in roles:
+					new_role = r2
+					break
+
+			if new_role:
+				# Checks ID of the new role and compares to the Staff role ID.
+				if new_role.id in self.colour_roles.values():
+					try:
+						await self.insert_user_colour_role(after.id, new_role.id)
+					except:
+						pass
 
 	
 	@commands.command(aliases=['colour', 'colour_inventory', 'color', 'colors', 'color_inventory', 'inventory', 'inv'])
@@ -146,7 +164,7 @@ class ColourRoles(commands.Cog):
 					await ctx.send(f"**{member.mention} has switched their colour role from `{previous_role}` to `{colour_role}`!**")
 				else:
 					await ctx.send(f"**{member.mention} has switched their colour role to `{colour_role}`!**")
-		
+
 	@commands.command(aliases=['removecolour', 'delete_colour', 'del_colour', 'delcolour', 'remove_color', 'deletecolor', 'del_color', 'delcolor'])
 	@commands.has_permissions(administrator=True)
 	async def remove_colour(self, ctx, member: discord.Member = None, *, colour_role: discord.Role = None) -> None:
