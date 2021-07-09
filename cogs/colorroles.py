@@ -150,6 +150,8 @@ class ColourRoles(commands.Cog):
 
 		for crole in roles_to_check:
 			if crole in member.roles:
+				if crole.id in [862742944243253279, 862742944729268234]:
+					continue
 				try:
 					await member.remove_roles(crole)
 				except:
