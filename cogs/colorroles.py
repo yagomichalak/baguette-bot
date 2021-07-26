@@ -31,6 +31,7 @@ class ColourRoles(commands.Cog):
 			"Event Winner": 764120155428356107,
 			"Patron Black": 862731111339393034,
 			"Booster Pink": 862732594188648478,
+			"Member Role": 726222316174049280,
 			
 			"Admin": 821216341041086495,
 			"Moderator": 821215885858963508,
