@@ -53,7 +53,7 @@ await ctx.send(f"**Successfully added {counter} lvl roles! Failed {failed} assig
 
 
 
-
+b!eval
 from mysqldb import the_database
 
 member_role = discord.utils.get(ctx.guild.roles, id=726222316174049280)
@@ -66,6 +66,6 @@ try:
 except Exception as e:
     await ctx.send(f"error! {e}",)
 else:
-    await ctx.send(f"**Successful!*")
+    await ctx.send(f"**Successful!**")
 finally:
     await mycursor.close()
