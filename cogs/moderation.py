@@ -493,8 +493,8 @@ class Moderation(commands.Cog):
 
 		perms = ctx.channel.permissions_for(ctx.author)
 		if not perms.administrator:
-			if amount > 50:
-				return await ctx.send(f"**You cannot delete more than `50` messages at a time, {ctx.author.mention}!**")
+			if amount > 100:
+				return await ctx.send(f"**You cannot delete more than `100` messages at a time, {ctx.author.mention}!**")
 		else:
 			if amount > 200:
 				return await ctx.send(f"**You cannot delete more than `200` messages at a time, {ctx.author.mention}!**")
