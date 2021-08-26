@@ -1700,7 +1700,7 @@ class Moderation(*moderation_cogs):
 	@commands.has_permissions(administrator=True)
 	async def firewall(self, ctx) -> None:
 		""" (ADM) Turns on and off the firewall.
-		When turned on, it'll kick new members having accounts created in less than 4 days. """
+		When turned on, it'll kick new members having accounts created in less than 10 minutes. """
 
 		member = ctx.author
 
