@@ -7,8 +7,12 @@ from datetime import datetime
 import time
 from typing import List, Union
 import os
+
 from extra.banned_things import chat_filter, website_filter
+from extra.menu import Confirm
 from extra import utils
+from extra.moderation.firewall import ModerationFirewallTable
+
 from typing import List, Dict, Tuple
 from pprint import pprint
 import re
@@ -31,8 +35,11 @@ member_dot_role_id = int(os.getenv('MEMBER_DOT_ROLE_ID'))
 
 allowed_roles = [owner_role_id, admin_role_id, mod_role_id, jr_mod_role_id, trial_mod_role_id]
 
+moderation_cogs: List[commands.Cog] = [
+	ModerationFirewallTable
+]
 
-class Moderation(commands.Cog):
+class Moderation(*moderation_cogs):
 	""" Category for moderation commands. """
 
 	def __init__(self, client) -> None:
@@ -1689,12 +1696,36 @@ class Moderation(commands.Cog):
 			await self.insert_staff_member(user_id=member.id, infractions_given=0, staff_at=new_date)
 			await ctx.send(f"**Successfully inserted `{member}` with the given joining-date, {ctx.author.mention}!**")
 
+	@commands.command(aliases=['fire', 'wall', 'fire_wall'])
+	@commands.has_permissions(administrator=True)
+	async def firewall(self, ctx) -> None:
+		""" (ADM) Turns on and off the firewall.
+		When turned on, it'll kick new members having accounts created in less than 4 days. """
+
+		member = ctx.author
+
+		if not await self.check_table_firewall_exists():
+			return await ctx.send(f"**It looks like the firewall is on maintenance, {member.mention}!**")
+
+		if await self.get_firewall_state():
+			confirm = await Confirm(f"The Firewall is activated, do you want to turn it off, {member.mention}?").prompt(ctx)
+			if confirm:
+				await self.set_firewall_state(0)
+				await ctx.send(f"**Firewall deactivated, {member.mention}!**")
+		else:
+			confirm = await Confirm(f"The Firewall is deactivated, do you want to turn it on, {member.mention}?").prompt(ctx)
+			if confirm:
+				await self.set_firewall_state(1)
+				await ctx.send(f"**Firewall activated, {member.mention}!**")
+
+
 """
 Setup:
 b!create_table_mutedmembers
 b!create_table_user_infractions
-
 b!create_table_staff_member
+
+b!create_table_firewall
 """
 def setup(client) -> None:
 	client.add_cog(Moderation(client))

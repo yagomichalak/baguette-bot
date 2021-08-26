@@ -77,24 +77,6 @@ class Confirm(menus.Menu):
 
 
 
-class LoopMenu(menus.ListPageSource):
-	""" A class for iterating through inventory items. """
-
-	def __init__(self, data):
-		super().__init__(data, per_page=10)
-
-	async def format_page(self, menu, entries) -> discord.Embed:
-		""" Formats the inventory for each page. """
-
-		offset = menu.current_page * self.per_page
-
-
-		# for i, v in enumerate(entries, start=offset):
-		# 	embed.add_field(name=f"{i+1}.", value=f"**Merchant:** <@{v[0]}>\n**Item Price:** `{v[7]}`", inline=True)
-		# 	embed.set_footer(text=f"({i+1}-{i+6} of {len(self.entries)})")
-
-		return embed
-
 
 class SwitchPages(menus.ListPageSource):
 	""" A class for switching tribe pages. """
