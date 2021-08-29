@@ -642,6 +642,7 @@ class Misc(commands.Cog):
 
 
 	@commands.command(hidden=True)
+	@commands.has_permissions(administrator=True)
 	async def eval(self, ctx, *, body = None):
 		'''
 		(?) Executes a given command from Python onto Discord.
@@ -654,8 +655,6 @@ class Misc(commands.Cog):
 			return
 
 		await ctx.message.delete()
-		if ctx.author.id != 647452832852869120:
-			return await ctx.send("**For your own safety you are not allowed to use this!**")
 
 		if not body:
 			return await ctx.send("**Please, inform the code body!**")
