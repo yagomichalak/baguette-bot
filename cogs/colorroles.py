@@ -32,15 +32,16 @@ class ColourRoles(commands.Cog):
 			"Patron Black": 862731111339393034,
 			"Booster Pink": 862732594188648478,
 			"Member Role": 726222316174049280,
+			"Stegadon Green": 880127231488315432,
 			
 			"Admin": 821216341041086495,
 			"Moderator": 821215885858963508,
 			"muted": 792401656226119681,
 			"patreon supporter": 852545808318201876,
 
-			"Lvl 10 Perms": 862742943072780308,
-			"Lvl 5 Perms": 862742944243253279,
-			"Lvl 1 Perms": 862742944729268234,
+			# "Lvl 10 Perms": 862742943072780308,
+			# "Lvl 5 Perms": 862742944243253279,
+			# "Lvl 1 Perms": 862742944729268234,
 
 
 		}
