@@ -40,8 +40,8 @@ class ColourRoles(commands.Cog):
 			"patreon supporter": 852545808318201876,
 
 			# "Lvl 10 Perms": 862742943072780308,
-			# "Lvl 5 Perms": 862742944243253279,
-			# "Lvl 1 Perms": 862742944729268234,
+			"Lvl 5 Perms": 862742944243253279,
+			"Lvl 2 Perms": 862742944729268234,
 
 
 		}
