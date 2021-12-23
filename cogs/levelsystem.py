@@ -184,7 +184,7 @@ class LevelSystem(commands.Cog):
             # await self.check_level_role(user, the_user[0][2]+1)
             await self.check_level_roles_deeply(user, user_level+1)
             return await channel.send(
-                f"""🇬🇧 {user.mention} has reached level **{user_level + 1}!**\n🇫🇷 {user.mention} a atteint niveau **{user_level + 1} !**""")
+                f"""🇬🇧 {user.mention} has reached level **{user_level + 1}!**\n🇫🇷 {user.mention} a atteint le niveau **{user_level + 1} !**""")
 
 
     @staticmethod
