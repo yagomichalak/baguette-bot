@@ -40,8 +40,8 @@ class ColourRoles(commands.Cog):
 			"patreon supporter": 852545808318201876,
 
 			# "Lvl 10 Perms": 862742943072780308,
-			# "Lvl 5 Perms": 862742944243253279,
-			# "Lvl 2 Perms": 862742944729268234,
+			"Lvl 5 Perms": 862742944243253279,
+			"Lvl 2 Perms": 862742944729268234,
 
 
 		}
@@ -153,7 +153,7 @@ class ColourRoles(commands.Cog):
 		for crole in roles_to_check:
 			if crole in member.roles:
 				if crole.id in [862742944243253279, 862742944729268234]:
-					continue
+					return await ctx.send(f"**You cannot switch to this color, {member.mention}!**")
 				try:
 					await member.remove_roles(crole)
 				except:
