@@ -1,6 +1,8 @@
 import discord
 from discord.ext import commands
 from typing import Dict
+
+from discord.ext.commands.converter import ColorConverter
 from mysqldb import the_database
 from typing import List, Optional
 from cogs.misc import Misc
@@ -138,6 +140,9 @@ class ColourRoles(commands.Cog):
 		if not await self.get_user_colour_role(member.id, colour_role.id):
 			return await ctx.send(f"**You don't have that colour role, {member.mention}!**")
 
+		if colour_role.id in [862742944243253279, 862742944729268234]:
+			return await ctx.send(f"**You cannot switch to this role!**")
+
 		try:
 			await member.add_roles(colour_role)
 		except Exception as e:
@@ -153,7 +158,7 @@ class ColourRoles(commands.Cog):
 		for crole in roles_to_check:
 			if crole in member.roles:
 				if crole.id in [862742944243253279, 862742944729268234]:
-					return await ctx.send(f"**You cannot switch to this color, {member.mention}!**")
+					continue
 				try:
 					await member.remove_roles(crole)
 				except:
