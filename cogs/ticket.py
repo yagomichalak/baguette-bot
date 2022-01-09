@@ -141,7 +141,7 @@ class Ticket(commands.Cog):
     overwrites = {guild.default_role: discord.PermissionOverwrite(
       read_messages=False, send_messages=False, view_channel=False), 
     member: discord.PermissionOverwrite(
-      read_messages=True, send_messages=True, view_channel=True),
+      read_messages=True, send_messages=True, view_channel=True, embed_links=True, attach_files=True),
     staff: discord.PermissionOverwrite(
       read_messages=True, send_messages=True, view_channel=True)
     }
