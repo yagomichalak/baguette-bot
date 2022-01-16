@@ -15,6 +15,7 @@ import textwrap
 import traceback
 
 from contextlib import redirect_stdout
+from extra import utils
 
 import emoji
 import re
@@ -214,6 +215,10 @@ class Misc(commands.Cog):
 
 		if not member:
 			member = ctx.author
+
+		if member.id != ctx.author.id:
+			if not await utils.is_allowed([staff_role_id]).predicate(ctx):
+				return await ctx.send(f"**You cannot check the avatar of someone else, unless you're a staff member, {ctx.author.mention}!**")
 
 		await ctx.send(member.avatar_url)
 
