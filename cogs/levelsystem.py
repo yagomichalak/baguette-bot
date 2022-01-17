@@ -1234,7 +1234,7 @@ class LevelSystem(commands.Cog):
         if weekday == 0:
             percentage = 1
             text: str  = f"**Friday XP boost has been turned off; going back to `{percentage}`%!**"
-            vc_name: str = f"🔴 {percentage}% Boost Inactive"
+            vc_name: str = f"🔴 {global_percentage}% Boost Inactive"
             
 
         if get_current := await self.get_important_var(label='xp_multiplier'):
