@@ -35,6 +35,8 @@ class LevelSystem(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self) -> None:
 
+        self.check_weekend_boost.start()
+
         if await self.table_important_vars_exists():
             if multiplier := await self.get_important_var(label="xp_multiplier"):
                 self.xp_multiplier = multiplier[2]
@@ -1197,6 +1199,64 @@ class LevelSystem(commands.Cog):
                 return False
         else:
             return True
+
+
+    @tasks.loop(minutes=1)
+    async def check_weekend_boost(self) -> None:
+        """ Checks whether its weekend to turn on or turn off the XP boost. """
+
+        global_percentage: int = 50
+
+        percentage: int = global_percentage
+
+        current_time = await utils.get_time()
+        weekday = current_time.weekday()
+        hour = current_time.hour
+
+        if not await self.table_important_vars_exists():
+            return
+
+        guild = self.client.get_guild(int(os.getenv('SERVER_ID')))
+
+        # VC
+        xp_boost_vc: discord.VoiceChannel = discord.utils.get(guild.voice_channels, id=int(os.getenv('XP_BOOST_VC_ID')))
+
+        # Txt
+        general_channel: discord.TextChannel = discord.utils.get(guild.text_channels, id=int(os.getenv('GENERAL_CHANNEL_ID')))
+        if not general_channel:
+            return
+
+        if weekday != 0 and weekday != 4:
+            return
+
+        vc_name: str = f"🟢 {percentage}% Boost Active"
+        text: str  = f"**Friday XP boost has been turned on; `{percentage}`%!**"
+        if weekday == 0:
+            percentage = 1
+            text: str  = f"**Friday XP boost has been turned off; going back to `{percentage}`%!**"
+            vc_name: str = f"🔴 {percentage}% Boost Inactive"
+            
+
+        if get_current := await self.get_important_var(label='xp_multiplier'):
+            if weekday == 0 and get_current[2] != global_percentage:
+                return
+
+            if weekday == 4 and get_current[2] == global_percentage:
+                return
+
+            if weekday == 0 or weekday == 4 and hour == 19:
+                await self.update_important_var(label='xp_multiplier', value_int=percentage)
+                self.xp_multiplier = percentage
+                await general_channel.send(text)
+                await xp_boost_vc.edit(name=vc_name)
+
+        else:
+
+            await self.insert_important_var(label='xp_multiplier', value_int=percentage)
+            self.xp_multiplier = percentage
+            await general_channel.send(text)
+            await xp_boost_vc.edit(name=vc_name)
+
 
 
 """ 
