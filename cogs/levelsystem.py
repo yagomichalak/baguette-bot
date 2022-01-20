@@ -182,6 +182,7 @@ class LevelSystem(commands.Cog):
         user_xp = the_user[0][1]
 
         if user_xp >= await LevelSystem.get_xp(user_level):
+            await self.check_user_perm_roles(user, user_level+1)
             await self.update_user_lvl(user.id, user_level+1)
             # await self.check_level_role(user, the_user[0][2]+1)
             await self.check_level_roles_deeply(user, user_level+1)
@@ -516,6 +517,24 @@ class LevelSystem(commands.Cog):
                     if ex in member_roles and ex.id not in special_roles:
                         member_roles.remove(ex)
                 await member.edit(roles=member_roles)
+
+
+    async def check_user_perm_roles(self, member: discord.Member, level: int) -> None:
+        """ Checks whether the member should get the user perm roles when leveling up. """
+
+        if level >= 2:
+            role: discord.Role = discord.utils.get(member.guild.roles, id=862742944729268234)
+            try:
+                await member.add_roles(role)
+            except:
+                pass
+
+        if level >= 3:
+            role: discord.Role = discord.utils.get(member.guild.roles, id=862742944243253279)
+            try:
+                await member.add_roles(role)
+            except:
+                pass
 
     async def set_user_xp(self, user_id: int, the_xp: int) -> None:
         """ Sets the user's XP with the given number. 
