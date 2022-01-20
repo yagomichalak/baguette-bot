@@ -96,7 +96,11 @@ If there is anything you are unsure of, please first read the <#{faq_channel_id}
 🇫🇷 **Bienvenue sur Le Salon Français !**
 
 Veuillez lire les règles et signaler tout ce qui est contre les règles à n'importe quel membre du Staff. 
-S'il y a quelque chose dont vous n'êtes pas sûr, veuillez d'abord lire le canal <#{faq_channel_id}> car vous y trouverez les réponses à la plupart de vos questions."""
+S'il y a quelque chose dont vous n'êtes pas sûr, veuillez d'abord lire le canal <#{faq_channel_id}> car vous y trouverez les réponses à la plupart de vos questions.
+
+**Our affiliated servers / Nos serveurs affiliés**
+For Italiano/English: https://discord.gg/mTCPdRsCdw
+For Русский/English: https://discord.gg/7pamu9NNex"""
 
 	await member.send(welcome_message)
 
