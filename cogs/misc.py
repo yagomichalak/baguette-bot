@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands, tasks
+from discord.app import slash_command, Option, option
 
 import asyncio
 from datetime import datetime
@@ -16,16 +17,20 @@ import traceback
 
 from contextlib import redirect_stdout
 from extra import utils
+from extra.view import BasicUserCheckView, RulesView
+from extra.misc.timezone_role import TimezoneRoleTable
 
 import emoji
 import re
 
-from extra.view import BasicUserCheckView, RulesView
-
+misc_cogs: List[commands.Cog] = [
+	TimezoneRoleTable
+]
 patreon_supporter_role_id = int(os.getenv('PATREON_SUPPORTER_ROLE_ID'))
 staff_role_id = int(os.getenv('STAFF_ROLE_ID'))
+guild_ids: List[int] = [int(os.getenv('SERVER_ID'))]
 
-class Misc(commands.Cog):
+class Misc(*misc_cogs):
 	""" A miscellaneous category. """
 
 	def __init__(self, client) -> None:
@@ -288,6 +293,26 @@ class Misc(commands.Cog):
 			await ctx.send(f"**I couldn't do it for some reason, make sure your DM's are open, {member.mention}!**")
 		else:
 			await ctx.send(f"**List sent, {member.mention}!**")
+
+
+	@slash_command(name="set_timezone_role", guild_ids=guild_ids)
+	async def _set_timezone_role(self, ctx,
+		role: Option(discord.Role, name="role", description="The timezone role.", required=True),
+		role_timezone: Option(str, name="role_timezone", description="The timezone to attach to the role.", required=True,
+        	choices=[
+				'Etc/GMT+0', 'Etc/GMT+1', 'Etc/GMT+2', 'Etc/GMT+3', 'Etc/GMT+4', 'Etc/GMT+5', 'Etc/GMT+6',
+				'Etc/GMT+7', 'Etc/GMT+8', 'Etc/GMT+9', 'Etc/GMT-1', 'Etc/GMT-2', 'Etc/GMT-3', 'Etc/GMT-4',
+				'Etc/GMT-5', 'Etc/GMT-6', 'Etc/GMT-7', 'Etc/GMT-8', 'Etc/GMT-9', 'Etc/GMT-10', 'Etc/GMT-11',
+				'Etc/GMT-12', 'Etc/GMT-13', 'Etc/GMT-14',
+				])
+		) -> None:
+		""" Sets a timezone role. """
+
+		selected_time = datetime.now(timezone(role_timezone)).strftime(f"%H:%M {role_timezone}")
+
+		await ctx.defer()
+
+		await ctx.respond(f"Hello, {selected_time}")
 
 
 	@staticmethod
@@ -1472,7 +1497,9 @@ class Misc(commands.Cog):
 
 		await self.update_rule(rule_number=rule_number, english_text=english_text)
 		await ctx.send(f"**Successfully updated the English text for rule number `{rule_number}`, {member.mention}!**")
-	
+
+
+
 """
 Setup:
 b!create_table_server_status
@@ -1480,8 +1507,8 @@ b!create_table_user_timezones
 b!create_table_emojis
 b!create_table_last_seen
 b!create_table_member_reminder
-
 b!create_table_rules
+b!create_table_timezone_role
 """
 
 
