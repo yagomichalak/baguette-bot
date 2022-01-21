@@ -357,8 +357,8 @@ class LevelSystem(commands.Cog):
         embed.add_field(name="📋 Total Infractions", value=f"{total_infractions[2] + monthly_infractions[2]} infractions in total.", inline=False)
         embed.add_field(name="🗓️ Monthly Infractions", value=f"{monthly_infractions[2]} infractions in this month..", inline=False)
 
-        embed.set_thumbnail(url=ctx.guild.icon_url)
-        embed.set_footer(text=member, icon_url=member.avatar_url)
+        embed.set_thumbnail(url=ctx.guild.icon.url)
+        embed.set_footer(text=member, icon_url=member.display_url)
 
 
 
@@ -424,8 +424,8 @@ class LevelSystem(commands.Cog):
 
             embed.add_field(name="Infractions Given:", value=f"{staff_member[1]} infractions.", inline=False)
 
-        embed.set_thumbnail(url=member.avatar_url)
-        embed.set_footer(text=f"{member}", icon_url=member.avatar_url)
+        embed.set_thumbnail(url=member.display_url)
+        embed.set_footer(text=f"{member}", icon_url=member.display_url)
         return await ctx.send(embed=embed)
 
     @commands.command(aliases=['score', 'level_board', 'levelboard', 'levels', 'level_score'])
@@ -551,7 +551,7 @@ class LevelSystem(commands.Cog):
 
         position = kwargs.get('position')
 
-        # tribe_embed.set_footer(text=f"Requested by {ctx.author}", icon_url=ctx.author.avatar_url)
+        # tribe_embed.set_footer(text=f"Requested by {ctx.author}", icon_url=ctx.author.display_url)
         member = ctx.author
 
         leaderboard = discord.Embed(
@@ -561,8 +561,8 @@ class LevelSystem(commands.Cog):
 
 
         leaderboard.description += f"\n**Your XP:** `{position[1]}` | **#**`{position[0]}`"
-        leaderboard.set_thumbnail(url=ctx.guild.icon_url)
-        leaderboard.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
+        leaderboard.set_thumbnail(url=ctx.guild.icon.url)
+        leaderboard.set_author(name=ctx.author, icon_url=ctx.author.display_url)
 
         # Embeds each one of the top ten users.
         for i, sm in enumerate(entries, start=offset):

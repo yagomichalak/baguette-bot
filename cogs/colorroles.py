@@ -117,11 +117,11 @@ class ColourRoles(commands.Cog):
 			description=', '.join(colours),
 			colour=member.colour,
 			timestamp=ctx.message.created_at,
-			url=member.avatar_url
+			url=member.display_avatar
 		)
 
-		embed.set_thumbnail(url=member.avatar_url)
-		embed.set_footer(text=f"Requested by: {ctx.author}", icon_url=ctx.author.avatar_url)
+		embed.set_thumbnail(url=member.display_avatar)
+		embed.set_footer(text=f"Requested by: {ctx.author}", icon_url=ctx.author.display_avatar)
 
 		await ctx.send(embed=embed)
 

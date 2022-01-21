@@ -52,3 +52,10 @@ def is_allowed(roles: List[int], check_adm: Optional[bool] = True, throw_exc: Op
             raise commands.MissingAnyRole(roles)
 
     return commands.check(real_check)
+
+async def disable_buttons(view: discord.ui.View) -> None:
+    """ Disables all buttons from a view.
+    :param view: The view from which to disable the buttons. """
+
+    for child in view.children:
+        child.disabled = Tru

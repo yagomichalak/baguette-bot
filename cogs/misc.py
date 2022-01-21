@@ -20,6 +20,8 @@ from extra import utils
 import emoji
 import re
 
+from extra.view import BasicUserCheckView, RulesView
+
 patreon_supporter_role_id = int(os.getenv('PATREON_SUPPORTER_ROLE_ID'))
 staff_role_id = int(os.getenv('STAFF_ROLE_ID'))
 
@@ -220,7 +222,7 @@ class Misc(commands.Cog):
 			if not await utils.is_allowed([staff_role_id]).predicate(ctx):
 				return await ctx.send(f"**You cannot check the avatar of someone else, unless you're a staff member, {ctx.author.mention}!**")
 
-		await ctx.send(member.avatar_url)
+		await ctx.send(member.display_url)
 
 	@commands.command()
 	@commands.cooldown(1, 5, commands.BucketType.user)
@@ -790,10 +792,10 @@ class Misc(commands.Cog):
 			url=patreon_link
 		)
 
-		component = discord.Component()
-		component.add_button(style=5, label="Support Us!", url=patreon_link, emoji="<:Patreon:844644789809971230>")
+		view = discord.ui.View()
+		view.add_item(discord.ui.Button(style=5, label="Support Us!", url=patreon_link, emoji="<:Patreon:844644789809971230>"))
 
-		await ctx.send(embed=embed, components=[component])
+		await ctx.send(embed=embed, view=view)
 
 
 	# Shows the specific rule
@@ -810,65 +812,17 @@ class Misc(commands.Cog):
 		if numb <= 0 or numb > 15:
 			return await ctx.send(f'**Inform a rule from `1-15` rules!**')
 
-		embed = await self.make_rule_embed(ctx.guild, numb)
 
-		compo = discord.Component()
-		compo.add_button(style=1, label="English", emoji="🇬🇧", custom_id=f"english_translation:{ctx.author.id}:{numb}")
-		compo.add_button(style=1, label="French", emoji="🇫🇷", custom_id=f"french_translation:{ctx.author.id}:{numb}")
+		all_rules = await self.get_rules()
+		view: discord.ui.View = RulesView(ctx.author, numb, all_rules)
+		embed = await view.make_rule_embed(ctx.guild, numb)
+		the_msg = await ctx.send(embed=embed, view=view)
 
-
-		the_msg = await ctx.send(embed=embed, components=[compo])
-		await asyncio.sleep(60)
-		await the_msg.edit(components=None)
-
-
-	async def make_rule_embed(self, guild, number: int , index: int = 1) -> discord.Embed:
-		""" Makes an embed for a specific rule.
-		:param number: The number of the rule.
-		:param index: Whether it should be in English or French. Default = 1.
-		1 - English; 2 - French. """
+		await view.wait()
+		await utils.disable_buttons(view)
+		await the_msg.edit(view=view)
 
 
-
-		rule = await self.get_rule(number)
-
-		embed = discord.Embed(
-			title=f"Rule number {rule[0]}",
-			description=rule[index], url='https://discordapp.com/guidelines', colour=1406210)
-
-		embed.set_footer(text=guild.owner,
-							icon_url=guild.owner.avatar_url)
-		embed.set_thumbnail(
-			url=guild.icon_url)
-		embed.set_author(name=guild.name, url='https://discordapp.com',icon_url=guild.icon_url)
-		return embed
-
-	async def make_rules_embed(self, guild, index: int = 1) -> discord.Embed:
-		""" Makes an embed for the rules.
-		:param index: Whether it should be in English or French. Default = 1.
-		1 - English; 2 - French. """
-
-		embed = discord.Embed(title="Discord’s Terms of Service and Community Guidelines",
-								description="Rules Of The Server", url='https://discordapp.com/guidelines',
-								colour=1406210)
-
-		rules = await self.get_rules()
-		rules = [r for r in rules if r[1] or r[2]]
-
-		for rule in rules:
-			embed.add_field(name=f"__{rule[0]}__:", value=rule[index], inline=False)
-
-		embed.add_field(name="🇫🇷", value="Enjoy our Server!", inline=True)
-		embed.add_field(name="🤖", value="Discover our Features!", inline=True)
-		embed.add_field(name="🥖", value="We love chocolatine ~~and pain au chocolat~~!", inline=True)
-		embed.set_footer(text=guild.owner,
-							icon_url=guild.owner.avatar_url)
-		embed.set_thumbnail(
-			url=guild.icon_url)
-		embed.set_author(name=guild.name, url='https://discordapp.com',
-							icon_url=guild.icon_url)
-
-		return embed
 
 	@commands.command()
 	@commands.has_permissions(administrator=True)
@@ -877,18 +831,18 @@ class Misc(commands.Cog):
 
 		guild = ctx.guild
 
-		embed = await self.make_rules_embed(guild)
 
-		compo = discord.Component()
-		compo.add_button(style=1, label="English", emoji="🇬🇧", custom_id=f"english_translation:{ctx.author.id}:all")
-		compo.add_button(style=1, label="French", emoji="🇫🇷", custom_id=f"french_translation:{ctx.author.id}:all")
-
+		all_rules = await self.get_rules()
+		view: discord.ui.View = RulesView(ctx.author, 'all', all_rules)
+		embed = await view.make_rules_embed(guild)
 		the_msg = await ctx.send(
-			content=f"Hello, **{guild.name}** is a public Discord server for people all across the globe to meet, learn French and exchange knowledge and cultures. here are our rules of conduct.",
-			embed=embed,
-			components=[compo])
-		await asyncio.sleep(60)
-		await the_msg.edit(components=None)
+			content=f"Hello, **{guild.name}** is a public Discord server for people all across the globe to meet, learn Russian and exchange knowledge and cultures. here are our rules of conduct.",
+			embed=embed, view=view)
+
+		await view.wait()
+	
+		await utils.disable_buttons(view)
+		await the_msg.edit(view=view)
 
 
 
@@ -1289,9 +1243,9 @@ class Misc(commands.Cog):
 			timestamp=ctx.message.created_at
 		)
 
-		embed.set_author(name=member, url=member.avatar_url, icon_url=member.avatar_url)
-		embed.set_thumbnail(url=member.avatar_url)
-		embed.set_footer(text="Requested at:", icon_url=member.guild.icon_url)
+		embed.set_author(name=member, url=member.display_url, icon_url=member.display_url)
+		embed.set_thumbnail(url=member.display_url)
+		embed.set_footer(text="Requested at:", icon_url=member.guild.icon.url)
 
 
 		for reminder in reminders:	
