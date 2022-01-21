@@ -40,7 +40,7 @@ class RulesView(discord.ui.View):
 
         await interaction.followup.edit_message(message_id=interaction.message.id, embed=new_embed)
 
-    @discord.ui.button(style=1, label="French", emoji="🇷🇺", custom_id=f"french_rule_translation")
+    @discord.ui.button(style=1, label="French", emoji="🇫🇷", custom_id=f"french_rule_translation")
     async def translate_french_rule_button(self, button: discord.ui.button, interaction: discord.Interaction) -> None:
         """ Button to translate the French rule(s). """
 
@@ -92,7 +92,7 @@ class RulesView(discord.ui.View):
         embed.add_field(name="🤖", value="Discover our Features!", inline=True)
         embed.add_field(name="🥖", value="We love chocolatine ~~and pain au chocolat~~!", inline=True)
         embed.set_footer(text=guild.owner,
-                            icon_url=guild.owner.display_url)
+                            icon_url=guild.owner.display_avatar)
         embed.set_thumbnail(
             url=guild.icon.url)
         embed.set_author(name=guild.name, url='https://discordapp.com',

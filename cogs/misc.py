@@ -222,7 +222,7 @@ class Misc(commands.Cog):
 			if not await utils.is_allowed([staff_role_id]).predicate(ctx):
 				return await ctx.send(f"**You cannot check the avatar of someone else, unless you're a staff member, {ctx.author.mention}!**")
 
-		await ctx.send(member.display_url)
+		await ctx.send(member.display_avatar)
 
 	@commands.command()
 	@commands.cooldown(1, 5, commands.BucketType.user)
@@ -836,7 +836,7 @@ class Misc(commands.Cog):
 		view: discord.ui.View = RulesView(ctx.author, 'all', all_rules)
 		embed = await view.make_rules_embed(guild)
 		the_msg = await ctx.send(
-			content=f"Hello, **{guild.name}** is a public Discord server for people all across the globe to meet, learn Russian and exchange knowledge and cultures. here are our rules of conduct.",
+			content=f"Hello, **{guild.name}** is a public Discord server for people all across the globe to meet, learn French and exchange knowledge and cultures. here are our rules of conduct.",
 			embed=embed, view=view)
 
 		await view.wait()
@@ -1243,8 +1243,8 @@ class Misc(commands.Cog):
 			timestamp=ctx.message.created_at
 		)
 
-		embed.set_author(name=member, url=member.display_url, icon_url=member.display_url)
-		embed.set_thumbnail(url=member.display_url)
+		embed.set_author(name=member, url=member.display_avatar, icon_url=member.display_avatar)
+		embed.set_thumbnail(url=member.display_avatar)
 		embed.set_footer(text="Requested at:", icon_url=member.guild.icon.url)
 
 
