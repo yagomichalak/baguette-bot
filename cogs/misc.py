@@ -242,13 +242,17 @@ class Misc(*misc_cogs):
 		current_time = await utils.get_time()
 		GMT = timezone(default_timezone)
 
-		#user_timezone = await self.select_user_timezone(member.id)
 		registered_timezone_roles = await self.get_timezone_roles()
 		timezones_texts: List[str] = []
-		#f"`{date_to_utc} ({GMT})`"
 
-		for r_trole in registered_timezone_roles:
-			user_timezone = r_trole[1]
+
+		user_timezone_roles: List[List[Union[int, str]]] = [
+			r_trole for r_trole in registered_timezone_roles
+			if member.get_role(r_trole[0])
+		]
+
+		for u_trole in user_timezone_roles:
+			user_timezone = u_trole[1]
 
 			if not time:
 				given_time = datetime.now(timezone(user_timezone)).strftime("%H:%M")
@@ -261,28 +265,27 @@ class Misc(*misc_cogs):
 			
 			timezones_texts.append(f"**`{converted_time}` ({user_timezone})**")
 
-		if time:
-			timezones_texts.insert(0, f"**`Default: {current_time.strftime('%H:%M')} ({GMT})`**")
 
+		timezones_texts.insert(0, f"**`Default: {current_time.strftime('%H:%M')} ({GMT})`**")
 		await ctx.send('\n'.join(timezones_texts))
 
-	@commands.command()
-	@commands.cooldown(1, 300, commands.BucketType.user)
-	@check_whitelist()
-	async def timezones(self, ctx) -> None:
-		""" Sends a full list with the timezones into the user's DM's. 
-		(Cooldown) = 5 minutes. """
+	# @commands.command()
+	# @commands.cooldown(1, 300, commands.BucketType.user)
+	# @check_whitelist()
+	# async def timezones(self, ctx) -> None:
+	# 	""" Sends a full list with the timezones into the user's DM's. 
+	# 	(Cooldown) = 5 minutes. """
 
-		member = ctx.author
+	# 	member = ctx.author
 
-		timezones = pytz.all_timezones
-		timezone_text = ', '.join(timezones)
-		try:
-			await Misc.send_big_message(channel=member, message=timezone_text)
-		except Exception as e:
-			await ctx.send(f"**I couldn't do it for some reason, make sure your DM's are open, {member.mention}!**")
-		else:
-			await ctx.send(f"**List sent, {member.mention}!**")
+	# 	timezones = pytz.all_timezones
+	# 	timezone_text = ', '.join(timezones)
+	# 	try:
+	# 		await Misc.send_big_message(channel=member, message=timezone_text)
+	# 	except Exception as e:
+	# 		await ctx.send(f"**I couldn't do it for some reason, make sure your DM's are open, {member.mention}!**")
+	# 	else:
+	# 		await ctx.send(f"**List sent, {member.mention}!**")
 
 
 	@slash_command(name="set_timezone_role", guild_ids=guild_ids)
@@ -355,28 +358,28 @@ class Misc(*misc_cogs):
 					embed.set_footer(text=num)
 					await channel.send(embed=embed)
 
-	@commands.command()
-	@check_whitelist()
-	async def settimezone(self, ctx, my_timezone: str = None) -> None:
-		""" Sets the timezone.
-		:param my_timezone: Your timezone.
-		Ps: Use b!timezones to get a full list with the timezones in your DM's. """
+	# @commands.command()
+	# @check_whitelist()
+	# async def settimezone(self, ctx, my_timezone: str = None) -> None:
+	# 	""" Sets the timezone.
+	# 	:param my_timezone: Your timezone.
+	# 	Ps: Use b!timezones to get a full list with the timezones in your DM's. """
 
-		member = ctx.author
+	# 	member = ctx.author
 
-		if not my_timezone:
-			return await ctx.send(f"**Please, inform a timezone, {member.mention}!**")
+	# 	if not my_timezone:
+	# 		return await ctx.send(f"**Please, inform a timezone, {member.mention}!**")
 
-		my_timezone = my_timezone.title()
-		if not my_timezone in pytz.all_timezones:
-			return await ctx.send(f"**Please, inform a valid timezone, {member.mention}!**")
+	# 	my_timezone = my_timezone.title()
+	# 	if not my_timezone in pytz.all_timezones:
+	# 		return await ctx.send(f"**Please, inform a valid timezone, {member.mention}!**")
 
-		if user_timezone := await self.select_user_timezone(member.id):
-			await self.update_user_timezone(member.id, my_timezone)
-			await ctx.send(f"**Updated timezone from `{user_timezone[1]}` to `{my_timezone}`, {member.mention}!**")
-		else:
-			await self.insert_user_timezone(member.id, my_timezone)
-			await ctx.send(f"**Set timezone to `{my_timezone}`, {member.mention}!**")
+	# 	if user_timezone := await self.select_user_timezone(member.id):
+	# 		await self.update_user_timezone(member.id, my_timezone)
+	# 		await ctx.send(f"**Updated timezone from `{user_timezone[1]}` to `{my_timezone}`, {member.mention}!**")
+	# 	else:
+	# 		await self.insert_user_timezone(member.id, my_timezone)
+	# 		await ctx.send(f"**Set timezone to `{my_timezone}`, {member.mention}!**")
 
 
 	# Database (CRUD)
