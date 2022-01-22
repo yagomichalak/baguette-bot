@@ -370,12 +370,12 @@ class Moderation(*moderation_cogs):
 		embed.add_field(name="ID:", value=member.id, inline=False)
 		embed.add_field(name="Server name:", value=member.display_name, inline=False)
 
-		sorted_time_create = await self.sort_time(ctx.guild, member.created_at)
-		sorted_time_join = await self.sort_time(ctx.guild, member.joined_at)
+		sorted_time_create = f"<t:{int(member.created_at.timestamp())}:R>"
+		sorted_time_join = f"<t:{int(member.joined_at.timestamp())}:R>"
 
-		embed.add_field(name="Created at:", value=f"{member.created_at.strftime('%d/%m/%y')} ({sorted_time_create})",
+		embed.add_field(name="Created at:", value=f"{member.created_at.strftime('%d/%m/%y')} ({sorted_time_create}) **GMT**",
 						inline=False)
-		embed.add_field(name="Joined at:", value=f"{member.joined_at.strftime('%d/%m/%y')} ({sorted_time_join})", inline=False)
+		embed.add_field(name="Joined at:", value=f"{member.joined_at.strftime('%d/%m/%y')} ({sorted_time_join}) **GMT**", inline=False)
 
 		embed.add_field(name="Top role:", value=member.top_role.mention, inline=False)
 
