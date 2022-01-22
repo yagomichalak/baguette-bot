@@ -254,19 +254,25 @@ class Misc(*misc_cogs):
 		for u_trole in user_timezone_roles:
 			user_timezone = u_trole[1]
 
+			
 			if not time:
-				given_time = datetime.now(timezone(user_timezone)).strftime("%H:%M")
+				the_time = datetime.now(timezone(user_timezone))	
+				given_time = the_time.strftime("%H:%M")
 				timezones_texts.append(f"**`{given_time}` ({user_timezone})**")
 				continue
 				
 			# Convert given date to given timezone
 			tz = pytz.timezone(user_timezone)
-			converted_time = current_time.astimezone(tz).strftime('%H:%M')
+			given_date = datetime.strptime(time, '%H:%M')
+			converted_time = current_time.replace(hour=given_date.hour, minute=given_date.minute)
+			current_time = converted_time
+			converted_time = converted_time.astimezone(tz=tz).strftime('%H:%M')
+			
 			
 			timezones_texts.append(f"**`{converted_time}` ({user_timezone})**")
 
-
 		timezones_texts.insert(0, f"**`Default: {current_time.strftime('%H:%M')} ({GMT})`**")
+
 		await ctx.send('\n'.join(timezones_texts))
 
 	# @commands.command()
