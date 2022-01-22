@@ -65,6 +65,45 @@ async def on_command_error(ctx, error):
 	print('='*10)
 
 
+@client.event
+async def on_application_command_error(ctx, error) -> None:
+
+    if isinstance(error, commands.MissingPermissions):
+        await ctx.respond("**You can't do that!**")
+
+    elif isinstance(error, commands.MissingRequiredArgument):
+        await ctx.respond('**Please, inform all parameters!**')
+
+    elif isinstance(error, commands.NotOwner):
+        await ctx.respond("**You're not the bot's owner!**")
+
+    elif isinstance(error, commands.CommandOnCooldown):
+        await ctx.respond(error)
+
+    elif isinstance(error, commands.errors.CheckAnyFailure):
+        await ctx.respond("**You can't do that!**")
+
+    elif isinstance(error, commands.MissingAnyRole):
+        role_names = [f"**{str(discord.utils.get(ctx.guild.roles, id=role_id))}**" for role_id in error.missing_roles]
+        await ctx.respond(f"You are missing at least one of the required roles: {', '.join(role_names)}")
+
+    elif isinstance(error, commands.errors.RoleNotFound):
+        await ctx.respond(f"**Role not found**")
+
+    elif isinstance(error, commands.ChannelNotFound):
+        await ctx.respond("**Channel not found!**")
+
+    elif isinstance(error, discord.app.commands.errors.CheckFailure):
+        await ctx.respond("**It looks like you can't run this command!**")
+
+
+    print('='*10)
+    print(f"ERROR: {error} | Class: {error.__class__} | Cause: {error.__cause__}")
+    print('='*10)
+
+
+
+
 # Members status update
 @tasks.loop(seconds=10)
 async def change_status():
