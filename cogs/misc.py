@@ -308,11 +308,33 @@ class Misc(*misc_cogs):
 
 		if timezone_role := await self.get_timezone_role(role_timezone):
 			await self.update_timezone_role(role.id, role_timezone)
-			await ctx.respond(f"**Updated timezone `{timezone_role[1]}` role to `{role.name}`**")
+			await ctx.respond(f"**Updated timezone `{timezone_role[1]}` role to `{role.name}`!**")
 
 		else:
 			await self.insert_timezone_role(role.id, role_timezone)
-			await ctx.respond(f"**Set the `{role.name}` role to the `{role_timezone}`**")
+			await ctx.respond(f"**Set the `{role.name}` role to the `{role_timezone}`!**")
+
+	@slash_command(name="delete_timezone_role", guild_ids=guild_ids)
+	@commands.has_permissions(administrator=True)
+	async def _delete_timezone_role(self, ctx,
+		role_timezone: Option(str, name="role_timezone", description="The timezone to delete.", required=True,
+        	choices=[
+				'Etc/GMT+0', 'Etc/GMT+1', 'Etc/GMT+2', 'Etc/GMT+3', 'Etc/GMT+4', 'Etc/GMT+5', 'Etc/GMT+6',
+				'Etc/GMT+7', 'Etc/GMT+8', 'Etc/GMT+9', 'Etc/GMT-1', 'Etc/GMT-2', 'Etc/GMT-3', 'Etc/GMT-4',
+				'Etc/GMT-5', 'Etc/GMT-6', 'Etc/GMT-7', 'Etc/GMT-8', 'Etc/GMT-9', 'Etc/GMT-10', 'Etc/GMT-11',
+				'Etc/GMT-12', 'Etc/GMT-13', 'Etc/GMT-14',
+				])
+		) -> None:
+		""" Deletes a timezone role. """
+
+		await ctx.defer()
+
+		if timezone_role := await self.get_timezone_role(role_timezone):
+			await self.delete_timezone_role(role_timezone)
+			await ctx.respond(f"**Deleted the  `{timezone_role[1]}` timezone role!**")
+		else:
+			await ctx.respond(f"**You don't have a role set for the `{role_timezone}` timezone!**")
+
 
 	@slash_command(name="show_timezone_roles", guild_ids=guild_ids)
 	async def _show_timezone_roles(self, ctx) -> None:
