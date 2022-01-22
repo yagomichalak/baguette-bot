@@ -39,7 +39,6 @@ class Misc(*misc_cogs):
 	def __init__(self, client) -> None:
 		self.client = client
 
-
 	@commands.Cog.listener()
 	async def on_ready(self) -> None:
 		self.server_status.start()
@@ -234,50 +233,38 @@ class Misc(*misc_cogs):
 
 	@commands.command()
 	@commands.cooldown(1, 5, commands.BucketType.user)
-	async def time(self, ctx: commands.Context, time: str = None, my_timezone: str = None) -> None:
+	async def time(self, ctx: commands.Context, time: str = None) -> None:
 		""" Tells the time in a given timezone, and compares to the CET one.
-		:param time: The time you want to check. Ex: 7pm
-		:param my_timezone: The time zone to convert """
+		:param time: The time you want to check. Ex: 7pm """
 
 		member = ctx.author
 		default_timezone = 'Etc/GMT'
-
-		user_timezone = await self.select_user_timezone(member.id)
-
-		if not time:
-			if user_timezone:
-				time_now = datetime.now(timezone(user_timezone[1])).strftime(f"%H:%M {user_timezone[1]}")
-			else:
-				time_now = datetime.now(timezone(default_timezone)).strftime(f"%H:%M {default_timezone}")
-
-			return await ctx.send(f"**Now it's `{time_now}`, {member.mention}**")
-
-		if not my_timezone:
-			if not user_timezone:
-				return await ctx.send(f"**Please, inform a `my_timezone`, {member.mention}!**")
-			my_timezone = user_timezone[1]
-
-		if not my_timezone in (timezones := pytz.all_timezones):
-			return await ctx.send(f"**Please, inform a valid timezone, {member.mention}!**\n`(Type b!timezones to get a full list with the timezones in your DM's)`")
-
-		# Given info (time and timezone)
-		given_time = time
-		given_timezone = my_timezone.title()
-
-		# Format given time
-		given_date = datetime.strptime(given_time, '%H:%M')
-
-		# Convert given date to given timezone
-		tz = pytz.timezone(given_timezone)
-		converted_time = datetime.now(tz=tz)
-		converted_time = converted_time.replace(hour=given_date.hour, minute=given_date.minute)
-
-		# Converting date to GMT (Etc/GMT-1)
+		current_time = await utils.get_time()
 		GMT = timezone(default_timezone)
 
-		date_to_utc = converted_time.astimezone(GMT).strftime('%H:%M')
-		datetime_text = f"**`{converted_time.strftime('%H:%M')} ({given_timezone})` = `{date_to_utc} ({GMT})`**"
-		await ctx.send(datetime_text)
+		#user_timezone = await self.select_user_timezone(member.id)
+		registered_timezone_roles = await self.get_timezone_roles()
+		timezones_texts: List[str] = []
+		#f"`{date_to_utc} ({GMT})`"
+
+		for r_trole in registered_timezone_roles:
+			user_timezone = r_trole[1]
+
+			if not time:
+				given_time = datetime.now(timezone(user_timezone)).strftime("%H:%M")
+				timezones_texts.append(f"**`{given_time}` ({user_timezone})**")
+				continue
+				
+			# Convert given date to given timezone
+			tz = pytz.timezone(user_timezone)
+			converted_time = current_time.astimezone(tz).strftime('%H:%M')
+			
+			timezones_texts.append(f"**`{converted_time}` ({user_timezone})**")
+
+		if time:
+			timezones_texts.insert(0, f"**`Default: {current_time.strftime('%H:%M')} ({GMT})`**")
+
+		await ctx.send('\n'.join(timezones_texts))
 
 	@commands.command()
 	@commands.cooldown(1, 300, commands.BucketType.user)
@@ -311,11 +298,40 @@ class Misc(*misc_cogs):
 		) -> None:
 		""" Sets a timezone role. """
 
-		selected_time = datetime.now(timezone(role_timezone)).strftime(f"%H:%M {role_timezone}")
+		#selected_time = datetime.now(timezone(role_timezone)).strftime(f"%H:%M {role_timezone}")
 
 		await ctx.defer()
 
-		await ctx.respond(f"Hello, {selected_time}")
+		if timezone_role := await self.get_timezone_role(role_timezone):
+			await self.update_timezone_role(role.id, role_timezone)
+			await ctx.respond(f"**Updated timezone `{timezone_role[1]}` role to `{role.name}`**")
+
+		else:
+			await self.insert_timezone_role(role.id, role_timezone)
+			await ctx.respond(f"**Set the `{role.name}` role to the `{role_timezone}`**")
+
+	@slash_command(name="show_timezone_roles", guild_ids=guild_ids)
+	async def _show_timezone_roles(self, ctx) -> None:
+		""" Shows the registered timezone roles. """
+
+		await ctx.defer()
+		member: discord.Member = ctx.author
+
+		timezone_roles = await self.get_timezone_roles()
+		formatted_timezone_roles = [
+			f"`{trole[1]}`: <@&{trole[0]}>" for trole in timezone_roles]
+		if not formatted_timezone_roles:
+			formatted_timezone_roles = ["None."]
+
+		embed: discord.Embed = discord.Embed(
+			title="__Registered Timezone Roles__",
+			description=', '.join(formatted_timezone_roles),
+			color=member.color
+		)
+
+		embed.set_footer(text=f"Requested by: {member}", icon_url=member.display_avatar)
+
+		await ctx.respond(embed=embed)
 
 
 	@staticmethod
@@ -1270,8 +1286,6 @@ class Misc(*misc_cogs):
 
 		await self.update_rule(rule_number=rule_number, english_text=english_text)
 		await ctx.send(f"**Successfully updated the English text for rule number `{rule_number}`, {member.mention}!**")
-
-
 
 """
 Setup:

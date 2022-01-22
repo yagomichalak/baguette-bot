@@ -90,11 +90,23 @@ class TimezoneRoleTable(commands.Cog):
         await db.commit()
         await mycursor.close()
 
+    async def get_timezone_role(self, role_timezone: str) -> List[Union[int, str]]:
+        """ Gets a specific timezone role.
+        :param role_timezone: The role timezone to get. """
+
+        mycursor, _ = await the_database()
+        await mycursor.execute("""
+            SELECT * FROM TimezoneRole WHERE role_timezone = %s
+        """, (role_timezone,))
+        timezone_role = await mycursor.fetchone()
+        await mycursor.close()
+        return timezone_role
+
     async def get_timezone_roles(self) -> List[List[Union[int, str]]]:
         """ Gets all Timezone Roles registered. """
 
         mycursor, _ = await the_database()
-        await mycursor.execute("SELECT * FROM TimezoneRole")
+        await mycursor.execute("SELECT * FROM TimezoneRole ORDER BY role_timezone")
         timezone_roles = await mycursor.fetchall()
         await mycursor.close()
         return timezone_roles
