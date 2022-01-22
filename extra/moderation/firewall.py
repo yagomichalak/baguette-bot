@@ -5,7 +5,8 @@ from datetime import datetime
 from extra import utils
 import os
 
-suspect_channel_id = int(os.getenv('SUSPECT_CHANNEL_ID'))
+#suspect_channel_id = int(os.getenv('SUSPECT_CHANNEL_ID'))
+joins_and_leaves_log_id = int(os.getenv('JOIN_LEAVE_LOG_CHANNEL_ID'))
 
 class ModerationFirewallTable(commands.Cog):
     """ Class for the Firewall feature and its related commands and methods """
@@ -34,8 +35,9 @@ class ModerationFirewallTable(commands.Cog):
                 return await self.kick(ctx=ctx, member=member, reason="Possible fake account")
 
             else:
-                suspect_channel = discord.utils.get(member.guild.channels, id=suspect_channel_id)
-                await suspect_channel.send(f"🔴 Alert! Possible fake account: {member.mention} joined the server. Account was just created.\nAccount created at: <t:{created_timestamp}> (<t:{created_timestamp}:R>)!")
+                #suspect_channel = discord.utils.get(member.guild.channels, id=suspect_channel_id)
+                join_leave_channel = discord.utils.get(member.guild.channels, id=joins_and_leaves_log_id)
+                await join_leave_channel.send(f"🔴 Alert! Possible fake account: {member.mention} joined the server. Account was just created.\nAccount created at: <t:{created_timestamp}> (<t:{created_timestamp}:R>)!")
 
 
     @commands.command(hidden=True)
