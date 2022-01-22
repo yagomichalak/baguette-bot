@@ -289,6 +289,7 @@ class Misc(*misc_cogs):
 
 
 	@slash_command(name="set_timezone_role", guild_ids=guild_ids)
+	@commands.has_permissions(administrator=True)
 	async def _set_timezone_role(self, ctx,
 		role: Option(discord.Role, name="role", description="The timezone role.", required=True),
 		role_timezone: Option(str, name="role_timezone", description="The timezone to attach to the role.", required=True,
