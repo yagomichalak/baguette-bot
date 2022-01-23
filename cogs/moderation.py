@@ -438,7 +438,7 @@ class Moderation(*moderation_cogs):
 	async def sort_time(self, guild: discord.Guild, at: datetime) -> str:
 
 
-		timedelta = datetime.utcnow() - at
+		timedelta = await utils.get_time() - at.astimezone(timezone('Etc/GMT'))
 
 		if type(timedelta) is not float:
 			timedelta = timedelta.total_seconds()

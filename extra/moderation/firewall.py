@@ -17,7 +17,6 @@ class ModerationFirewallTable(commands.Cog):
     @commands.Cog.listener(name='on_member_join')
     async def on_member_join_fake_account(self, member):
         """ Detects if a user is a potential fake account holder. """
-        print('aysad')
         
         if member.bot:
             return
