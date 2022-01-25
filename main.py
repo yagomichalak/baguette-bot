@@ -202,7 +202,6 @@ async def on_bulk_message_delete(messages):
 
 @client.command()
 @Misc.check_whitelist(client)
-@client.command()
 async def help(ctx, *, cmd: str =  None):
     """ Shows some information about commands and categories. 
     :param cmd: The command/category. """
