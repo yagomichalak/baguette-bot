@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands, tasks
+from discord.utils import escape_mentions
 import os
 from datetime import datetime
 from dotenv import load_dotenv
@@ -201,58 +202,63 @@ async def on_bulk_message_delete(messages):
 
 @client.command()
 @Misc.check_whitelist(client)
-async def help(ctx, cmd: str = None):
-	'''
-	Shows some information about commands and categories.
-	'''
-	if not cmd:
-		embed = discord.Embed(
-			title="All commands and categories", 
-			description=f"```ini\nUse {client.command_prefix}help command or {client.command_prefix}help category to know more about a specific command or category\n\n[Examples]\n[1] Category: {client.command_prefix}help Moderation\n[2] Command : {client.command_prefix}help snipe```", 
-			timestamp=ctx.message.created_at, 
-			color=ctx.author.color
-			)
+@client.command()
+async def help(ctx, *, cmd: str =  None):
+    """ Shows some information about commands and categories. 
+    :param cmd: The command/category. """
 
-		for cog in client.cogs:
-			cog = client.get_cog(cog)
-			commands = [c.name for c in cog.get_commands() if not c.hidden]
-			if commands:
-				embed.add_field(
-					name=f"__{cog.qualified_name}__", 
-					value=f"`Commands:` {', '.join(commands)}", 
-					inline=False
-					)
 
-		cmds = []
-		for y in client.walk_commands():
-			if not y.cog_name and not y.hidden:
-				cmds.append(y.name)
-		embed.add_field(
-			name='__Uncategorized Commands__', 
-			value=f"`Commands:` {', '.join(cmds)}", 
-			inline=False)
-		await ctx.send(embed=embed)
+    if not cmd:
+        embed = discord.Embed(
+            title="All commands and categories",
+            description=f"```ini\nUse {client.command_prefix}help command or {client.command_prefix}help category to know more about a specific command or category\n\n[Examples]\n[1] Category: {client.command_prefix}help SlothCurrency\n[2] Command : {client.command_prefix}help rep```",
+            timestamp=ctx.message.created_at,
+            color=ctx.author.color
+            )
 
-	else:
-		# Checks if it's a command
-		if command := client.get_command(cmd.lower()):
-			command_embed = discord.Embed(title=f"__Command:__ {command.name}", description=f"__**Description:**__\n```{command.help}```", color=ctx.author.color, timestamp=ctx.message.created_at)
-			return await ctx.send(embed=command_embed)
+        for cog in client.cogs:
+            cog = client.get_cog(cog)
+            cog_commands = [c for c in cog.__cog_commands__ if hasattr(c, 'parent') and c.parent is None]
+            commands = [f"{client.command_prefix}{c.name}" for c in cog_commands if not c.hidden]
+            if commands:
+                embed.add_field(
+                    name=f"__{cog.qualified_name}__",
+                    value=f"`Commands:` {', '.join(commands)}",
+                    inline=False
+                    )
 
-		# Checks if it's a cog
-		for cog in client.cogs:
-			if str(cog).lower() == str(cmd).lower():
-				cog = client.get_cog(cog)
-				cog_embed = discord.Embed(title=f"__Cog:__ {cog.qualified_name}", description=f"__**Description:**__\n```{cog.description}```", color=ctx.author.color, timestamp=ctx.message.created_at)
-				for c in cog.get_commands():
-					if not c.hidden:
-						cog_embed.add_field(name=c.name,value=c.help,inline=False)
+        cmds = []
+        for y in client.walk_commands():
+            if not y.cog_name and not y.hidden:
+                cmds.append(f"{client.command_prefix}{y.name}")
 
-				return await ctx.send(embed=cog_embed)
+        embed.add_field(
+            name='__Uncategorized Commands__',
+            value=f"`Commands:` {', '.join(cmds)}",
+            inline=False)
+        await ctx.send(embed=embed)
 
-		# Otherwise, it's an invalid parameter (Not found)
-		else:
-			await ctx.send(f"**Invalid parameter! `{cmd}` is neither a command nor a cog!**")
+    else:  
+        cmd = escape_mentions(cmd)
+        if command := client.get_command(cmd.lower()):
+            command_embed = discord.Embed(title=f"__Command:__ {client.command_prefix}{command.qualified_name}", description=f"__**Description:**__\n```{command.help}```", color=ctx.author.color, timestamp=ctx.message.created_at)
+            return await ctx.send(embed=command_embed)
+
+        # Checks if it's a cog
+        for cog in client.cogs:
+            if str(cog).lower() == str(cmd).lower():
+                cog = client.get_cog(cog)
+                cog_embed = discord.Embed(title=f"__Cog:__ {cog.qualified_name}", description=f"__**Description:**__\n```{cog.description}```", color=ctx.author.color, timestamp=ctx.message.created_at)
+                cog_commands = [c for c in cog.__cog_commands__ if hasattr(c, 'parent') and c.parent is None]
+                for c in cog_commands:
+                    if not c.hidden:
+                        cog_embed.add_field(name=c.qualified_name, value=c.help, inline=False)
+
+                return await ctx.send(embed=cog_embed)
+        # Otherwise, it's an invalid parameter (Not found)
+        else:
+            await ctx.send(f"**Invalid parameter! It is neither a command nor a cog!**")
+
 
 
 
