@@ -877,7 +877,7 @@ class Misc(*misc_cogs):
 
 	# Shows the specific rule
 	@commands.command()
-	@commands.has_role(staff_role_id)
+	#@commands.has_role(staff_role_id)
 	async def rule(self, ctx, numb: int = None):
 		""" Shows a specific server rule.
 		:param numb: The number of the rule to show. """
@@ -892,7 +892,7 @@ class Misc(*misc_cogs):
 
 		all_rules = await self.get_rules()
 		view: discord.ui.View = RulesView(ctx.author, numb, all_rules)
-		embed = await view.make_rule_embed(ctx.guild, numb)
+		embed = await view.make_rule_embed(ctx.guild)
 		the_msg = await ctx.send(embed=embed, view=view)
 
 		await view.wait()
