@@ -142,6 +142,13 @@ S'il y a quelque chose dont vous n'êtes pas sûr, veuillez d'abord lire le cana
 For Italiano/English: https://discord.gg/mTCPdRsCdw
 For Русский/English: https://discord.gg/7pamu9NNex"""
 
+
+	if newcommer_channel := discord.utils.get(member.guild.text_channels, id=int(os.getenv('NEWCOMMER_CHANNEL_ID'))):
+		embed = discord.Embed(color=member.color)
+		embed.description=f"**🇬🇧 Welcome to our server. We hope you enjoy your stay!\n\n🇫🇷 Bienvenue sur notre serveur. Nous esperons que vous aimez votre sejour !**"
+		embed.set_thumbnail(url=member.guild.icon.url)
+		await newcommer_channel.send(content=member.mention, embed=embed)
+
 	await member.send(welcome_message)
 
 @client.event
