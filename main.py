@@ -133,7 +133,7 @@ async def on_member_join(member) -> None:
 Please read the rules and report anything that is against the rules to any of the Moderators/Admins.
 If there is anything you are unsure of, please first read the <#{faq_channel_id}> channel as this will have answers to some of your questions.
 
-🇫🇷 **Bienvenue sur Le Salon Français !**
+🇫🇷 **Bienvenu(e) sur Le Salon Français !**
 
 Veuillez lire les règles et signaler tout ce qui est contre les règles à n'importe quel membre du Staff. 
 S'il y a quelque chose dont vous n'êtes pas sûr, veuillez d'abord lire le canal <#{faq_channel_id}> car vous y trouverez les réponses à la plupart de vos questions.
@@ -145,7 +145,7 @@ For Русский/English: https://discord.gg/7pamu9NNex"""
 
 	if newcommer_channel := discord.utils.get(member.guild.text_channels, id=int(os.getenv('NEWCOMMER_CHANNEL_ID'))):
 		embed = discord.Embed(color=member.color)
-		embed.description=f"**🇬🇧 Welcome to our server. We hope you enjoy your stay!\n\n🇫🇷 Bienvenue sur notre serveur. Nous esperons que vous aimez votre sejour !**"
+		embed.description=f"**🇬🇧 Welcome to our server. We hope you enjoy your stay!\n\n🇫🇷 Bienvenu(e) sur notre serveur. Nous esperons que vous aimerez votre sejour !**"
 		embed.set_thumbnail(url=member.guild.icon.url)
 		await newcommer_channel.send(content=member.mention, embed=embed)
 
