@@ -145,7 +145,7 @@ For Русский/English: https://discord.gg/7pamu9NNex"""
 
 	if newcommer_channel := discord.utils.get(member.guild.text_channels, id=int(os.getenv('NEWCOMMER_CHANNEL_ID'))):
 		embed = discord.Embed(color=member.color)
-		embed.description=f"**🇬🇧 Welcome to our server. We hope you enjoy your stay!\n\n🇫🇷 Bienvenu(e) sur notre serveur. Nous esperons que vous aimerez votre sejour !**"
+		embed.description=f"**🇬🇧 Welcome to our server. We hope you enjoy your stay!\n\n🇫🇷 Bienvenu(e) sur notre serveur. Nous espérons que vous aimerez votre séjour !**"
 		embed.set_thumbnail(url=member.guild.icon.url)
 		await newcommer_channel.send(content=member.mention, embed=embed)
 
