@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands, tasks
 from discord.app import slash_command, Option, option
+from discord.utils import escape_mentions
 
 import asyncio
 from datetime import datetime
@@ -1323,6 +1324,27 @@ class Misc(*misc_cogs):
 
 		await self.update_rule(rule_number=rule_number, english_text=english_text)
 		await ctx.send(f"**Successfully updated the English text for rule number `{rule_number}`, {member.mention}!**")
+
+
+	@commands.command(aliases=['al', 'alias'])
+	async def aliases(self, ctx, *, cmd: str =  None):
+		""" Shows some information about commands and categories. 
+		:param cmd: The command. """
+
+		if not cmd:
+			return await ctx.send("**Please, informe one command!**")
+
+		cmd = escape_mentions(cmd)
+		if command := self.client.get_command(cmd.lower()):
+			embed = discord.Embed(title=f"Command: {command}", color=ctx.author.color, timestamp=ctx.message.created_at)
+			aliases = [alias for alias in command.aliases]
+
+			if not aliases:
+				return await ctx.send("**This command doesn't have any aliases!**")
+			embed.description = '**Aliases: **' + ', '.join(aliases)
+			return await ctx.send(embed=embed)
+		else:
+			await ctx.send(f"**Invalid parameter! It is neither a command nor a cog!**")
 
 """
 Setup:

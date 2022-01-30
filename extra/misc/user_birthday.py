@@ -242,7 +242,7 @@ class UserBirthdaySystem(commands.Cog):
             except:
                 pass
 
-    @commands.command()
+    @commands.command(aliases=["add_birthday", "abd", "update_birthday", "ubd"])
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def set_birthday(self, ctx, day: str = None, month: str = None) -> None:
         """ Sets your birthday.
