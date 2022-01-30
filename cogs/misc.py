@@ -22,12 +22,14 @@ from extra.view import BasicUserCheckView, RulesView
 from extra.misc.timezone_role import TimezoneRoleTable
 from extra.misc.rules import RulesTable
 from extra.misc.member_reminder import MemberReminderTable
+from extra.misc.user_birthday import UserBirthdayTable, UserBirthdaySystem
 
 import emoji
 import re
 
 misc_cogs: List[commands.Cog] = [
-	TimezoneRoleTable, RulesTable, MemberReminderTable
+	TimezoneRoleTable, RulesTable, MemberReminderTable,
+	UserBirthdayTable, UserBirthdaySystem
 ]
 patreon_supporter_role_id = int(os.getenv('PATREON_SUPPORTER_ROLE_ID'))
 staff_role_id = int(os.getenv('STAFF_ROLE_ID'))
@@ -44,6 +46,8 @@ class Misc(*misc_cogs):
 		self.server_status.start()
 		self.check_server_activity_status.start()
 		self.look_for_due_reminders.start()
+		self.check_user_birthday.start()
+		self.check_user_no_longer_birthday.start()
 		print('Misc cog is online')
 
 
