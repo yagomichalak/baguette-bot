@@ -300,3 +300,15 @@ class UserBirthdaySystem(commands.Cog):
 
         await self.insert_user_birthday(member.id, day, month, the_timezone)
         await ctx.send(f"**Successfully added your birthday, {member.mention}! (`{formatted_birthday}`)**")
+
+    @commands.command(aliases=["delete_birthday", "rbd", "dbd"])
+    @commands.cooldown(1, 5, commands.BucketType.user)
+    async def remove_birthday(self, ctx) -> None:
+        """ Removes your birthday from the system. """
+
+        member: discord.Member = ctx.author
+        if not await self.get_user_birthday(member.id):
+            return await ctx.send(f"**You don't have a birthday saved, {member.mention}!**")
+
+        await self.delete_user_birthday(member.id)
+        await ctx.send(f"**Successfully deleted your birthday from the system, {member.mention}!**")
