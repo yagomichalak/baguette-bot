@@ -3,7 +3,8 @@ from discord.ext import commands, tasks
 import os
 from mysqldb import the_database
 from typing import List, Union
-
+from extra import utils
+import pytz
 
 class UserBirthdayTable(commands.Cog):
     """ Class for managing the Birthday """
@@ -25,7 +26,7 @@ class UserBirthdayTable(commands.Cog):
         mycursor, db = await the_database()
         await mycursor.execute("""CREATE TABLE UserBirthday (
             user_id BIGINT NOT NULL,
-            birthday DATE,
+            birthday VARCHAR(5),
             timezone VARCHAR(10),
             is_birthday TINYINT(1) DEFAULT 0,
             PRIMARY KEY (user_id)
@@ -38,7 +39,7 @@ class UserBirthdayTable(commands.Cog):
     @commands.command(hidden=True)
     @commands.has_permissions(administrator=True)
     async def drop_table_user_birthday(self, ctx) -> None:
-        """ (ADM) Creates the UserBirthday table """
+        """ (ADM) Drops the UserBirthday table """
 
         if not await self.check_table_user_birthday():
             return await ctx.send("**Table __UserBirthday__ doesn't exist!**")
@@ -54,7 +55,7 @@ class UserBirthdayTable(commands.Cog):
     @commands.command(hidden=True)
     @commands.has_permissions(administrator=True)
     async def reset_table_user_birthday(self, ctx) -> None:
-        """ (ADM) Creates the UserBirthday table """
+        """ (ADM) Resets the UserBirthday table """
 
         if not await self.check_table_user_birthday():
             return await ctx.send("**Table __UserBirthday__ doesn't exist yet!**")
@@ -68,7 +69,7 @@ class UserBirthdayTable(commands.Cog):
         return await ctx.send("**Table __UserBirthday__ reset!**", delete_after=3)
 
     async def check_table_user_birthday(self) -> bool:
-        """ Checks if the UserBirthday table exists """
+        """ Checks whether the UserBirthday table exists """
 
         mycursor, _ = await the_database()
         await mycursor.execute("SHOW TABLE STATUS LIKE 'UserBirthday'")
@@ -92,14 +93,76 @@ class UserBirthdayTable(commands.Cog):
         await mycursor.execute("""
             INSERT INTO UserBirthday (
                 user_id, birthday, timezone
-            ) VALUES (%s, %s-%s, %s)
+            ) VALUES (%s, '%s-%s', %s)
         """, (user_id, day, month, timezone))
         await db.commit()
         await mycursor.close()
 
-    async def get_user_birthdays(self) -> List[List[Union[int, str]]]: pass
+    async def get_user_birthdays(self) -> List[List[Union[int, str]]]:
+        """ Gets all user birthdays. """
 
-    async def get_user_birthday(self, user_id: int) -> List[Union[int, str]]: pass
+        mycursor, _ = await the_database()
+        await mycursor.execute("SELECT * FROM UserBirthday")
+        user_birthdays = await mycursor.fetchall()
+        await mycursor.close()
+        return user_birthdays
+
+    async def get_user_birthdays_by_date(self, the_date: str) -> List[List[Union[int, str]]]:
+        """ Gets all user birthdays by a specific date. """
+
+        mycursor, _ = await the_database()
+        await mycursor.execute("SELECT * FROM UserBirthday WHERE birthday = %s", (the_date,))
+        user_birthdays = await mycursor.fetchall()
+        await mycursor.close()
+        return user_birthdays
+
+    async def get_user_no_longer_birthdays(self) -> List[List[Union[int, str]]]:
+        """ Gets all user birthdays by a specific date. """
+
+        mycursor, _ = await the_database()
+        await mycursor.execute("SELECT * FROM UserBirthday WHERE is_birthday = 1")
+        user_birthdays = await mycursor.fetchall()
+        await mycursor.close()
+        return user_birthdays
+
+    async def get_user_birthdays_by_date(self, the_date: str) -> List[List[Union[int, str]]]:
+        """ Gets all user birthdays by a specific date. """
+
+        mycursor, _ = await the_database()
+        await mycursor.execute("SELECT * FROM UserBirthday WHERE birthday = %s", (the_date,))
+        user_birthdays = await mycursor.fetchall()
+        await mycursor.close()
+        return user_birthdays
+
+    async def get_user_birthday(self, user_id: int) -> List[Union[int, str]]:
+        """ Gets a user's birthday.
+        :param user_id: The ID of the user to get. """
+
+        mycursor, _ = await the_database()
+        await mycursor.execute("SELECT * FROM UserBirthday WHERE user_id = %s", (user_id,))
+        user_birthday = await mycursor.fetchone()
+        await mycursor.close()
+        return user_birthday
+
+    async def update_user_birthday(self, user_id: int, the_date: str) -> None:
+        """ Updates a user's birthday date.
+        :param user_id: The ID of the user to update.
+        :param the_date: The new updated date. """
+
+        mycursor, db = await the_database()
+        await mycursor.execute("UPDATE UserBirthday SET birthday = %s WHERE user_id = %s", (the_date, user_id))
+        await db.commit()
+        await mycursor.close()
+
+    async def update_user_birthday_state(self, user_id: int, state: int = 0) -> None:
+        """ Updates the user's birthday state.
+        :param user_id: The ID of the user to update.
+        :param state: Whether to set the state to true or false. (0-1) [DEFAULT=0] """
+
+        mycursor, db = await the_database()
+        await mycursor.execute("UPDATE UserBirthday SET is_birthday = %s WHERE user_id = %s", (state, user_id))
+        await db.commit()
+        await mycursor.close()
 
     async def delete_user_birthday(self, user_id: int) -> None:
         """ Deletes the user's birthday.
@@ -120,25 +183,64 @@ class UserBirthdaySystem(commands.Cog):
     @tasks.loop(minutes=1)
     async def check_user_birthday(self) -> None:
         """ Checks whether today is someone's birthday. """
-        print('Checking birthdays...')
+
+        current_date = await utils.get_time()
+        the_date = current_date.strftime("%e-%#m")
+
         # Gets all people with today's date as birthday (DD-MM)
+        user_birthdays = await self.get_user_birthdays_by_date(the_date)
+        birthday_people: List[int] = []
+        guild = self.client.get_guild(int(os.getenv('SERVER_ID')))
+        birthday_role: discord.Role = discord.utils.get(guild.roles, id=int(os.getenv('BIRTHDAY_ROLE_ID')))
 
         # Checks whether it's really their birthday after converting the date to their timezone
+        for ubd in user_birthdays:
+            if ubd[3] == 1:
+                continue
+
+            # the_timezone = pytz.timezone(ubd[2])
+            # converted_date = current_date.astimezone(the_timezone)
+            # print(converted_date.strftime("%e-%#m %H:%M:%S"))
+            birthday_people.append(ubd[0])
 
         # Gives the birthday role to the user
-        pass
+        for birthday_person in birthday_people:
+            await self.update_user_birthday_state(birthday_people, 1)
+            try:
+                user = guild.get_member(birthday_person)
+                await user.add_roles(birthday_role)
+            except:
+                pass
 
     @tasks.loop(minutes=1)
     async def check_user_no_longer_birthday(self) -> None:
         """ Checks whether today is no longer someone's birthday. """
-        print('Checking no-longer birthdays...')
+
+        current_date = await utils.get_time()
+        the_date = current_date.strftime("%e-%#m")
+        guild = self.client.get_guild(int(os.getenv('SERVER_ID')))
+        birthday_role: discord.Role = discord.utils.get(guild.roles, id=int(os.getenv('BIRTHDAY_ROLE_ID')))
+        
         # Gets all people with the birthday mark
+        nl_bd_people = await self.get_user_no_longer_birthdays()
 
-        # Checks whether it's really no longer their birthday after converting the date to their timezone
+        for person in nl_bd_people:
 
-        # Removes the birthday role from the user
-        pass
+            # Converts the date to the person's timezone, to double check it
+            # the_timezone = pytz.timezone(person[2])
+            # converted_date = current_date.astimezone(the_timezone)
 
+            # Checks whether it's really no longer their birthday after converting the date to their timezone
+            if person[1] == the_date:
+                continue
+
+            try:
+                await self.update_user_birthday_state(person[0])
+                member = guild.get_member(person[0])
+                # Removes the birthday role from the user
+                await member.remove_roles(birthday_role)
+            except:
+                pass
 
     @commands.command()
     @commands.cooldown(1, 5, commands.BucketType.user)
@@ -181,11 +283,7 @@ class UserBirthdaySystem(commands.Cog):
             ctx.command.reset_cooldown(ctx)
             return await ctx.send(f"**Please, inform a valid month name, {member.mention}!**")
 
-        print(day)
-        print(month)
         month = months[month.lower()]
-
-
 
         registered_timezone_roles = await self.get_timezone_roles()
         user_timezone_roles: List[List[Union[int, str]]] = [
@@ -194,9 +292,11 @@ class UserBirthdaySystem(commands.Cog):
 		]
 
         the_timezone = 'Etc/GMT+0' if not user_timezone_roles else user_timezone_roles[0][1]
+        formatted_birthday = f"{day}-{month} {the_timezone}"
 
+        if await self.get_user_birthday(member.id):
+            await self.update_user_birthday(member.id, f"{day}-{month}")
+            return await ctx.send(f"**Successfully updated your birthday, {member.mention}! (`{formatted_birthday}`)**")
 
-
-        print('INSERT', f"{day}-{month} tzinfo={the_timezone}")
         await self.insert_user_birthday(member.id, day, month, the_timezone)
-        await ctx.send(f"**Successfully added your birthday, {member.mention}!**")
+        await ctx.send(f"**Successfully added your birthday, {member.mention}! (`{formatted_birthday}`)**")
