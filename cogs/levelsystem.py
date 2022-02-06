@@ -197,7 +197,8 @@ class LevelSystem(commands.Cog):
         if xp := xp_levels.get(str(level)):
             return xp
 
-        return level * 6000
+        # After level 121 (XP: 18.3 million), each subsequent level gets harder and harder following a parabola.
+        return 18300000 + 180000*(level - 120)**2
 
 
 
