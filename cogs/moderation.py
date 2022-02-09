@@ -223,11 +223,6 @@ class Moderation(*moderation_cogs):
 			await message.delete()
 			await self.warn(ctx=ctx, member=message.author, reason="Mass Mention")
 
-		# Checks whether it's an invite
-		if 'discord.gg/' in str(message.content).lower():
-			await message.delete()
-			return await message.author.send("**Please, stop sending invites! (Invite Advertisement)**")
-
 		# Invite tracker
 		msg = str(message.content)
 		if 'discord.gg/' in msg.lower() or 'discord.com/invite/' in msg.lower():
