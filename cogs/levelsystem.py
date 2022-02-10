@@ -155,7 +155,14 @@ class LevelSystem(commands.Cog):
         if the_member:
             if time_xp - the_member[0][3] >= 20 or the_member[0][1] == 0:
                 await self.update_user_xp_time(user.id, time_xp)
-                new_xp = int(self.xp_rate + (self.xp_rate * self.xp_multiplier)/ 100)
+                # Messages are worth more XP in certain channels
+                channel_multipliers = {
+                    762396292877647894: 3, # event-chat
+                    724768002116943933: 2, # french-help-and-discussion-1
+                    763367032871059466: 2, # french-help-and-discussion-2
+                    746117484205310093: 2, # aide-avec-langlais
+                }
+                new_xp = int((self.xp_rate + (self.xp_rate * self.xp_multiplier)/ 100) * channel_multipliers.get(channel.id, 1))
                 await self.update_user_xp(user.id, new_xp)
                 return await self.level_up(user, channel)
         else:
