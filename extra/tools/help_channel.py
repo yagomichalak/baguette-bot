@@ -3,6 +3,7 @@ from discord.ext import commands
 import os
 
 help_channel_id: int = int(os.getenv('HELP_CHANNEL_ID'))
+help_channel2_id: int = int(os.getenv('HELP_CHANNEL2_ID'))
 
 class HelpChannel(commands.Cog):
     """ Category for the help channel feature. """
@@ -19,9 +20,8 @@ class HelpChannel(commands.Cog):
         if not message.guild:
             return
 
-        if message.channel.id != help_channel_id:
+        if message.channel.id not in [help_channel_id, help_channel2_id]:
             return
 
-        help_channel = discord.utils.get(message.guild.text_channels, id=help_channel_id)
-        thread = await message.create_thread(name="Help Thread")
+        await message.create_thread(name="Help Thread")
         
