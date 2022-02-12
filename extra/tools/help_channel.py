@@ -5,6 +5,7 @@ import os
 help_channel_id: int = int(os.getenv('HELP_CHANNEL_ID'))
 help_channel2_id: int = int(os.getenv('HELP_CHANNEL2_ID'))
 no_thread_role_id: int = int(os.getenv('NO_THREAD_ROLE_ID'))
+declinator_bot_id: int = int(os.getenv('DECLINATOR_BOT_ID'))
 
 class HelpChannel(commands.Cog):
     """ Category for the help channel feature. """
@@ -27,5 +28,9 @@ class HelpChannel(commands.Cog):
         if message.author.get_role(no_thread_role_id):
             return
 
-        await message.create_thread(name="Help Thread")
+        thread = await message.create_thread(name="Help Thread")
+        try:
+            await thread.add_user(declinator_bot_id)
+        except:
+            pass
         
