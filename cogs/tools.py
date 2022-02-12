@@ -4,9 +4,10 @@ import os
 from typing import List
 
 from extra.tools.help_channel import HelpChannel
+from extra.tools.user_voice import UserVoiceTable, UserVoiceSystem
 
 tool_cogs: List[commands.Cog] = [
-    HelpChannel
+    HelpChannel, UserVoiceTable, UserVoiceSystem
 ]
 
 

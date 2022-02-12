@@ -59,7 +59,7 @@ class UserVoiceSystem(commands.Cog):
         # Join
         if ac and not bc:
             if not after.self_mute and not after.self_deaf and not after.mute and not after.deaf and after.channel.id != afk_channel_id:
-                await self.update_user_server_timestamp(member.id, current_ts)
+                await self.update_user_voice_timestamp(member.id, current_ts)
 
         # Switch
         elif (ac and bc) and (bc.id != ac.id) and not after.self_mute and not after.mute and not after.deaf:
@@ -67,77 +67,77 @@ class UserVoiceSystem(commands.Cog):
             people_in_vc: int = len([m for m in bc.members if not m.bot and m.id]) +1
 
             if people_in_vc < 2 or after.self_mute or after.mute or after.deaf or after.channel.id == afk_channel_id:
-                return await self.update_user_server_time(member.id, 0, current_ts)
+                return await self.update_user_voice_time(member.id, 0, current_ts)
 
             increment: int = current_ts - user_info[3]
 
-            await self.update_user_server_time(member.id, increment, current_ts)
+            await self.update_user_voice_time(member.id, increment, current_ts)
 
         # Muted/unmuted
         elif (ac and bc) and (bc.id == ac.id) and before.self_mute != after.self_mute:
 
             if not after.self_mute and not after.self_deaf and not after.mute and not after.deaf and after.channel.id != afk_channel_id:
-                return await self.update_user_server_timestamp(member.id, current_ts)
+                return await self.update_user_voice_timestamp(member.id, current_ts)
 
 
             increment: int = current_ts - user_info[3]
             people_in_vc: int = len([m for m in bc.members if not m.bot and m.id])
             if people_in_vc < 2 or after.self_mute or after.self_deaf:
-                return await self.update_user_server_time(member.id, increment, None)
+                return await self.update_user_voice_time(member.id, increment, None)
 
 
-            await self.update_user_server_time(member.id, increment, current_ts)
+            await self.update_user_voice_time(member.id, increment, current_ts)
 
         # Deafened/undeafened
         elif (ac and bc) and (bc.id == ac.id) and before.self_deaf != after.self_deaf:
 
             if not after.self_mute and not after.self_deaf and not after.mute and not after.deaf and after.channel.id != afk_channel_id:
-                return await self.update_user_server_timestamp(member.id, current_ts)
+                return await self.update_user_voice_timestamp(member.id, current_ts)
 
             increment: int = current_ts - user_info[3] # Fix this, index out of range sometimes
             people_in_vc: int = len([m for m in bc.members if not m.bot and m.id])
             if people_in_vc < 2 or after.self_mute or after.self_deaf:
-                return await self.update_user_server_time(member.id, increment, None)
+                return await self.update_user_voice_time(member.id, increment, None)
 
-            await self.update_user_server_time(member.id, increment, current_ts)
+            await self.update_user_voice_time(member.id, increment, current_ts)
 
         # Server Muted/unmuted
         elif (ac and bc) and (bc.id == ac.id) and before.mute != after.mute:
 
             if not after.self_mute and not after.self_deaf and not after.mute and not after.deaf and after.channel.id != afk_channel_id:
-                return await self.update_user_server_timestamp(member.id, current_ts)
+                return await self.update_user_voice_timestamp(member.id, current_ts)
 
 
             increment: int = current_ts - user_info[3]
             people_in_vc: int = len([m for m in bc.members if not m.bot and m.id])
             if people_in_vc < 2 or after.mute or after.deaf:
-                return await self.update_user_server_time(member.id, increment, None)
+                return await self.update_user_voice_time(member.id, increment, None)
 
-            await self.update_user_server_time(member.id, increment, current_ts)
+            await self.update_user_voice_time(member.id, increment, current_ts)
 
         # Server Deafened/undeafened
         elif (ac and bc) and (bc.id == ac.id) and before.deaf != after.deaf:
 
             if not after.self_mute and not after.self_deaf and not after.mute and not after.deaf and after.channel.id != afk_channel_id:
-                return await self.update_user_server_timestamp(member.id, current_ts)
+                return await self.update_user_voice_timestamp(member.id, current_ts)
 
 
             increment: int = current_ts - user_info[3]
             people_in_vc: int = len([m for m in bc.members if not m.bot])
             if people_in_vc < 2 or after.mute or after.deaf:
-                return await self.update_user_server_time(member.id, increment, None)
+                return await self.update_user_voice_time(member.id, increment, None)
 
-            await self.update_user_server_time(member.id, increment, current_ts)
+            await self.update_user_voice_time(member.id, increment, current_ts)
         
         # Leave
         elif bc and not ac:
 
             people_in_vc: int = len([m for m in bc.members if not m.bot])
             if people_in_vc < 2 or before.self_mute or before.mute or before.deaf or before.channel.id == afk_channel_id:
-                return await self.update_user_server_timestamp(member.id, None)
+                return await self.update_user_voice_timestamp(member.id, None)
         
 
-            await self.update_user_server_time(member.id, increment)
+            await self.update_user_voice_time(member.id, increment)
 
 
 class UserVoiceTable(commands.Cog):
