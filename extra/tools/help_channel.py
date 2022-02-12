@@ -29,7 +29,7 @@ class HelpChannel(commands.Cog):
         if message.author.get_role(no_thread_role_id):
             return
 
-        thread = await message.create_thread(name="Help Thread")
+        thread = await message.create_thread(name=str(message.author))
         try:
             if bot := discord.utils.get(message.guild.members, id=declinator_bot_id):
                 await thread.add_user(bot)
