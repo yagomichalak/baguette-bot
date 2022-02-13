@@ -210,7 +210,7 @@ async def help(ctx, *, cmd: str =  None):
     if not cmd:
         embed = discord.Embed(
             title="All commands and categories",
-            description=f"```ini\nUse {client.command_prefix}help command or {client.command_prefix}help category to know more about a specific command or category\n\n[Examples]\n[1] Category: {client.command_prefix}help SlothCurrency\n[2] Command : {client.command_prefix}help rep```",
+            description=f"```ini\nUse {client.command_prefix}help command or {client.command_prefix}help category to know more about a specific command or category\n\n[Examples]\n[1] Category: {client.command_prefix}help Misc\n[2] Command : {client.command_prefix}help setreminder```",
             timestamp=ctx.message.created_at,
             color=ctx.author.color
             )
