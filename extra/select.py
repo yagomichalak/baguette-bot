@@ -13,7 +13,7 @@ class ReportSupportSelect(discord.ui.Select):
             min_values=1, max_values=1, 
             options=[
                 discord.SelectOption(label="Report", description="Report a user or issue / Signaler un problème", emoji="🔨"),
-                discord.SelectOption(label="Server", description="Ask a server question / Poser une question par rapport au serveur", emoji="❓"),
+                discord.SelectOption(label="Server", value="Question", description="Ask a server question / Poser une question par rapport au serveur", emoji="❓"),
                 # discord.SelectOption(label="Complaint", description="Make a complaint / Faire une plainte en rapport avec serveur", emoji="🆘"),
                 discord.SelectOption(label="Nevermind", description="Nevermind / Laisse tomber", emoji="🤔"),
             ])
@@ -38,7 +38,7 @@ class ReportSupportSelect(discord.ui.Select):
         if option == 'Nevermind':
             return await interaction.followup.send("**Understandable, have a nice day!**", ephemeral=True)
 
-        if option == 'Report':
+        if option == 'Question':
             data['message'] = f"Please, {member.mention}, try to explain what happened and how we can help you with."
             data["pings"] = [{"id": staff_role_id, "role": True}]
 
