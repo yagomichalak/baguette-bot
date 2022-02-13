@@ -14,7 +14,7 @@ class ReportSupportSelect(discord.ui.Select):
             options=[
                 discord.SelectOption(label="Report", description="Report a user or issue / Signaler un problème", emoji="🔨"),
                 discord.SelectOption(label="Server", description="Ask a server question / Poser une question par rapport au serveur", emoji="❓"),
-                discord.SelectOption(label="Complaint", description="Make a complaint / Faire une plainte en rapport avec serveur", emoji="🆘"),
+                # discord.SelectOption(label="Complaint", description="Make a complaint / Faire une plainte en rapport avec serveur", emoji="🆘"),
                 discord.SelectOption(label="Nevermind", description="Nevermind / Laisse tomber", emoji="🤔"),
             ])
         self.client = client
@@ -45,9 +45,9 @@ class ReportSupportSelect(discord.ui.Select):
         elif option == 'Server':
             data['message'] = f"Please, {member.mention}, try to explain what kind of help you want related to the server."
                 
-        elif option == 'Complaint':
-            data['message'] = f"Please, {member.mention}, inform us what roles you want, and if you spotted a specific problem with the reaction-role selection."
-            data["pings"] = [{"id": lucas_id, "role": False}]
+        # elif option == 'Complaint':
+        #     data['message'] = f"Please, {member.mention}, inform us what roles you want, and if you spotted a specific problem with the reaction-role selection."
+        #     data["pings"] = [{"id": lucas_id, "role": False}]
             
         data['formatted_pings'] = await self.format_ticket_pings(interaction.guild, data['pings'])
         await self.cog.open_ticket(interaction, member, interaction.guild, data)
