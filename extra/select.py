@@ -12,10 +12,10 @@ class ReportSupportSelect(discord.ui.Select):
             custom_id="report_support_select", placeholder="Select what kind of Help you need", 
             min_values=1, max_values=1, 
             options=[
-                discord.SelectOption(label="Report", description="Report a user or issue.", emoji="🔨"),
-                discord.SelectOption(label="Server", description="Ask a server question.", emoji="❓"),
-                discord.SelectOption(label="Complaint", description="Make a complaint.", emoji="🆘"),
-                discord.SelectOption(label="Nevermind", description="Reset the state of this menu.", emoji="🤔"),
+                discord.SelectOption(label="Report", description="Report a user or issue / Signaler un problème", emoji="🔨"),
+                discord.SelectOption(label="Server", description="Ask a server question / Poser une question par rapport au serveur", emoji="❓"),
+                discord.SelectOption(label="Complaint", description="Make a complaint / Faire une plainte en rapport avec serveur", emoji="🆘"),
+                discord.SelectOption(label="Nevermind", description="Nevermind / Laisse tomber", emoji="🤔"),
             ])
         self.client = client
         self.cog = client.get_cog('Ticket')
