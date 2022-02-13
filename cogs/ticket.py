@@ -43,9 +43,9 @@ class Ticket(*moderation_cogs):
 		guild = ctx.guild
 		embed = discord.Embed(
 			title="__Create a Ticket / Créer un Ticket__",
-			description="""🇬🇧 If you have a problem in the server or with a user and would like us to have a look, click the reaction below to create a ticket.
+			description="""🇬🇧 If you require assistance in the server, have a question or would like to report a user, select the type of help you need below.
 
-🇫🇷 Si vous avez un problème sur le serveur, avec une ou plusieurs personnes, et que vous voulez qu'on y jette un œil, cliquez sur la réaction ci-dessous pour créer un ticket.""",
+🇫🇷 Si vous avez besoin d'aide sur le serveur, avez une question ou voudriez signaler un utilisateur, sélectionnez le type d'aide dont vous avez besoin ci-dessous.""",
 			color=ctx.author.color,
 			timestamp=ctx.message.created_at,
 		)
