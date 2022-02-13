@@ -37,6 +37,7 @@ class ColourRoles(commands.Cog):
 			"Booster Pink": 862732594188648478,
 			"Member Role": 726222316174049280,
 			"Stegadon Green": 880127231488315432,
+			"No Idea": 942435771116318823,
 			
 			"Admin": 821216341041086495,
 			"Moderator": 821215885858963508,
