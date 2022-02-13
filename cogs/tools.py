@@ -4,9 +4,10 @@ import os
 from typing import List
 
 from extra.tools.help_channel import HelpChannel
+from extra.tools.scheduled_events import ScheduledEventsSystem
 
 tool_cogs: List[commands.Cog] = [
-    HelpChannel
+    HelpChannel, ScheduledEventsSystem
 ]
 
 
@@ -23,6 +24,7 @@ class Tools(*tool_cogs):
     async def on_ready(self) -> None:
         """ Tells when the cog is ready to go. """
 
+        self.advertise_patreon.start()
         print('Tool cog is online!')
 
 
