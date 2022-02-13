@@ -5,9 +5,10 @@ from typing import List
 
 from extra.tools.help_channel import HelpChannel
 from extra.tools.scheduled_events import ScheduledEventsSystem
+from extra.tools.user_voice import UserVoiceTable, UserVoiceSystem
 
 tool_cogs: List[commands.Cog] = [
-    HelpChannel, ScheduledEventsSystem
+    HelpChannel, UserVoiceTable, UserVoiceSystem, ScheduledEventsSystem
 ]
 
 
