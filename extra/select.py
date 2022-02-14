@@ -40,10 +40,10 @@ class ReportSupportSelect(discord.ui.Select):
 
         if option == 'Question':
             data['message'] = f"Please, {member.mention}, try to explain what happened and how we can help you with."
-            data["pings"] = [{"id": staff_role_id, "role": True}]
 
         elif option == 'Server':
             data['message'] = f"Please, {member.mention}, try to explain what kind of help you want related to the server."
+            data["pings"] = [{"id": staff_role_id, "role": True}]
                 
         # elif option == 'Complaint':
         #     data['message'] = f"Please, {member.mention}, inform us what roles you want, and if you spotted a specific problem with the reaction-role selection."
