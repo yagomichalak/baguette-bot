@@ -56,8 +56,8 @@ class UserVoiceSystem(commands.Cog):
         ac = after.channel
 
         user_info = await self.get_user_voice(member.id)
-        if not user_info and not after.self_mute:
-            if ac:
+        if not user_info:
+            if ac and not after.self_mute:
                 return await self.insert_user_voice(member.id, current_ts)
             else:
                 return await self.insert_user_voice(member.id)
