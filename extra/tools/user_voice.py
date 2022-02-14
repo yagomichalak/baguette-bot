@@ -40,16 +40,10 @@ class UserVoiceSystem(commands.Cog):
         #     return
 
         if before.self_stream != after.self_stream:
-            if not before.self_stream and after.self_stream:
-                return
-            if bc == ac:
-                return
+            return
 
         if before.self_video != after.self_video:
-            if not before.self_video and after.self_video:
-                return
-            if bc == ac:
-                return
+            return
 
         # Get before/after channels and their categories
         bc = before.channel
