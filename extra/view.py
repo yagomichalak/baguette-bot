@@ -3,6 +3,7 @@ from extra import utils
 from discord.ext import commands
 from typing import List, Union, Optional, Dict, Any
 from functools import partial
+from .select import ReportSupportSelect
 
 class BasicUserCheckView(discord.ui.View):
 
@@ -105,3 +106,27 @@ class RulesView(discord.ui.View):
         """ Checks whether the user who clicked on the button was the one who ran the command. """
 
         return self.member.id == interaction.user.id
+
+
+
+class ReportSupportView(discord.ui.View):
+
+    def __init__(self, client: commands.Bot) -> None:
+        super().__init__(timeout=None)
+        self.client = client
+        self.cog = client.get_cog('Ticket')
+        self.add_item(ReportSupportSelect(client))
+
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+
+        await interaction.message.edit(view=self)
+        member = interaction.user
+        member_ts = self.cog.report_cache.get(member.id)
+        time_now = await utils.get_timestamp()
+        if member_ts:
+            sub = time_now - member_ts
+            if sub <= 240:
+                return await interaction.response.send_message(
+                    f"**You are on cooldown to report, try again in {round(240-sub)} seconds**", ephemeral=True)
+
+        return True
