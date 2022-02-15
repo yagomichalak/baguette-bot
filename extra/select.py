@@ -38,12 +38,12 @@ class ReportSupportSelect(discord.ui.Select):
         if option == 'Nevermind':
             return await interaction.followup.send("**Understandable, have a nice day!**", ephemeral=True)
 
-        if option == 'Question':
+        if option == 'Report':
             data['message'] = f"Please, {member.mention}, try to explain what happened and how we can help you with."
-
-        elif option == 'Server':
-            data['message'] = f"Please, {member.mention}, try to explain what kind of help you want related to the server."
             data["pings"] = [{"id": staff_role_id, "role": True}]
+
+        elif option == 'Question':
+            data['message'] = f"Please, {member.mention}, try to explain what kind of help you want related to the server."
                 
         # elif option == 'Complaint':
         #     data['message'] = f"Please, {member.mention}, inform us what roles you want, and if you spotted a specific problem with the reaction-role selection."
