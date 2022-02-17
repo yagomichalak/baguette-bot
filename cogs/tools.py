@@ -4,11 +4,12 @@ import os
 from typing import List
 
 from extra.tools.help_channel import HelpChannel
-from extra.tools.scheduled_events import ScheduledEventsSystem
+from extra.tools.scheduled_events import ScheduledEventsSystem, ScheduledEventsTable
 from extra.tools.user_voice import UserVoiceTable, UserVoiceSystem
 
 tool_cogs: List[commands.Cog] = [
-    HelpChannel, UserVoiceTable, UserVoiceSystem, ScheduledEventsSystem
+    HelpChannel, UserVoiceTable, UserVoiceSystem,
+    ScheduledEventsSystem, ScheduledEventsTable
 ]
 
 
