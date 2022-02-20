@@ -18,7 +18,8 @@ class Tools(*tool_cogs):
 
     def __init__(self, client: commands.Bot) -> None:
         """ Class init method. """
-
+        
+        super().__init__(self)
         self.client = client
 
 

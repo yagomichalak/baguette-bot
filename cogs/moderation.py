@@ -180,7 +180,7 @@ class Moderation(*moderation_cogs):
 			# Checks ID of the new role and compares to the Staff role ID.
 			if new_role.id == staff_role_id:
 				if not await self.get_staff_member(after.id):
-					staff_at = await self.client.get_cog('Misc').get_gtm_now()
+					staff_at = await utils.get_time()
 					staff_at = staff_at.strftime('%Y/%m/%d at %H:%M:%S')
 					# Creates a new Staff member entry in the database.
 					await self.insert_staff_member(user_id=after.id, infractions_given=0, staff_at=staff_at)
@@ -610,7 +610,8 @@ class Moderation(*moderation_cogs):
 
 			staff_member = ctx.author
 			if not await self.get_staff_member(staff_member.id):
-				staff_at = await self.client.get_cog('Misc').get_gtm_now().strftime('%Y/%m/%d at %H:%M:%S')
+				staff_at = await utils.get_time()
+				staff_at = staff_at.strftime('%Y/%m/%d at %H:%M:%S')
 				return await self.insert_staff_member(
 					user_id=staff_member.id, infractions_given=1, staff_at=staff_at)
 			else:
@@ -904,7 +905,8 @@ class Moderation(*moderation_cogs):
 
 				staff_member = ctx.author
 				if not await self.get_staff_member(staff_member.id):
-					staff_at = await self.client.get_cog('Misc').get_gtm_now().strftime('%Y/%m/%d at %H:%M:%S')
+					staff_at = await utils.get_time()
+					staff_at = staff_at.strftime('%Y/%m/%d at %H:%M:%S')
 					return await self.insert_staff_member(
 						user_id=staff_member.id, infractions_given=1, staff_at=staff_at)
 				else:
@@ -936,7 +938,8 @@ class Moderation(*moderation_cogs):
 
 			staff_member = ctx.author
 			if not (staff_member_info := await self.get_staff_member(staff_member.id)):
-				staff_at = await self.client.get_cog('Misc').get_gtm_now().strftime('%Y/%m/%d at %H:%M:%S')
+				staff_at = await utils.get_time()
+				staff_at = staff_at.strftime('%Y/%m/%d at %H:%M:%S')
 				return await self.insert_staff_member(
 					user_id=staff_member.id, infractions_given=1, staff_at=staff_at, 
 					bans_today=1, ban_timestamp=current_ts)
@@ -1010,7 +1013,8 @@ class Moderation(*moderation_cogs):
 
 			staff_member = ctx.author
 			if not (staff_member_info := await self.get_staff_member(staff_member.id)):
-				staff_at = await self.client.get_cog('Misc').get_gtm_now().strftime('%Y/%m/%d at %H:%M:%S')
+				staff_at = await utils.get_time()
+				staff_at = staff_at.strftime('%Y/%m/%d at %H:%M:%S')
 				return await self.insert_staff_member(
 					user_id=staff_member.id, infractions_given=1, staff_at=staff_at, 
 					bans_today=1, ban_timestamp=current_ts)
