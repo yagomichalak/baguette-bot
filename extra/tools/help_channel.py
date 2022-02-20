@@ -8,6 +8,7 @@ help_channel2_id: int = int(os.getenv('HELP_CHANNEL2_ID'))
 help_channel3_id: int = int(os.getenv('HELP_CHANNEL3_ID'))
 no_thread_role_id: int = int(os.getenv('NO_THREAD_ROLE_ID'))
 declinator_bot_id: int = int(os.getenv('DECLINATOR_BOT_ID'))
+suggestion_channel_id: int = int(os.getenv('SUGGESTION_CHANNEL_ID'))
 
 class HelpChannel(commands.Cog):
     """ Category for the help channel feature. """
@@ -20,26 +21,7 @@ class HelpChannel(commands.Cog):
         self.reactions: List[str] = [
             '⬆', '⬇', '✅', '❌', '❔'
         ]
-
-    # @commands.Cog.listener()
-    # async def on_message(self, message) -> None:
-    #     """ Checks whether the message was sent in the help channel. """
-
-    #     if not message.guild:
-    #         return
-
-    #     if message.channel.id not in [help_channel_id, help_channel2_id, help_channel3_id]:
-    #         return
-
-    #     if message.author.get_role(no_thread_role_id):
-    #         return
-
-    #     thread = await message.create_thread(name=str(message.author))
-    #     try:
-    #         if bot := discord.utils.get(message.guild.members, id=declinator_bot_id):
-    #             await thread.add_user(bot)
-    #     except:
-    #         pass
+        self.suggestion_channel_id: int = suggestion_channel_id
 
     @commands.Cog.listener(name='on_raw_reaction_add')
     async def on_raw_reaction_add_suggestion(self, payload) -> None:
@@ -53,7 +35,7 @@ class HelpChannel(commands.Cog):
         if not payload.member or payload.member.bot:
             return
 
-        if payload.channel_id not in self.help_channels:
+        if payload.channel_id != self.suggestion_channel_id:
             return
 
         guild = self.client.get_guild(payload.guild_id)
@@ -85,27 +67,47 @@ class HelpChannel(commands.Cog):
                     await thread.add_user(bot)
             except:
                 pass
-    @commands.Cog.listener()
-    async def on_message(self, message) -> None:
+
+    @commands.Cog.listener(name="on_message")
+    async def on_message_suggestion_channel(self, message) -> None:
         """ Checks whether the message was sent in the help channel. """
 
 
         if not message.guild:
             return
 
-        if message.channel.id not in self.help_channels:
+        if message.channel.id != self.suggestion_channel_id:
             return
-        print('no')
+
         if message.author.get_role(no_thread_role_id):
             return
 
         for reaction in self.reactions:
             await message.add_reaction(reaction)
 
-        # thread = await message.create_thread(name=str(message.author))
-        # try:
-        #     if bot := discord.utils.get(message.guild.members, id=declinator_bot_id):
-        #         await thread.add_user(bot)
-        # except:
-        #     pass
-        
+        thread = await message.create_thread(name=str(message.author))
+        try:
+            if bot := discord.utils.get(message.guild.members, id=declinator_bot_id):
+                await thread.add_user(bot)
+        except:
+            pass
+
+    @commands.Cog.listener(name="on_message")
+    async def on_message_help_channel(self, message) -> None:
+        """ Checks whether the message was sent in the help channel. """
+
+        if not message.guild:
+            return
+
+        if message.channel.id not in [help_channel_id, help_channel2_id, help_channel3_id]:
+            return
+
+        if message.author.get_role(no_thread_role_id):
+            return
+
+        thread = await message.create_thread(name=str(message.author))
+        try:
+            if bot := discord.utils.get(message.guild.members, id=declinator_bot_id):
+                await thread.add_user(bot)
+        except:
+            pass
