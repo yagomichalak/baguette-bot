@@ -31,33 +31,50 @@ class HelpChannel(commands.Cog):
         if not payload.guild_id:
             return
 
+        member = payload.member
+
         # Checks whether it's a valid member and not a bot
-        if not payload.member or payload.member.bot:
+        if not member or member.bot:
             return
 
         if payload.channel_id != self.suggestion_channel_id:
             return
 
         guild = self.client.get_guild(payload.guild_id)
-        if guild.owner_id != payload.member.id:
+
+        if guild.owner_id != member.id:
             return
 
         emoji = str(payload.emoji)
         channel = self.client.get_channel(payload.channel_id)
         message = await channel.fetch_message(payload.message_id)
-
+        if message.author.bot:
+            return
 
         # Checks whether it's a steal
         if emoji == '✅':
+            try:
+                embed = discord.Embed(
+                    title="__Approved Suggestion__",
+                    description=message.content,
+                    color=member.color,
+                    timestamp=message.created_at
+                )
+                embed.set_thumbnail(url=member.display_avatar)
+                embed.set_footer(text=f"Suggested by: {member}", icon_url=member.display_avatar)
+                await channel.send(embed=embed)
+            except:
+                pass
+            finally:
+                await message.delete()
+
+        elif emoji == '❌':
             try:
                 await message.clear_reactions()
             except:
                 pass
             finally:
-                await message.add_reaction('✅')
-
-        elif emoji == '❌':
-            await message.delete()
+                await message.add_reaction('❌')
 
         elif emoji == '❔':
             try:
@@ -75,6 +92,9 @@ class HelpChannel(commands.Cog):
 
         if not message.guild:
             return
+        
+        if message.author.bot:
+            return
 
         if message.channel.id != self.suggestion_channel_id:
             return
@@ -84,13 +104,6 @@ class HelpChannel(commands.Cog):
 
         for reaction in self.reactions:
             await message.add_reaction(reaction)
-
-        thread = await message.create_thread(name=str(message.author))
-        try:
-            if bot := discord.utils.get(message.guild.members, id=declinator_bot_id):
-                await thread.add_user(bot)
-        except:
-            pass
 
     @commands.Cog.listener(name="on_message")
     async def on_message_help_channel(self, message) -> None:
