@@ -78,7 +78,7 @@ class HelpChannel(commands.Cog):
 
         elif emoji == '❔':
             try:
-                thread = await message.create_thread(name=str(message.author))
+                thread = await message.create_thread(name=str(message.author.nick or message.author))
                 await thread.send(f"**Your suggestion has been brought here to this thread for review, {payload.member.mention}!**")
                 if bot := discord.utils.get(message.guild.members, id=declinator_bot_id):
                     await thread.add_user(bot)
