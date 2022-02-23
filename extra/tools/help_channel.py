@@ -57,11 +57,11 @@ class HelpChannel(commands.Cog):
                 embed = discord.Embed(
                     title="__Approved Suggestion__",
                     description=message.content,
-                    color=member.color,
+                    color=message.author.color,
                     timestamp=message.created_at
                 )
-                embed.set_thumbnail(url=member.display_avatar)
-                embed.set_footer(text=f"Suggested by: {member}", icon_url=member.display_avatar)
+                embed.set_thumbnail(url=message.author.member.display_avatar)
+                embed.set_footer(text=f"Suggested by: {message.author.nick or message.author}", icon_url=message.author.display_avatar)
                 await channel.send(embed=embed)
             except:
                 pass
