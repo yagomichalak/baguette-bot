@@ -60,7 +60,7 @@ class HelpChannel(commands.Cog):
                     color=message.author.color,
                     timestamp=message.created_at
                 )
-                embed.set_thumbnail(url=message.author.member.display_avatar)
+                embed.set_thumbnail(url=message.author.display_avatar)
                 embed.set_footer(text=f"Suggested by: {message.author.nick or message.author}", icon_url=message.author.display_avatar)
                 await channel.send(embed=embed)
             except:
