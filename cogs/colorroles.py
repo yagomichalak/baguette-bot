@@ -38,6 +38,8 @@ class ColourRoles(commands.Cog):
 			"Member Role": 726222316174049280,
 			"Stegadon Green": 880127231488315432,
 			"No Idea": 942435771116318823,
+			"Blue Skies": 947352119286038651,
+			"Sunflowers": 947351550395822090,
 			
 			"Admin": 821216341041086495,
 			"Moderator": 821215885858963508,
