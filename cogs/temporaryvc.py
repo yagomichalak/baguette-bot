@@ -207,7 +207,7 @@ class TemporaryVc(commands.Cog):
 					pass
 
 		await voice.channel.set_permissions(member, connect=False, speak=False, view_channel=True)
-		await ctx.send(f"**{member.mention} has been forbade from {voice.channel.mention}, {author.mention}!**")
+		await ctx.send(f"**{member.mention} has been forbidden from {voice.channel.mention}, {author.mention}!**")
 
 	@voice.command()
 	@Misc.check_whitelist()
