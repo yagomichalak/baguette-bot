@@ -12,11 +12,13 @@ from extra import utils
 import emoji
 from cogs.misc import Misc
 
-owner_role_id = int(os.getenv('OWNER_ROLE_ID'))
-admin_role_id = int(os.getenv('ADMIN_ROLE_ID'))
-mod_role_id = int(os.getenv('MOD_ROLE_ID'))
-jr_mod_role_id = int(os.getenv('JR_MOD_ROLE_ID'))
-trial_mod_role_id = int(os.getenv('TRIAL_MOD_ROLE_ID'))
+owner_role_id: int = int(os.getenv('OWNER_ROLE_ID'))
+admin_role_id: int = int(os.getenv('ADMIN_ROLE_ID'))
+mod_role_id: int = int(os.getenv('MOD_ROLE_ID'))
+jr_mod_role_id: int = int(os.getenv('JR_MOD_ROLE_ID'))
+trial_mod_role_id: int = int(os.getenv('TRIAL_MOD_ROLE_ID'))
+afk_channel_id: int = int(os.getenv('AFK_CHANNEL_ID'))
+game_channel_id: int = int(os.getenv('GAME_VOICE_CHANNEL_ID'))
 
 allowed_roles = [owner_role_id, admin_role_id, mod_role_id, jr_mod_role_id, trial_mod_role_id]
 
@@ -123,7 +125,7 @@ class LevelSystem(commands.Cog):
 
         Misc = self.client.get_cog('Misc')
 
-        if not ac: # and bc.id != afk_channel_id:
+        if not ac and bc.id not in (game_channel_id, afk_channel_id):
             if addition is not None:
                 await self.update_user_server_time(user_id=member.id, add_time=addition, reset_ts=True)
                 await Misc.update_user_server_status_vc_time(status_ts=current_ts, addition=addition, label="daily-time", past_days=1, channel_id=bc.id)

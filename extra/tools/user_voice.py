@@ -9,6 +9,7 @@ import os
 import asyncio
 
 afk_channel_id: int = int(os.getenv('AFK_CHANNEL_ID'))
+game_channel_id: int = int(os.getenv('GAME_VOICE_CHANNEL_ID'))
 guild_ids: List[int] = [int(os.getenv('SERVER_ID'))]
 
 class UserVoiceSystem(commands.Cog):
@@ -61,7 +62,7 @@ class UserVoiceSystem(commands.Cog):
 
         # Join
         if ac and not bc:
-            if not after.self_mute and not after.self_deaf and not after.mute and not after.deaf and after.channel.id != afk_channel_id:
+            if not after.self_mute and not after.self_deaf and not after.mute and not after.deaf and after.channel.id not in (game_channel_id, afk_channel_id):
                 await self.update_user_voice_timestamp(member.id, current_ts)
 
         # Switch
@@ -69,7 +70,7 @@ class UserVoiceSystem(commands.Cog):
 
             people_in_vc: int = len([m for m in bc.members if not m.bot and m.id]) +1
 
-            if people_in_vc < 2 or after.self_mute or after.mute or after.deaf or after.channel.id == afk_channel_id:
+            if people_in_vc < 2 or after.self_mute or after.mute or after.deaf or after.channel.id in (game_channel_id, afk_channel_id):
                 return await self.update_user_voice_time(member.id, 0, current_ts)
 
             if user_info[2]:
@@ -79,7 +80,7 @@ class UserVoiceSystem(commands.Cog):
         # Muted/unmuted
         elif (ac and bc) and (bc.id == ac.id) and before.self_mute != after.self_mute:
 
-            if not after.self_mute and not after.self_deaf and not after.mute and not after.deaf and after.channel.id != afk_channel_id:
+            if not after.self_mute and not after.self_deaf and not after.mute and not after.deaf and after.channel.id not in (game_channel_id, afk_channel_id):
                 return await self.update_user_voice_timestamp(member.id, current_ts)
 
             people_in_vc: int = len([m for m in bc.members if not m.bot and m.id])
@@ -93,7 +94,7 @@ class UserVoiceSystem(commands.Cog):
         # Deafened/undeafened
         elif (ac and bc) and (bc.id == ac.id) and before.self_deaf != after.self_deaf:
 
-            if not after.self_mute and not after.self_deaf and not after.mute and not after.deaf and after.channel.id != afk_channel_id:
+            if not after.self_mute and not after.self_deaf and not after.mute and not after.deaf and after.channel.id not in (game_channel_id, afk_channel_id):
                 return await self.update_user_voice_timestamp(member.id, current_ts)
 
             people_in_vc: int = len([m for m in bc.members if not m.bot and m.id])
@@ -107,7 +108,7 @@ class UserVoiceSystem(commands.Cog):
         # Server Muted/unmuted
         elif (ac and bc) and (bc.id == ac.id) and before.mute != after.mute:
 
-            if not after.self_mute and not after.self_deaf and not after.mute and not after.deaf and after.channel.id != afk_channel_id:
+            if not after.self_mute and not after.self_deaf and not after.mute and not after.deaf and after.channel.id not in (game_channel_id, afk_channel_id):
                 return await self.update_user_voice_timestamp(member.id, current_ts)
 
             people_in_vc: int = len([m for m in bc.members if not m.bot and m.id])
@@ -121,7 +122,7 @@ class UserVoiceSystem(commands.Cog):
         # Server Deafened/undeafened
         elif (ac and bc) and (bc.id == ac.id) and before.deaf != after.deaf:
 
-            if not after.self_mute and not after.self_deaf and not after.mute and not after.deaf and after.channel.id != afk_channel_id:
+            if not after.self_mute and not after.self_deaf and not after.mute and not after.deaf and after.channel.id not in (game_channel_id, afk_channel_id):
                 return await self.update_user_voice_timestamp(member.id, current_ts)
 
             people_in_vc: int = len([m for m in bc.members if not m.bot])
@@ -136,7 +137,7 @@ class UserVoiceSystem(commands.Cog):
         elif bc and not ac:
 
             people_in_vc: int = len([m for m in bc.members if not m.bot])
-            if people_in_vc < 2 or before.self_mute or before.mute or before.deaf or before.channel.id == afk_channel_id:
+            if people_in_vc < 2 or before.self_mute or before.mute or before.deaf or before.channel.id in (game_channel_id, afk_channel_id):
                 return await self.update_user_voice_timestamp(member.id, None)
         
             if user_info[2]:
