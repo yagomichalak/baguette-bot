@@ -195,13 +195,13 @@ class Moderation(*moderation_cogs):
 		if message.author.bot:
 			return
 
-		# perms = message.channel.permissions_for(message.author)
-		# if perms.administrator:
-		# 	return
+		perms = message.channel.permissions_for(message.author)
+		if perms.administrator:
+			return
 
-		# for role in message.author.roles:
-		# 	if role.id in allowed_roles:
-		# 		return
+		for role in message.author.roles:
+			if role.id in allowed_roles:
+				return
 
 		ctx = await self.client.get_context(message)
 		ctx.author = self.client.user
