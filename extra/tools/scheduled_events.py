@@ -6,6 +6,7 @@ from extra import utils
 import os
 from typing import List, Union
 
+dev_channel_id: int = int(os.getenv('DEV_CHANNEL_ID'))
 general_channel_id: int = int(os.getenv('GENERAL_CHANNEL_ID'))
 
 class ScheduledEventsSystem(commands.Cog):
@@ -21,7 +22,7 @@ class ScheduledEventsSystem(commands.Cog):
         """ Checks the time for advertising Patreon. """
 
         current_ts = await utils.get_timestamp()
-        # Checks whether Patreon advertising event exists
+        # Checks whether the Patreon advertising event exists
         if not await self.get_advertising_event(event_label='patreon_ad'):
             # If not, creates it
             return await self.insert_advertising_event(event_label='patreon_ad', current_ts=current_ts-10800)
@@ -38,6 +39,62 @@ class ScheduledEventsSystem(commands.Cog):
                 text = f.read()
             
             await general_channel.send(text)
+
+    @tasks.loop(seconds=60)
+    async def solve_broken_roles(self) -> None:
+        """ Checks the time for advertising Patreon. """
+
+        current_ts = await utils.get_timestamp()
+        # Checks whether the SolveBrokenRoles event exists
+        if not await self.get_advertising_event(event_label='solve_broken_roles'):
+            # If not, creates it
+            return await self.insert_advertising_event(event_label='solve_broken_roles', current_ts=current_ts-28800)
+
+        # Checks whether event time is due
+        if await self.check_advertising_time(
+            current_ts=int(current_ts), event_label="solve_broken_roles", ad_time=28800):
+            print("• Solving broken roles...")
+            # Updates time and advertises.
+            await self.update_advertising_time(event_label="solve_broken_roles", current_ts=current_ts)
+            dev_channel = self.client.get_channel(dev_channel_id)
+
+
+            mycursor, _ = await the_database()
+            await mycursor.execute("SELECT user_id, user_lvl FROM MemberStatus")
+            members = await mycursor.fetchall()
+            await mycursor.close()
+
+            sticky_roles = {
+                2: 862742944729268234,
+                5: 862742944243253279,
+            }
+
+            sticky_roles = {
+                role_lvl:role for role_lvl, role_id in sticky_roles.items() 
+                if (role := discord.utils.get(dev_channel.guild.roles, id=role_id))
+            }
+
+            await dev_channel.send(f"**Updating `{len(members)}` member role...**")
+            counter = 0
+            failed = 0
+            async with dev_channel.typing():
+
+                for member_db in members:
+
+                    if not (member := discord.utils.get(dev_channel.guild.members, id=member_db[0])):
+                        continue
+
+                    for role_lvl, role in sticky_roles.items():
+                        if member_db[1] >= role_lvl:
+                            if role not in member.roles:
+                                try:
+                                    await member.add_roles(role)
+                                except:
+                                    failed += 1
+                                else:
+                                    counter += 1
+
+            await dev_channel.send(f"**Successfully added {counter} lvl roles! Failed {failed} assignments!**")
 
 
     @tasks.loop(seconds=60)

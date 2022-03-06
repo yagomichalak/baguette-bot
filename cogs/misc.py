@@ -733,10 +733,9 @@ class Misc(*misc_cogs):
 	@commands.command(hidden=True)
 	@commands.has_permissions(administrator=True)
 	async def eval(self, ctx, *, body = None):
-		'''
-		(?) Executes a given command from Python onto Discord.
-		:param body: The body of the command.
-		'''
+		""" (?) Executes a given command from Python onto Discord.
+		:param body: The body of the command. """
+
 		if not ctx.guild:
 			return
 
