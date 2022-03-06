@@ -122,7 +122,6 @@ class ScheduledEventsSystem(commands.Cog):
 
         return current_time.hour in (12, 17, 22) and current_time.minute == 0
 
-
 class ScheduledEventsTable(commands.Cog):
     """ Class for managing the ScheduledEvents table in the database. """
 

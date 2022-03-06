@@ -45,16 +45,22 @@ class HelpChannel(commands.Cog):
         message = await channel.fetch_message(payload.message_id)
         guild = self.client.get_guild(payload.guild_id)
 
-        if guild.owner_id != member.id:
-            if emoji in ['✅', '❌', '❔']:
+        perms = channel.permissions_for(member)
+
+        is_owner = guild.owner_id == member.id
+        is_admin = perms.administrator
+
+        if not is_owner:
+            if emoji in ['✅', '❌']:
                 return await message.remove_reaction(emoji, member)
+
+        if not is_admin:
             return
 
         if message.author.bot:
             return
 
-        # Checks whether it's a steal
-        if emoji == '✅':
+        if emoji == '✅' and is_owner:
             try:
                 embed = discord.Embed(
                     title="__Approved Suggestion__",
@@ -70,7 +76,7 @@ class HelpChannel(commands.Cog):
             finally:
                 await message.delete()
 
-        elif emoji == '❌':
+        elif emoji == '❌' and is_owner:
             try:
                 await message.clear_reactions()
             except:
@@ -78,7 +84,7 @@ class HelpChannel(commands.Cog):
             finally:
                 await message.add_reaction('❌')
 
-        elif emoji == '❔':
+        elif emoji == '❔' and is_admin:
             try:
                 thread = await message.create_thread(name=str(message.author.nick or message.author))
                 await thread.send(f"**Your suggestion has been brought here to this thread for review, {payload.member.mention}!**")
