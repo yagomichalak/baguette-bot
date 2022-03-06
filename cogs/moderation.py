@@ -195,13 +195,13 @@ class Moderation(*moderation_cogs):
 		if message.author.bot:
 			return
 
-		perms = message.channel.permissions_for(message.author)
-		if perms.administrator:
-			return
+		# perms = message.channel.permissions_for(message.author)
+		# if perms.administrator:
+		# 	return
 
-		for role in message.author.roles:
-			if role.id in allowed_roles:
-				return
+		# for role in message.author.roles:
+		# 	if role.id in allowed_roles:
+		# 		return
 
 		ctx = await self.client.get_context(message)
 		ctx.author = self.client.user
@@ -221,7 +221,7 @@ class Moderation(*moderation_cogs):
 		# Checks mass mention
 		if len(message.mentions) >= 10:
 			await message.delete()
-			await self.warn(ctx=ctx, member=message.author, reason="Mass Mention")
+			await self.warn(context=ctx, member=message.author, reason="Mass Mention")
 
 		# Invite tracker
 		msg = str(message.content)
@@ -274,7 +274,7 @@ class Moderation(*moderation_cogs):
 		contents = message.content.split()
 		for word in contents:
 			if word.lower() in chat_filter:
-
+				print('mo')
 				await message.delete()
 				# await message.channel.send(f"**Watch your language, {message.author.mention}!**", delete_after=2)
 
@@ -296,7 +296,7 @@ class Moderation(*moderation_cogs):
 						except:
 							pass
 						return
-						# return await self.warn(ctx=ctx, member=member, reason="Excess of Banned Words")
+						# return await self.warn(context=ctx, member=member, reason="Excess of Banned Words")
 
 	async def check_banned_websites(self, ctx: commands.Context, message: discord.Message) -> None:
 		""" Checks whether the user posted a banned website link. 
@@ -307,7 +307,7 @@ class Moderation(*moderation_cogs):
 			if msg in website_filter:
 				await message.delete()
 				try:
-					await message.author.send(ctx=ctx, member=message.author, reason="Banned Website Link")
+					await message.author.send("**Banned Website Link, please stop!**")
 				except:
 					pass
 				return
@@ -336,7 +336,7 @@ class Moderation(*moderation_cogs):
 			sub = user_cache[-1]['timestamp'] - user_cache[-10]['timestamp']
 			if sub <= 8:
 				await message.delete()
-				return await self.mute(ctx=ctx, member=member, reason="Message Spam¹")
+				return await self.mute(context=ctx, member=member, reason="Message Spam¹")
 
 		if lmsg >= 50:
 			user_cache = self.message_cache.get(member.id)
@@ -344,8 +344,8 @@ class Moderation(*moderation_cogs):
 				sub = user_cache[-1]['timestamp'] - user_cache[-3]['timestamp']
 				if sub <= 10:
 					if user_cache[-3]['size'] >= 50:
-						await message.delete()
-						return await self.mute(ctx=ctx, member=member, reason="Message Spam²")
+						message.delete()
+						return await self.mute(context=ctx, member=member, reason="Message Spam²")
 
 	async def check_image_spam(self, ctx: commands.Context, message: discord.Message) -> None:
 		""" Checks whether it is an image spam. 
@@ -368,15 +368,15 @@ class Moderation(*moderation_cogs):
 
 
 		if len(message.attachments) >= 5:
-			await message.delete()
-			return await self.warn(ctx=ctx, member=member, reason="Image Spam")
+			message.delete()
+			return await self.warn(context=ctx, member=member, reason="Image Spam")
 
 
 		if len(self.image_cache[member.id]) >= 10:
 			sub = user_cache[-1] - user_cache[-10]
 			if sub <= 60:
 				await message.delete()
-				return await self.warn(ctx=ctx, member=member, reason="Image Spam")
+				return await self.warn(context=ctx, member=member, reason="Image Spam")
 
 	@commands.Cog.listener()
 	async def on_message_delete(self, message):
@@ -687,7 +687,10 @@ class Moderation(*moderation_cogs):
 		:param reason: The reason for the tempmute.
 		:param time: The time for the mute (Optional). Default = Forever
 		"""
-		await ctx.message.delete()
+		try:
+			await ctx.message.delete()
+		except:
+			pass
 
 
 		if not member:
