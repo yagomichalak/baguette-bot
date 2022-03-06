@@ -40,14 +40,16 @@ class HelpChannel(commands.Cog):
         if payload.channel_id != self.suggestion_channel_id:
             return
 
-        guild = self.client.get_guild(payload.guild_id)
-
-        if guild.owner_id != member.id:
-            return
-
         emoji = str(payload.emoji)
         channel = self.client.get_channel(payload.channel_id)
         message = await channel.fetch_message(payload.message_id)
+        guild = self.client.get_guild(payload.guild_id)
+
+        if guild.owner_id != member.id:
+            if emoji in ['✅', '❌', '❔']:
+                return await message.remove_reaction(emoji, member)
+            return
+
         if message.author.bot:
             return
 
