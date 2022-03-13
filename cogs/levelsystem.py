@@ -176,7 +176,6 @@ class LevelSystem(commands.Cog):
     #             f"""🇬🇧 {user.mention} has reached level **{the_user[0][2] + 1}!**\n🇫🇷 {user.mention} a atteint niveau **{the_user[0][2] + 1} !**""")
 
     async def level_up(self, user: discord.Member, channel: discord.TextChannel) -> None:
-        epoch = datetime.utcfromtimestamp(0)
         the_user = await self.get_specific_user(user.id)
         # lvl_end = int(the_user[0][1] ** (1 / 5))
 
@@ -201,18 +200,14 @@ class LevelSystem(commands.Cog):
 
         return level * 6000
 
-
-
     async def check_level_role(self, member: discord.Member, level: int) -> Union[None, int]:
         """ Checks if the member level has a role attached to it
         and gives the role to the member if so.
         :param member: The member to check.
         :param level: The current level of the member. """
 
-
         role_id = None
         list_index = 0
-
 
         level_roles = await self.select_level_role()
         for i, level_r in enumerate(level_roles):
@@ -220,12 +215,8 @@ class LevelSystem(commands.Cog):
                 role_id = level_r[1]
                 list_index = i
 
-
         if not role_id or not (current_role := discord.utils.get(member.guild.roles, id=role_id)):
             return
-
-        # if current_role in member.roles:
-        #     return
 
         special_roles = [862742944243253279, 862742944729268234]
         try:
@@ -242,12 +233,10 @@ class LevelSystem(commands.Cog):
 
         return role_id
 
-
     @commands.command(aliases=['stats', 'statuses'])
     @Misc.check_whitelist()
     async def status(self, ctx) -> None:
         """ Shows server status related to time spent in VCs and messages sent. """
-
         
         member = ctx.author
 
@@ -257,7 +246,6 @@ class LevelSystem(commands.Cog):
             color=member.color,
             timestamp=ctx.message.created_at
         )
-
 
         Misc = self.client.get_cog('Misc')
         msgs_past_1 = await Misc.select_user_server_status_messages(label='daily-messages')
@@ -353,7 +341,6 @@ class LevelSystem(commands.Cog):
             value=f"**🕖 Last 7 days:** {c_time_7[0].mention if c_time_7[0] else None}\n**🕛 Last 24 hours:** {c_time_1[0].mention if c_time_1[0] else None}",
             inline=True)
 
-
         total_infractions = await self.client.get_cog('LevelSystem').get_important_var(label="t_infractions")
         monthly_infractions = await self.client.get_cog('LevelSystem').get_important_var(label="m_infractions")
         embed.add_field(name="📋 Total Infractions", value=f"{total_infractions[2] + monthly_infractions[2]} infractions in total.", inline=False)
@@ -362,10 +349,7 @@ class LevelSystem(commands.Cog):
         embed.set_thumbnail(url=ctx.guild.icon.url)
         embed.set_footer(text=member, icon_url=member.display_avatar)
 
-
-
         await ctx.send(embed=embed)
-
 
     @commands.command(aliases=['profile'])
     @Misc.check_whitelist()
@@ -389,7 +373,6 @@ class LevelSystem(commands.Cog):
         if not (user := await self.get_specific_user(member.id)):
             return await ctx.send(f"**{member} is not in the system, maybe they have to use the command by themselves!**")
 
-
         # Arranges the user's information into a well-formed embed
         all_users = await self.get_all_users_by_xp()
         position = [[i+1, u[1]] for i, u in enumerate(all_users) if u[0] == ctx.author.id]
@@ -401,8 +384,6 @@ class LevelSystem(commands.Cog):
         # embed.add_field(name="__**EXP**__", value=f"{user[0][1]} / {((user[0][2]+1)**5)}.", inline=False)
         embed.add_field(name="**EXP**", value=f"{user[0][1]} / {await LevelSystem.get_xp(user[0][2])}.", inline=False)
         embed.add_field(name="**Messages**", value=f"{user[0][4]}.", inline=True)
-
-
 
         mall, sall = divmod(user[0][5], 60)
         hall, mall = divmod(mall, 60)
@@ -450,7 +431,6 @@ class LevelSystem(commands.Cog):
         pages = menus.MenuPages(source=SwitchPages(all_users, **additional), clear_reactions_after=True)
         await pages.start(ctx)
 
-
     @commands.command()
     @commands.has_permissions(administrator=True)
     async def setlevel(self, ctx, member: discord.Member = None, level: int = None) -> None:
@@ -468,7 +448,6 @@ class LevelSystem(commands.Cog):
         if level <= 0:
             return await ctx.send(f"**Please, inform a positive number greater than 0, {ctx.author.mention}!**")
 
-
         if not (the_user := await self.get_specific_user(member.id)):
             return await ctx.send(f"**Member is not in the system yet, {ctx.author.mention}!**")
 
@@ -484,8 +463,6 @@ class LevelSystem(commands.Cog):
             await asyncio.sleep(0.1)
             await self.update_user_lvl(member.id, level)
 
-        # print((level-1)** 5)
-        # print((level)** 5)
         await asyncio.sleep(0.1)
         await self.check_level_roles_deeply(member, level)
         await ctx.send(f"**The member {member.mention} is now level {level}!**")

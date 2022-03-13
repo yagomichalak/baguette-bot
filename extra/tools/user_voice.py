@@ -5,6 +5,7 @@ from mysqldb import the_database
 
 from typing import List, Union, Optional
 from extra import utils
+from extra.view import ConvertTimeView
 import os
 import asyncio
 
@@ -187,7 +188,6 @@ class UserVoiceSystem(commands.Cog):
         m, s = divmod(user_voice[1], 60)
         h, m = divmod(m, 60)
 
-
         embed = discord.Embed(
             description=f"**Voice Time:**\n{h:d} hours, {m:02d} minutes and {s:02d} seconds." \
             f"\n**Timestamp:** {f'<t:{user_voice[2]}:R>' if user_voice[2] else 'None.'}"
@@ -199,7 +199,9 @@ class UserVoiceSystem(commands.Cog):
         if ctx.author.id != member.id:
             embed.set_footer(text=f"Requested by: {ctx.author}", icon_url=ctx.author.display_avatar)
 
-        await answer(embed=embed)
+        view = ConvertTimeView(self.client, user_voice)
+
+        await answer(embed=embed, view=view)
 
 
 class UserVoiceTable(commands.Cog):

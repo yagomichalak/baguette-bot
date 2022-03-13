@@ -58,4 +58,4 @@ async def disable_buttons(view: discord.ui.View) -> None:
     :param view: The view from which to disable the buttons. """
 
     for child in view.children:
-        child.disabled = Tru
+        child.disabled = True
