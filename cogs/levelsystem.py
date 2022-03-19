@@ -501,6 +501,9 @@ class LevelSystem(commands.Cog):
     async def check_user_perm_roles(self, member: discord.Member, level: int) -> None:
         """ Checks whether the member should get the user perm roles when leveling up. """
 
+        if member.id == member.guild.owner_id:
+            return
+
         if level >= 2:
             role: discord.Role = discord.utils.get(member.guild.roles, id=862742944729268234)
             try:
