@@ -143,6 +143,7 @@ class ReportSupportView(discord.ui.View):
         return True
 
 class ConvertTimeView(discord.ui.View):
+    """ View for the converting time feature. """
 
     def __init__(self, client: commands.Bot, user_info: List[Union[int, str]], timeout: float = 60) -> None:
         super().__init__(timeout=timeout)
