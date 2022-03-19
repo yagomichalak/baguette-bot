@@ -228,6 +228,8 @@ class UserVoiceTable(commands.Cog):
                 user_id BIGINT NOT NULL, 
                 user_time BIGINT DEFAULT 0, 
                 user_timestamp BIGINT DEFAULT NULL,
+                user_lvl TINYINT(4) DEFAULT 1,
+                user_xp BIGINT DEFAULT 0,
                 PRIMARY KEY (user_id)
         )""")
         await db.commit()
@@ -328,6 +330,26 @@ class UserVoiceTable(commands.Cog):
 
         mycursor, db = await the_database()
         await mycursor.execute("UPDATE UserVoice SET user_timestamp = %s WHERE user_id = %s", (new_ts, user_id))
+        await db.commit()
+        await mycursor.close()
+
+    async def update_user_voice_lvl(self, user_id: int, new_lvl: int) -> None:
+        """ Updates the user's voice level.
+        :param user_id: The ID of the user to update.
+        :param new_lvl: The new level to set to. """
+
+        mycursor, db = await the_database()
+        await mycursor.execute("UPDATE UserVoice SET user_lvl = %s WHERE user_id = %s", (new_lvl, user_id))
+        await db.commit()
+        await mycursor.close()
+
+    async def update_user_voice_xp(self, user_id: int, increment: int) -> None:
+        """ Updates the user's voice XP.
+        :param user_id: The ID of the user to update.
+        :param increment: The increment value to apply to the XP counter. """
+
+        mycursor, db = await the_database()
+        await mycursor.execute("UPDATE UserVoice SET user_xp = user_xp + %s WHERE user_id = %s", (increment, user_id))
         await db.commit()
         await mycursor.close()
 

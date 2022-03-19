@@ -7,6 +7,7 @@ import asyncio
 from .select import ReportSupportSelect
 from .prompt.menu import ConfirmButton
 from . import utils
+from .useful_variables import xp_levels
 
 class BasicUserCheckView(discord.ui.View):
     """ View fro basic user checking. """
@@ -163,10 +164,13 @@ class ConvertTimeView(discord.ui.View):
 
         await interaction.response.defer()
         LevelSystem = self.client.get_cog('LevelSystem')
+        if self.user_info < 600:
+            return await interaction.followup.send(f"**You don't have the minimum of `10` minutes to convert into `XP`, {member.mention}!**")
+
         converted_xp, time_times = await self.convert_time(self.user_info[1])
 
         if converted_xp == 0:
-            return await interaction.followup.send(f"**You have nothing to exchange, {member.mention}!**")
+            return await interaction.followup.send(f"**You have nothing to convert, {member.mention}!**")
 
         confirm_view =  ConfirmButton(member, timeout=60)
         msg = await interaction.followup.send(
@@ -175,10 +179,10 @@ class ConvertTimeView(discord.ui.View):
         )
         await confirm_view.wait()
         if confirm_view.value:
-            pass
             await self.exchange(interaction, member, converted_xp, time_times)
             # Updates user Activity Status and Money
-            # await LevelSystem.update_user_voice_xp(member.id, -time_times * 20)
+            await LevelSystem.update_user_voice_xp(member.id, time_times * 20)
+            await self.check_can_lvl_up_vc(interaction, member, LevelSystem)
         elif confirm_view.value is False:
             await confirm_view.interaction.followup.send(f"**{member.mention}, not exchanging, then!**")
         
@@ -227,4 +231,38 @@ class ConvertTimeView(discord.ui.View):
             else:
                 return converted_xp, times
 
-    
+    async def check_can_lvl_up_vc(self, interaction: discord.Interaction, member: discord.Member, cog: commands.Cog) -> None:
+        """ Checks whether the member can level up their Voice Channel level.
+        :param interaction: The interaction that triggered this method.
+        :param member: The member to check.
+        :param cog: The cog from which to get some useful methods. """    
+        
+        def get_xp(lvl: int) -> int:
+            """ Gets the XP needed to lvl up. """
+
+            if xp := xp_levels.get(str(lvl)):
+                return xp
+
+        # Create initial vars
+        user_voice = await cog.get_user_voice(member.id)
+        user_lvl, user_xp = user_voice[3], user_voice[4]
+        temp_lvl = user_lvl
+        leveled_up: bool = False
+
+        # Loops through each lvl to see if user has enough XP for that lvl
+        while True:
+            needed_xp = get_xp(temp_lvl)
+
+            if user_xp >= needed_xp:
+                temp_lvl += 1
+                leveled_up = True
+            else:
+                break
+
+        # If leveled up, updates database and sends a message.
+        if leveled_up:
+            await cog.update_user_voice_lvl(member.id, temp_lvl)
+            await interaction.followup.send(
+                f"🇬🇧 {member.mention} has reached level **{temp_lvl + 1}🔈!**" \
+                f"\n🇫🇷 {member.mention} a atteint le niveau **{temp_lvl + 1}🔈 !**"
+            )
