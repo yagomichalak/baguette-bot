@@ -201,7 +201,7 @@ class UserVoiceSystem(commands.Cog):
 
         view = ConvertTimeView(self.client, user_voice)
 
-        await answer(embed=embed, view=view)
+        await answer(embed=embed)#, view=view)
 
 
 class UserVoiceTable(commands.Cog):
