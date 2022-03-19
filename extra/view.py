@@ -178,7 +178,7 @@ class ConvertTimeView(discord.ui.View):
             pass
             await self.exchange(interaction, member, converted_xp, time_times)
             # Updates user Activity Status and Money
-            # await LevelSystem.update_user_voice_xp(member.id, -time_times * 1800)
+            # await LevelSystem.update_user_voice_xp(member.id, -time_times * 20)
         elif confirm_view.value is False:
             await confirm_view.interaction.followup.send(f"**{member.mention}, not exchanging, then!**")
         
@@ -205,7 +205,7 @@ class ConvertTimeView(discord.ui.View):
         if converted_xp > 0:
             embed.add_field(
                 name="__**Time:**__",
-                value=f"Converted `{(time_times * 1800) / 60}` minutes to `{converted_xp}`XP;", 
+                value=f"Converted `{(time_times * 600) / 60}` minutes to `{converted_xp}`XP;", 
                 inline=False)
 
         return await interaction.followup.send(embed=embed)
@@ -218,10 +218,10 @@ class ConvertTimeView(discord.ui.View):
         converted_xp = times = 0
 
         while True:
-            if time_left >= 1800:
+            if time_left >= 600: # Convertion Minute Rate
                 times += 1
-                time_left -= 1800
-                converted_xp += 50
+                time_left -= 60 #  Seconds conversion (= 1 minute)
+                converted_xp += 20 # XP Obtained by the conversion
                 await asyncio.sleep(0)
                 continue
             else:
