@@ -150,6 +150,8 @@ class ConvertTimeView(discord.ui.View):
         super().__init__(timeout=timeout)
         self.client = client
         self.user_info = user_info
+        self.convertion_rate: int = 600 # 10 minutes
+        self.vc_xp_rate: int = 20 # Per minute
 
 
     @discord.ui.button(style=discord.ButtonStyle.blurple, label="Convert VC Time into XP!", custom_id="convert_vc_time_into_crumbs", emoji="💰")
@@ -164,7 +166,8 @@ class ConvertTimeView(discord.ui.View):
 
         await interaction.response.defer()
         LevelSystem = self.client.get_cog('LevelSystem')
-        if self.user_info < 600:
+        Tools = self.client.get_cog('Tools')
+        if self.user_info[1] < 600:
             return await interaction.followup.send(f"**You don't have the minimum of `10` minutes to convert into `XP`, {member.mention}!**")
 
         converted_xp, time_times = await self.convert_time(self.user_info[1])
@@ -181,8 +184,9 @@ class ConvertTimeView(discord.ui.View):
         if confirm_view.value:
             await self.exchange(interaction, member, converted_xp, time_times)
             # Updates user Activity Status and Money
-            await LevelSystem.update_user_voice_xp(member.id, time_times * 20)
-            await self.check_can_lvl_up_vc(interaction, member, LevelSystem)
+            await Tools.update_user_voice_xp(member.id, converted_xp)
+            await Tools.update_user_voice_time(member.id, -time_times * self.convertion_rate)
+            await self.check_can_lvl_up_vc(interaction, member, Tools)
         elif confirm_view.value is False:
             await confirm_view.interaction.followup.send(f"**{member.mention}, not exchanging, then!**")
         
@@ -209,7 +213,7 @@ class ConvertTimeView(discord.ui.View):
         if converted_xp > 0:
             embed.add_field(
                 name="__**Time:**__",
-                value=f"Converted `{(time_times * 600) / 60}` minutes to `{converted_xp}`XP;", 
+                value=f"Converted `{(time_times * self.convertion_rate) / 60}` minutes to `{converted_xp}`XP;", 
                 inline=False)
 
         return await interaction.followup.send(embed=embed)
@@ -222,14 +226,14 @@ class ConvertTimeView(discord.ui.View):
         converted_xp = times = 0
 
         while True:
-            if time_left >= 600: # Convertion Minute Rate
+            if time_left >= self.convertion_rate: # Convertion Minute Rate
                 times += 1
-                time_left -= 60 #  Seconds conversion (= 1 minute)
-                converted_xp += 20 # XP Obtained by the conversion
+                time_left -= self.convertion_rate #  Seconds conversion (= 1 minute)
+                converted_xp += self.vc_xp_rate * (self.convertion_rate/60) # XP Obtained by the conversion
                 await asyncio.sleep(0)
                 continue
             else:
-                return converted_xp, times
+                return int(converted_xp), times
 
     async def check_can_lvl_up_vc(self, interaction: discord.Interaction, member: discord.Member, cog: commands.Cog) -> None:
         """ Checks whether the member can level up their Voice Channel level.
@@ -263,6 +267,6 @@ class ConvertTimeView(discord.ui.View):
         if leveled_up:
             await cog.update_user_voice_lvl(member.id, temp_lvl)
             await interaction.followup.send(
-                f"🇬🇧 {member.mention} has reached level **{temp_lvl + 1}🔈!**" \
-                f"\n🇫🇷 {member.mention} a atteint le niveau **{temp_lvl + 1}🔈 !**"
+                f"🇬🇧 {member.mention} has reached level **{temp_lvl}🔈!**" \
+                f"\n🇫🇷 {member.mention} a atteint le niveau **{temp_lvl}🔈 !**"
             )

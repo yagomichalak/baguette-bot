@@ -190,7 +190,9 @@ class UserVoiceSystem(commands.Cog):
 
         embed = discord.Embed(
             description=f"**Voice Time:**\n{h:d} hours, {m:02d} minutes and {s:02d} seconds." \
-            f"\n**Timestamp:** {f'<t:{user_voice[2]}:R>' if user_voice[2] else 'None.'}"
+            f"\n**Timestamp:** {f'<t:{user_voice[2]}:R>' if user_voice[2] else 'None.'}" \
+            f"\n**Voice Level:** {user_voice[3]}" \
+            f"\n**Voice XP:** {user_voice[4]}"
             ,
             color=member.color,
             timestamp=current_time
@@ -201,7 +203,7 @@ class UserVoiceSystem(commands.Cog):
 
         view = ConvertTimeView(self.client, user_voice)
 
-        await answer(embed=embed)#, view=view)
+        await answer(embed=embed, view=view)
 
 
 class UserVoiceTable(commands.Cog):
