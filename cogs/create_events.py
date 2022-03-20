@@ -172,6 +172,120 @@ class CreateEvents(commands.Cog):
         else:
             await ctx.send(f"**{member.mention}, {text_channel.mention} is up and running!**")
 
+    @_create.command(name="english_lesson", aliases=["english_class", "englishlesson", "englishclas", "fc", "fl"])
+    @utils.is_allowed([organizer_role_id], throw_exc=True)
+    @commands.cooldown(1, 60, commands.BucketType.user)
+    async def _create_english_lesson(self, ctx) -> None:
+        """ Creates an English Lesson voice and text channel. """
+
+        member = ctx.author
+        guild = ctx.guild
+        room = await self.get_event_room_by_user_id(member.id)
+        channel = discord.utils.get(guild.text_channels, id=room[2]) if room else None
+
+        if room and channel:
+            return await ctx.send(f"**{member.mention}, you already have an open room! ({channel.mention})**")
+
+        elif room and not channel:
+            await self.delete_event_room_by_txt_id(room[2])
+
+        confirm_view = await ConfirmButton(member, timeout=60)
+        msg = await ctx.send("Do you want to create an event?", view=confirm_view)
+
+        if confirm_view is None:
+            return await ctx.reply("**Timeout!**", delete_after=3)
+
+        if not confirm_view:
+            return await ctx.reply("**Not creating it, then!**", delete_after=3)
+
+        await msg.delete()
+
+
+        overwrites = await self.get_english_class_permissions(guild)
+
+        events_category = discord.utils.get(guild.categories, id=events_cat_id)
+
+        event_title = f"🇫🇷 English Lesson 🇫🇷"
+
+        try:
+            # Creating text channel
+            text_channel = await events_category.create_text_channel(
+                name=event_title,
+                overwrites=overwrites)
+            # Creating voice channel
+            voice_channel = await events_category.create_voice_channel(
+                name=event_title,
+                user_limit=None,
+                overwrites=overwrites)
+            # Inserts it into the database
+            await self.insert_event_room(
+                user_id=member.id, vc_id=voice_channel.id, txt_id=text_channel.id,
+                event_title=event_title, event_type="english_lesson"
+                )
+        except Exception as e:
+            print(e)
+            await ctx.send(f"**{member.mention}, something went wrong, try again later!**")
+
+        else:
+            await ctx.send(f"**{member.mention}, {text_channel.mention} is up and running!**")
+
+    @_create.command(name="french_lesson", aliases=["french_class", "frenchlesson", "frenchclas", "fc", "fl"])
+    @utils.is_allowed([organizer_role_id], throw_exc=True)
+    @commands.cooldown(1, 60, commands.BucketType.user)
+    async def _create_french_lesson(self, ctx) -> None:
+        """ Creates a Movie Night voice and text channel. """
+
+        member = ctx.author
+        guild = ctx.guild
+        room = await self.get_event_room_by_user_id(member.id)
+        channel = discord.utils.get(guild.text_channels, id=room[2]) if room else None
+
+        if room and channel:
+            return await ctx.send(f"**{member.mention}, you already have an open room! ({channel.mention})**")
+
+        elif room and not channel:
+            await self.delete_event_room_by_txt_id(room[2])
+
+        confirm_view = await ConfirmButton(member, timeout=60)
+        msg = await ctx.send("Do you want to create an event?", view=confirm_view)
+
+        if confirm_view is None:
+            return await ctx.reply("**Timeout!**", delete_after=3)
+
+        if not confirm_view:
+            return await ctx.reply("**Not creating it, then!**", delete_after=3)
+
+        await msg.delete()
+
+
+        overwrites = await self.get_french_class_permissions(guild)
+
+        events_category = discord.utils.get(guild.categories, id=events_cat_id)
+
+        event_title = f"🇫🇷 French Lesson 🇫🇷"
+
+        try:
+            # Creating text channel
+            text_channel = await events_category.create_text_channel(
+                name=event_title,
+                overwrites=overwrites)
+            # Creating voice channel
+            voice_channel = await events_category.create_voice_channel(
+                name=event_title,
+                user_limit=None,
+                overwrites=overwrites)
+            # Inserts it into the database
+            await self.insert_event_room(
+                user_id=member.id, vc_id=voice_channel.id, txt_id=text_channel.id,
+                event_title=event_title, event_type="french_lesson"
+                )
+        except Exception as e:
+            print(e)
+            await ctx.send(f"**{member.mention}, something went wrong, try again later!**")
+
+        else:
+            await ctx.send(f"**{member.mention}, {text_channel.mention} is up and running!**")
+
     # ==== Action Methods ====
 
 

@@ -96,7 +96,7 @@ async def on_application_command_error(ctx, error) -> None:
 		await ctx.respond(f"**Role not found**")
 		
 	elif isinstance(error, CommandNotReady):
-		await ctx.send("**This command is either under construction or on maintenance!**")
+		await ctx.respond("**This command is either under construction or on maintenance!**")
 
 	elif isinstance(error, commands.ChannelNotFound):
 		await ctx.respond("**Channel not found!**")
@@ -105,9 +105,9 @@ async def on_application_command_error(ctx, error) -> None:
 		await ctx.respond("**It looks like you can't run this command!**")
 
 
-    print('='*10)
-    print(f"ERROR: {error} | Class: {error.__class__} | Cause: {error.__cause__}")
-    print('='*10)
+	print('='*10)
+	print(f"ERROR: {error} | Class: {error.__class__} | Cause: {error.__cause__}")
+	print('='*10)
 
 
 
