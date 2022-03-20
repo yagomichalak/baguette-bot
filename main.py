@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from cogs.misc import Misc
+from extra.custom_errors import CommandNotReady
 
 
 server_id = int(os.getenv('SERVER_ID'))
@@ -48,6 +49,9 @@ async def on_command_error(ctx, error):
 	elif isinstance(error, commands.errors.RoleNotFound):
 		await ctx.send(f"**{error}**")
 
+	elif isinstance(error, CommandNotReady):
+		await ctx.send("**This command is either under construction or on maintenance!**")
+
 	elif isinstance(error, commands.BadArgument):
 		await ctx.send(f"**Bad argument!**")
 
@@ -69,33 +73,36 @@ async def on_command_error(ctx, error):
 @client.event
 async def on_application_command_error(ctx, error) -> None:
 
-    if isinstance(error, commands.MissingPermissions):
-        await ctx.respond("**You can't do that!**")
+	if isinstance(error, commands.MissingPermissions):
+		await ctx.respond("**You can't do that!**")
 
-    elif isinstance(error, commands.MissingRequiredArgument):
-        await ctx.respond('**Please, inform all parameters!**')
+	elif isinstance(error, commands.MissingRequiredArgument):
+		await ctx.respond('**Please, inform all parameters!**')
 
-    elif isinstance(error, commands.NotOwner):
-        await ctx.respond("**You're not the bot's owner!**")
+	elif isinstance(error, commands.NotOwner):
+		await ctx.respond("**You're not the bot's owner!**")
 
-    elif isinstance(error, commands.CommandOnCooldown):
-        await ctx.respond(error)
+	elif isinstance(error, commands.CommandOnCooldown):
+		await ctx.respond(error)
 
-    elif isinstance(error, commands.errors.CheckAnyFailure):
-        await ctx.respond("**You can't do that!**")
+	elif isinstance(error, commands.errors.CheckAnyFailure):
+		await ctx.respond("**You can't do that!**")
 
-    elif isinstance(error, commands.MissingAnyRole):
-        role_names = [f"**{str(discord.utils.get(ctx.guild.roles, id=role_id))}**" for role_id in error.missing_roles]
-        await ctx.respond(f"You are missing at least one of the required roles: {', '.join(role_names)}")
+	elif isinstance(error, commands.MissingAnyRole):
+		role_names = [f"**{str(discord.utils.get(ctx.guild.roles, id=role_id))}**" for role_id in error.missing_roles]
+		await ctx.respond(f"You are missing at least one of the required roles: {', '.join(role_names)}")
 
-    elif isinstance(error, commands.errors.RoleNotFound):
-        await ctx.respond(f"**Role not found**")
+	elif isinstance(error, commands.errors.RoleNotFound):
+		await ctx.respond(f"**Role not found**")
+		
+	elif isinstance(error, CommandNotReady):
+		await ctx.send("**This command is either under construction or on maintenance!**")
 
-    elif isinstance(error, commands.ChannelNotFound):
-        await ctx.respond("**Channel not found!**")
+	elif isinstance(error, commands.ChannelNotFound):
+		await ctx.respond("**Channel not found!**")
 
-    elif isinstance(error, discord.app.commands.errors.CheckFailure):
-        await ctx.respond("**It looks like you can't run this command!**")
+	elif isinstance(error, discord.app.commands.errors.CheckFailure):
+		await ctx.respond("**It looks like you can't run this command!**")
 
 
     print('='*10)

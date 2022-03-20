@@ -97,6 +97,7 @@ class CreateEvents(commands.Cog):
     # CREATE EVENT
 
     @commands.group(name="create", aliases=["create_event", "create_lesson"])
+    @utils.not_ready()
     async def _create(self, ctx) -> None:
         """ Creates an event. """
 
@@ -176,6 +177,7 @@ class CreateEvents(commands.Cog):
 
     @commands.command(aliases=['close_event'])
     @utils.is_allowed([organizer_role_id], throw_exc=True)
+    @utils.not_ready()
     async def delete_event(self, ctx) -> None:
         """ Deletes an event room. """
         member = ctx.author

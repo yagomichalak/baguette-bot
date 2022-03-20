@@ -4,6 +4,7 @@ from pytz import timezone
 from typing import List, Optional
 import discord
 from discord.ext import commands
+from .custom_errors import CommandNotReady
 
 async def get_timestamp(tz: str = 'Etc/GMT') -> int:
     """ Gets the current timestamp.
@@ -59,3 +60,12 @@ async def disable_buttons(view: discord.ui.View) -> None:
 
     for child in view.children:
         child.disabled = True
+
+def not_ready():
+    """ Makes a command not be usable. """
+
+    async def real_check(ctx):
+        """ Performs the real check. """
+        raise CommandNotReady()
+
+    return commands.check(real_check)
