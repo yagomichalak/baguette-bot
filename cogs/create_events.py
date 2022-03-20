@@ -8,8 +8,10 @@ from mysqldb import the_database
 from typing import Dict, List, Union, Optional, Any
 import os
 
-events_cat_id: int = 762396214721118228
-lessons_cat_id: int = 763841725848092733
+events_cat_id: int = int(os.getenv("EVENTS_CAT_ID"))
+lessons_cat_id: int = int(os.getenv("LESSONS_CAT_ID"))
+french_lesson_role_id: int = int(os.getenv("FRENCH_LESSONS_ROLE_ID"))
+english_lesson_role_id: int = int(os.getenv("ENGLISH_LESSONS_ROLE_ID"))
 
 organizer_role_id: int = int(os.getenv("ORGANIZER_ROLE_ID"))
 teacher_role_id: int = int(os.getenv("TEACHER_ROLE_ID"))
@@ -25,6 +27,31 @@ class CreateEvents(commands.Cog):
         self.db = CreateEventDatabase()
         self.host_cache: Dict[int, int] = {}
 
+        self.french_roles: List[int] = [ # Native French roles
+            824667329002209280,
+            933873327653670922,
+            933874570757308427,
+            933874567150174209,
+            933874559621402684,
+            772182729101017098,
+            895782147904913468,
+            895783897487519784,
+            895785379649695815,
+        ]
+
+        self.english_roles: List[int] = [ # Native English roles
+            933878080165011476,
+            933877674735198219,
+            933877681005670400,
+            933877682222034947,
+            933877684356927548,
+            909212571373010994,
+            909213121527312385,
+            909213451006644234,
+            909214255121842248,
+            948985481247457280,
+        ]
+
     async def get_french_class_permissions(self, guild: discord.Guild) -> Dict[Any, Any]:
         """ Gets permissions for a French class.
         :param guild: The server from the context. """
@@ -36,8 +63,9 @@ class CreateEvents(commands.Cog):
 
         # Everyone's permissions
         overwrites[guild.default_role] = discord.PermissionOverwrite(
-            read_messages=True, send_messages=True, connect=True,
-            speak=True, view_channel=True, attach_files=True, stream=False
+            read_messages=True, send_messages=True, view_channel=True, 
+            attach_files=True, stream=False, start_embedded_activities=False,
+            connect=False, speak=False
         )
 
         # Teacher's permissions
@@ -45,6 +73,16 @@ class CreateEvents(commands.Cog):
             manage_messages=True, manage_channels=True, mute_members=True, 
             stream=True, move_members=True, start_embedded_activities=True
         )
+
+        if french_lessons_role := guild.get_role(french_lesson_role_id):
+            overwrites[french_lessons_role] = discord.PermissionOverwrite(
+                speak=True, connect=True
+            )
+        
+
+        for role_id in self.french_roles:
+            if role := guild.get_role(role_id):
+                overwrites[role] = discord.PermissionOverwrite(connect=False)
 
         return overwrites
 
@@ -60,7 +98,8 @@ class CreateEvents(commands.Cog):
         # Everyone's permissions
         overwrites[guild.default_role] = discord.PermissionOverwrite(
             read_messages=True, send_messages=True, connect=True,
-            speak=True, view_channel=True, attach_files=True, stream=False
+            speak=True, view_channel=True, attach_files=True, stream=False,
+            start_embedded_activities=False
         )
 
         # Teacher's permissions
@@ -68,6 +107,15 @@ class CreateEvents(commands.Cog):
             manage_messages=True, manage_channels=True, mute_members=True, 
             stream=True, move_members=True, start_embedded_activities=True
         )
+        
+        if english_lessons_role := guild.get_role(english_lesson_role_id):
+            overwrites[english_lessons_role] = discord.PermissionOverwrite(
+                speak=True, connect=True
+            )
+
+        for role_id in self.english_roles:
+            if role := guild.get_role(role_id):
+                overwrites[role] = discord.PermissionOverwrite(connect=False)
 
         return overwrites
 
@@ -83,7 +131,8 @@ class CreateEvents(commands.Cog):
         # Everyone's permissions
         overwrites[guild.default_role] = discord.PermissionOverwrite(
             read_messages=True, send_messages=True, connect=True,
-            speak=True, view_channel=True, attach_files=True, stream=False
+            speak=True, view_channel=True, attach_files=True, stream=False,
+            start_embedded_activities=False
         )
 
         # Organizer's permissions
@@ -205,7 +254,7 @@ class CreateEvents(commands.Cog):
 
         events_category = discord.utils.get(guild.categories, id=events_cat_id)
 
-        event_title = f"🇫🇷 English Lesson 🇫🇷"
+        event_title = f"🇬🇧 English Lesson 🇬🇧"
 
         try:
             # Creating text channel
