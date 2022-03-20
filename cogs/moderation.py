@@ -340,10 +340,10 @@ class Moderation(*moderation_cogs):
 
 		if lmsg >= 50:
 			user_cache = self.message_cache.get(member.id)
-			if len(self.message_cache[member.id]) >= 3:
-				sub = user_cache[-1]['timestamp'] - user_cache[-3]['timestamp']
+			if len(self.message_cache[member.id]) >= 5:
+				sub = user_cache[-1]['timestamp'] - user_cache[-5]['timestamp']
 				if sub <= 10:
-					if user_cache[-3]['size'] >= 50:
+					if user_cache[-5]['size'] >= 50:
 						message.delete()
 						return await self.mute(context=ctx, member=member, reason="Message Spam²")
 
