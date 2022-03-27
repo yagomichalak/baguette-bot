@@ -195,13 +195,13 @@ class Moderation(*moderation_cogs):
 		if message.author.bot:
 			return
 
-		perms = message.channel.permissions_for(message.author)
-		if perms.administrator:
-			return
+		# perms = message.channel.permissions_for(message.author)
+		# if perms.administrator:
+		# 	return
 
-		for role in message.author.roles:
-			if role.id in allowed_roles:
-				return
+		# for role in message.author.roles:
+		# 	if role.id in allowed_roles:
+		# 		return
 
 		ctx = await self.client.get_context(message)
 		ctx.author = self.client.user
@@ -223,6 +223,7 @@ class Moderation(*moderation_cogs):
 			await message.delete()
 			await self.warn(context=ctx, member=message.author, reason="Mass Mention")
 
+		# https://discord.com/events/777886754761605140/957657541628821584
 		# Invite tracker
 		msg = str(message.content)
 		if 'discord.gg/' in msg.lower() or 'discord.com/invite/' in msg.lower():
@@ -234,6 +235,17 @@ class Moderation(*moderation_cogs):
 				if not is_from_guild:
 					await message.delete()
 					return await message.author.send("**Please, stop sending invites! (Invite Advertisement)**")
+		
+		if 'discord.com/events/' in msg.lower():
+			invite_root = 'discord.com/events/'
+			ctx = await self.client.get_context(message)
+			if await utils.is_allowed(allowed_roles).predicate(ctx):
+				is_from_guild = await self.check_event_invite_guild(msg, message.guild, invite_root)
+
+				if not is_from_guild:
+					await message.delete()
+					return await message.author.send("**Please, stop sending invites! (Invite Advertisement)**")
+
 
 	async def check_invite_guild(self, msg, guild, invite_root: str):
 		""" Checks whether it's a guild invite or not. """
@@ -244,8 +256,15 @@ class Moderation(*moderation_cogs):
 		for c in msg[end_index:]:
 			if c == ' ':
 				break
+			elif c == '?':
+				break
 
 			invite_hash += c
+		print(invite_hash)
+		inv_code = discord.utils.resolve_invite(invite_root + invite_hash)
+		print(inv_code)
+		guild_inv = discord.utils.get(await guild.invites(), code=inv_code)
+		print(guild_inv)
 
 		for char in ['!', '@', '.', '(', ')', '[', ']', '#', '?', ':', ';', '`', '"', "'", ',', '{', '}']:
 			invite_hash = invite_hash.replace(char, '')
@@ -259,6 +278,23 @@ class Moderation(*moderation_cogs):
 
 		guild_inv = discord.utils.get(await guild.invites(), code=inv_code)
 		if guild_inv:
+			return True
+		else:
+			return False
+
+	async def check_event_invite_guild(self, msg, guild, invite_root: str):
+		""" Checks whether it's a guild invite or not. """
+
+		start_index = msg.index(invite_root)
+		end_index = start_index + len(invite_root)
+		invite_hash = ''
+		for c in msg[end_index:]:
+			if c == ' ':
+				break
+
+			invite_hash += c
+			
+		if int(invite_hash.split('/')[0]) == guild.id:
 			return True
 		else:
 			return False
