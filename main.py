@@ -15,6 +15,7 @@ moderator_role_id = int(os.getenv('MOD_ROLE_ID'))
 joins_and_leaves_log_id = int(os.getenv('JOIN_LEAVE_LOG_CHANNEL_ID'))
 moderation_log_channel_id = int(os.getenv('MOD_LOG_CHANNEL_ID'))
 message_log_id = int(os.getenv('MESSAGE_LOG_ID'))
+deleted_messages_log_id = int(os.getenv('DELETED_MESSAGES_LOG_ID'))
 counting_channel_id = int(os.getenv('COUNTING_CHANNEL_ID'))
 faq_channel_id = int(os.getenv('FAQ_CHANNEL_ID'))
 
@@ -170,21 +171,48 @@ async def on_message_delete(message):
 	if message.channel.id == counting_channel_id:
 		return
 
-	general_log = client.get_channel(message_log_id)
+	deleted_messages_log = client.get_channel(deleted_messages_log_id)
+	atts = message.attachments
 	embed = discord.Embed(
-		description=f"**User:** {message.author.mention}\n**Channel:** {message.channel.mention}\n**Message:** {message.content}", 
+		description=f"**User:** {message.author.mention}\n**Channel:** {message.channel.mention}\n**Message:** {message.content}\n**Attachments Count:** {len(atts)}", 
 		color=discord.Color.dark_grey(),
 		timestamp=message.created_at)
 	embed.set_footer(text=f"Message ID: {message.id}")
 	embed.set_author(name="Message Deleted", icon_url=message.author.display_avatar)
-	# if len(message.attachments)
+	
+	# Link images
+	attachment_root = 'https://cdn.discordapp.com/attachments/'
+	content = message.content.split()
+	discord_attachments = [
+		att for att in content 
+		if att.startswith(attachment_root)
+	]
+	for datt in discord_attachments:
+		try:
+			if not embed.image:
+				embed.set_image(url=datt)
+			content.remove(datt)
+		except:
+			pass
+
+	# Embedded images
+	if atts:
+		image_attachments = [att.proxy_url for att in atts if att.content_type.startswith('image')]
+		if image_attachments:
+			if len(image_attachments) >= 2:
+				embed.description += f"\n**Image Attachments:** {', '.join(image_attachments)}"
+
+			embed.set_image(url=image_attachments[0])
+		video_attachments = [att.proxy_url for att in atts if att.content_type.startswith('video')]
+		embed.description += f"\n**Video Attachments:** {', '.join(video_attachments)}"
+
 	# if message.author != client.user and not message.author.bot:
-	await general_log.send(embed=embed)
+	await deleted_messages_log.send(embed=embed)
 
 @client.event
 async def on_bulk_message_delete(messages):
 	
-	general_log = client.get_channel(message_log_id)
+	deleted_messages_log = client.get_channel(deleted_messages_log_id)
 	
 	for message in messages:
 		if not message.guild:
@@ -196,15 +224,41 @@ async def on_bulk_message_delete(messages):
 		if message.channel.id == counting_channel_id:
 			continue
 
+		atts = message.attachments
 		embed = discord.Embed(
-			description=f"**User:** {message.author.mention}\n**Channel:** {message.channel.mention}\n**Message:** {message.content}", 
+			description=f"**User:** {message.author.mention}\n**Channel:** {message.channel.mention}\n**Message:** {message.content}\n**Attachments Count:** {len(atts)}", 
 			color=discord.Color.dark_grey(),
 			timestamp=message.created_at)
 		embed.set_footer(text=f"Message ID: {message.id}")
 		embed.set_author(name="Message Deleted (Purge)", icon_url=message.author.display_avatar)
-		# if len(message.attachments)
-		# if message.author != client.user and not message.author.bot:
-		await general_log.send(embed=embed)
+			# Link images
+
+		attachment_root = 'https://cdn.discordapp.com/attachments/'
+		content = message.content.split()
+		discord_attachments = [
+			att for att in content 
+			if att.startswith(attachment_root)
+		]
+		for datt in discord_attachments:
+			try:
+				if not embed.image:
+					embed.set_image(url=datt)
+				content.remove(datt)
+			except:
+				pass
+
+		# Embedded images
+		if atts:
+			image_attachments = [att.proxy_url for att in atts if att.content_type.startswith('image')]
+			if image_attachments:
+				if len(image_attachments) >= 2:
+					embed.description += f"\n**Image Attachments:** {', '.join(image_attachments)}"
+
+				embed.set_image(url=image_attachments[0])
+			video_attachments = [att.proxy_url for att in atts if att.content_type.startswith('video')]
+			embed.description += f"\n**Video Attachments:** {', '.join(video_attachments)}"
+			# if message.author != client.user and not message.author.bot:
+		await deleted_messages_log.send(embed=embed)
 
 
 @client.command()
