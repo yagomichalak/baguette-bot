@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands, tasks
-from discord.app import slash_command, Option, option
+from discord import slash_command, Option, option
 from discord.utils import escape_mentions
 
 import asyncio
