@@ -32,6 +32,8 @@ server_id = int(os.getenv('SERVER_ID'))
 nsfw_channel_id = int(os.getenv('NSFW_CHANNEL_ID'))
 staff_role_id = int(os.getenv('STAFF_ROLE_ID'))
 member_dot_role_id = int(os.getenv('MEMBER_DOT_ROLE_ID'))
+teacher_role_id: int = int(os.getenv("TEACHER_ROLE_ID"))
+organizer_role_id: int = int(os.getenv("ORGANIZER_ROLE_ID"))
 
 allowed_roles = [owner_role_id, admin_role_id, mod_role_id, jr_mod_role_id, trial_mod_role_id]
 
@@ -226,20 +228,23 @@ class Moderation(*moderation_cogs):
 		# https://discord.com/events/777886754761605140/957657541628821584
 		# Invite tracker
 		msg = str(message.content)
-		if 'discord.gg/' in msg.lower() or 'discord.com/invite/' in msg.lower():
+		if ('discord.gg/' in msg.lower() and '?event=' not in msg.lower()
+			) or ('discord.com/invite/' in msg.lower() and '?event=' not in msg.lower()):
 			invite_root = 'discord.gg/' if 'discord.gg/' in msg.lower() else 'discord.com/invite/'
 			ctx = await self.client.get_context(message)
-			if not await utils.is_allowed(allowed_roles).predicate(ctx):
+			if not await utils.is_allowed([*allowed_roles, organizer_role_id, teacher_role_id]).predicate(ctx):
+				
 				is_from_guild = await self.check_invite_guild(msg, message.guild, invite_root)
+
 
 				if not is_from_guild:
 					await message.delete()
 					return await message.author.send("**Please, stop sending invites! (Invite Advertisement)**")
 		
-		if 'discord.com/events/' in msg.lower():
-			invite_root = 'discord.com/events/'
+		if 'discord.com/events/' in msg.lower() or ('discord.gg/' in msg.lower() and '?event=' in msg.lower()):
+			invite_root = 'discord.gg/' if 'discord.gg/' in msg.lower() else 'discord.com/events/'
 			ctx = await self.client.get_context(message)
-			if await utils.is_allowed(allowed_roles).predicate(ctx):
+			if not await utils.is_allowed([*allowed_roles, organizer_role_id, teacher_role_id]).predicate(ctx):
 				is_from_guild = await self.check_event_invite_guild(msg, message.guild, invite_root)
 
 				if not is_from_guild:
@@ -256,15 +261,10 @@ class Moderation(*moderation_cogs):
 		for c in msg[end_index:]:
 			if c == ' ':
 				break
-			elif c == '?':
-				break
 
 			invite_hash += c
-		print(invite_hash)
 		inv_code = discord.utils.resolve_invite(invite_root + invite_hash)
-		print(inv_code)
 		guild_inv = discord.utils.get(await guild.invites(), code=inv_code)
-		print(guild_inv)
 
 		for char in ['!', '@', '.', '(', ')', '[', ']', '#', '?', ':', ';', '`', '"', "'", ',', '{', '}']:
 			invite_hash = invite_hash.replace(char, '')
@@ -293,8 +293,19 @@ class Moderation(*moderation_cogs):
 				break
 
 			invite_hash += c
+		is_from_guild: bool = False
+
+		# Checks the event invite link pattern
+		if invite_root == 'discord.gg/':
+			event_id = int(invite_hash.split('?event=')[1])
+			event = guild.get_scheduled_event(event_id)
+			is_from_guild = False if not event else event.guild.id == guild.id
+		else:
+			event_guild_id = int(invite_hash.split('/')[0])
+			is_from_guild = event_guild_id == guild.id
 			
-		if int(invite_hash.split('/')[0]) == guild.id:
+		# Checks whether the event invite is from the server
+		if is_from_guild:
 			return True
 		else:
 			return False
