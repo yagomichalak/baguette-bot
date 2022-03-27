@@ -3,6 +3,7 @@ from discord.ext import commands
 
 from extra import utils
 from extra.prompt.menu import ConfirmButton
+from extra.misc.events import CreateEventDatabase
 
 from mysqldb import the_database
 from typing import Dict, List, Union, Optional, Any
@@ -17,14 +18,13 @@ organizer_role_id: int = int(os.getenv("ORGANIZER_ROLE_ID"))
 teacher_role_id: int = int(os.getenv("TEACHER_ROLE_ID"))
 staff_role_id: int = int(os.getenv("STAFF_ROLE_ID"))
 
-class CreateEvents(commands.Cog):
+class CreateEvents(CreateEventDatabase):
     """ Category for creating event channels. """
 
     def __init__(self, client: commands.Bot) -> None:
         """ Class init method. """
 
         self.client = client
-        self.db = CreateEventDatabase()
         self.host_cache: Dict[int, int] = {}
 
         self.french_roles: List[int] = [ # Native French roles
@@ -146,7 +146,6 @@ class CreateEvents(commands.Cog):
     # CREATE EVENT
 
     @commands.group(name="create", aliases=["create_event", "create_lesson"])
-    @utils.not_ready()
     async def _create(self, ctx) -> None:
         """ Creates an event. """
 
@@ -169,20 +168,21 @@ class CreateEvents(commands.Cog):
     @utils.is_allowed([organizer_role_id], throw_exc=True)
     @commands.cooldown(1, 60, commands.BucketType.user)
     async def _create_event(self, ctx) -> None:
-        """ Creates a Movie Night voice and text channel. """
+        """ Creates an event voice and text channel. """
 
         member = ctx.author
         guild = ctx.guild
         room = await self.get_event_room_by_user_id(member.id)
-        channel = discord.utils.get(guild.text_channels, id=room[2]) if room else None
+        channel = discord.utils.get(guild.text_channels, id=room[1]) if room else None
 
         if room and channel:
             return await ctx.send(f"**{member.mention}, you already have an event room going on! ({channel.mention})**")
         elif room and not channel:
             await self.delete_event_room_by_txt_id(room[2])
 
-        confirm_view = await ConfirmButton(member, timeout=60)
+        confirm_view = ConfirmButton(member, timeout=60)
         msg = await ctx.send("Do you want to create an event?", view=confirm_view)
+        await confirm_view.wait()
 
         if confirm_view is None:
             return await ctx.reply("**Timeout!**", delete_after=3)
@@ -198,7 +198,6 @@ class CreateEvents(commands.Cog):
         events_category = discord.utils.get(guild.categories, id=events_cat_id)
 
         event_title = f"⭐ Event ⭐"
-
         try:
             # Creating text channel
             text_channel = await events_category.create_text_channel(
@@ -221,16 +220,16 @@ class CreateEvents(commands.Cog):
         else:
             await ctx.send(f"**{member.mention}, {text_channel.mention} is up and running!**")
 
-    @_create.command(name="english_lesson", aliases=["english_class", "englishlesson", "englishclas", "fc", "fl"])
+    @_create.command(name="english_lesson", aliases=["english_class", "englishlesson", "englishclas", "ec", "el"])
     @utils.is_allowed([organizer_role_id], throw_exc=True)
     @commands.cooldown(1, 60, commands.BucketType.user)
     async def _create_english_lesson(self, ctx) -> None:
-        """ Creates an English Lesson voice and text channel. """
+        """ Creates a Voice and Text Channel for an English class. """
 
         member = ctx.author
         guild = ctx.guild
         room = await self.get_event_room_by_user_id(member.id)
-        channel = discord.utils.get(guild.text_channels, id=room[2]) if room else None
+        channel = discord.utils.get(guild.text_channels, id=room[1]) if room else None
 
         if room and channel:
             return await ctx.send(f"**{member.mention}, you already have an open room! ({channel.mention})**")
@@ -238,8 +237,9 @@ class CreateEvents(commands.Cog):
         elif room and not channel:
             await self.delete_event_room_by_txt_id(room[2])
 
-        confirm_view = await ConfirmButton(member, timeout=60)
+        confirm_view = ConfirmButton(member, timeout=60)
         msg = await ctx.send("Do you want to create an event?", view=confirm_view)
+        await confirm_view.wait()
 
         if confirm_view is None:
             return await ctx.reply("**Timeout!**", delete_after=3)
@@ -282,12 +282,12 @@ class CreateEvents(commands.Cog):
     @utils.is_allowed([organizer_role_id], throw_exc=True)
     @commands.cooldown(1, 60, commands.BucketType.user)
     async def _create_french_lesson(self, ctx) -> None:
-        """ Creates a Movie Night voice and text channel. """
+        """ Creates a Voice and Text channel for a French class. """
 
         member = ctx.author
         guild = ctx.guild
         room = await self.get_event_room_by_user_id(member.id)
-        channel = discord.utils.get(guild.text_channels, id=room[2]) if room else None
+        channel = discord.utils.get(guild.text_channels, id=room[1]) if room else None
 
         if room and channel:
             return await ctx.send(f"**{member.mention}, you already have an open room! ({channel.mention})**")
@@ -295,8 +295,9 @@ class CreateEvents(commands.Cog):
         elif room and not channel:
             await self.delete_event_room_by_txt_id(room[2])
 
-        confirm_view = await ConfirmButton(member, timeout=60)
+        confirm_view = ConfirmButton(member, timeout=60)
         msg = await ctx.send("Do you want to create an event?", view=confirm_view)
+        await confirm_view.wait()
 
         if confirm_view is None:
             return await ctx.reply("**Timeout!**", delete_after=3)
@@ -340,7 +341,6 @@ class CreateEvents(commands.Cog):
 
     @commands.command(aliases=['close_event'])
     @utils.is_allowed([organizer_role_id], throw_exc=True)
-    @utils.not_ready()
     async def delete_event(self, ctx) -> None:
         """ Deletes an event room. """
         member = ctx.author
@@ -358,8 +358,8 @@ class CreateEvents(commands.Cog):
             delete = True
 
         if delete:
-            confirm_view = await ConfirmButton(member, timeout=60)
-            await ctx.send(f"**{member.mention}, are you sure you want to delete this event?**", viwe=confirm_view)
+            confirm_view = ConfirmButton(member, timeout=60)
+            await ctx.send(f"**{member.mention}, are you sure you want to delete this event?**", view=confirm_view)
 
             await confirm_view.wait()
 
@@ -376,77 +376,9 @@ class CreateEvents(commands.Cog):
                 print(e)
                 await ctx.send(f"**Something went wrong with it, try again later, {member.mention}!**")
 
-class CreateEventDatabase:
-    """ Class for the CreateEvent system's database method. """
-
-    @commands.command(hidden=True)
-    @commands.has_permissions(administrator=True)
-    async def create_event_table(self, ctx) -> None:
-        """ Creates the Event table in the database. """
-
-        member: discord.Member = ctx.author
-
-        if await self.check_event_table_exists():
-            return await ctx.send(f"**Table `Event` table already exists, {member.mention}!**")
-
-        mycursor, db = await the_database()
-        await mycursor.execute("""
-            CREATE TABLE Event (
-                user_id BIGINT NOT NULL,
-                txt_id BIGINT DEFAULT NULL,
-                vc_id BIGINT NOT NULL,
-                event_type VARCHAR(5) NOT NULL,
-                event_title VARCHAR(25) NOT NULL,
-                PRIMARY KEY (user_id)
-            )
-        """)
-        await db.commit()
-        await mycursor.close()
-        await ctx.send(f"**`Event` table created, {member.mention}!**")
-
-    @commands.command(hidden=True)
-    @commands.has_permissions(administrator=True)
-    async def drop_event_table(self, ctx) -> None:
-        """ Drops the Event table from the database. """
-
-        member: discord.Member = ctx.author
-
-        if not await self.check_event_table_exists():
-            return await ctx.send(f"**Table `Event` table doesn't exist, {member.mention}!**")
-
-        mycursor, db = await the_database()
-        await mycursor.execute("DROP TABLE Event")
-        await db.commit()
-        await mycursor.close()
-        await ctx.send(f"**`Event` table dropped, {member.mention}!**")
-
-    @commands.command(hidden=True)
-    @commands.has_permissions(administrator=True)
-    async def reset_event_table(self, ctx) -> None:
-        """ Resets the Event table in the database. """
-
-        member: discord.Member = ctx.author
-
-        if not await self.check_event_table_exists():
-            return await ctx.send(f"**Table `Event` table doesn't exist yet, {member.mention}!**")
-
-        mycursor, db = await the_database()
-        await mycursor.execute("DELETE FROM Event")
-        await db.commit()
-        await mycursor.close()
-        await ctx.send(f"**`Event` table reset, {member.mention}!**")
-
-    async def check_event_table_exists(self) -> bool:
-        """ Checks whether the Event table exists in the database. """
-
-        mycursor, _ = await the_database()
-        await mycursor.execute("SHOW TABLE STATUS LIKE 'Event'")
-        exists = await mycursor.fetchone()
-        await mycursor.close()
-        if exists:
-            return True
-        else:
-            return False
+"""
+b!create_event_table
+"""
 
 
 def setup(client: commands.Bot) -> None:
