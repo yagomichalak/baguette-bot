@@ -447,6 +447,29 @@ class LevelSystem(commands.Cog):
         pages = menus.MenuPages(source=SwitchPages(all_users, **additional), clear_reactions_after=True)
         await pages.start(ctx)
 
+    @commands.command(aliases=[
+        'voice_score', 'voice_level_board', 'voice_levelboard', 'voice_levels', 'voice_level_score',
+        'vscore', 'vlevel_board', 'vlevelboard', 'vlevels', 'vlevel_score'
+    ])
+    @Misc.check_whitelist()
+    async def voice_leaderboard(self, ctx):
+        """ Shows the top ten members in the voice level leaderboard. """
+
+        # users = await self.get_users()
+
+        Tools = self.client.get_cog('Tools')
+        all_users = await Tools.get_all_user_voices_by_xp()
+        position = [[i+1, u[4]] for i, u in enumerate(all_users) if u[0] == ctx.author.id]
+        position = [it for subpos in position for it in subpos] if position else ['??', 0]
+
+        # Additional data:
+        additional = {
+            'change_embed': self._make_voice_level_score_embed,
+            'position': position
+        }
+        pages = menus.MenuPages(source=SwitchPages(all_users, **additional), clear_reactions_after=True)
+        await pages.start(ctx)
+
     @commands.command()
     @commands.has_permissions(administrator=True)
     async def setlevel(self, ctx, member: discord.Member = None, level: int = None) -> None:
@@ -566,6 +589,36 @@ class LevelSystem(commands.Cog):
         for i, sm in enumerate(entries, start=offset):
             member = discord.utils.get(ctx.guild.members, id=sm[0])
             leaderboard.add_field(name=f"[{i}]#", value=f"{member.mention if member else f'<@{sm[0]}>'} | Level: `{sm[2]}` | XP: `{sm[1]}`",
+                                  inline=False)
+
+        for i, v in enumerate(entries, start=offset):
+            leaderboard.set_footer(text=f"({i} of {lentries})")
+
+
+        return leaderboard
+
+    async def _make_voice_level_score_embed(self, ctx: commands.Context, entries, offset: int, lentries: int, kwargs) -> discord.Embed:
+        """ Makes an embedded message for the voice level scoreboard. """
+
+        position = kwargs.get('position')
+
+        # tribe_embed.set_footer(text=f"Requested by {ctx.author}", icon_url=ctx.author.display_avatar)
+        member = ctx.author
+
+        leaderboard = discord.Embed(
+            title="__Le Salon Français' Voice Level Ranking Leaderboard__",
+            description="All registered users and their voice levels and experience points.",
+            colour=ctx.author.color, timestamp=ctx.message.created_at)
+
+
+        leaderboard.description += f"\n**Your Voice XP:** `{position[1]}` | **#**`{position[0]}`"
+        leaderboard.set_thumbnail(url=ctx.guild.icon.url)
+        leaderboard.set_author(name=ctx.author, icon_url=ctx.author.display_avatar)
+
+        # Embeds each one of the top ten users.
+        for i, sm in enumerate(entries, start=offset):
+            member = discord.utils.get(ctx.guild.members, id=sm[0])
+            leaderboard.add_field(name=f"[{i}]#", value=f"{member.mention if member else f'<@{sm[0]}>'} | Level: `{sm[3]}` | XP: `{sm[4]}`",
                                   inline=False)
 
         for i, v in enumerate(entries, start=offset):
