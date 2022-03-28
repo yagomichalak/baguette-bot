@@ -310,6 +310,15 @@ class UserVoiceTable(commands.Cog):
         await mycursor.close()
         return user_voice
 
+    async def get_all_user_voices_by_xp(self) -> List[List[int]]:
+        """ Gets all users from the MembersScore table ordered by XP. """
+
+        mycursor, _ = await the_database()
+        await mycursor.execute("SELECT * FROM UserVoice ORDER BY user_xp DESC")
+        user_voices = await mycursor.fetchall()
+        await mycursor.close()
+        return user_voices
+
     # ===== UPDATE =====
 
     async def update_user_voice_time(self, user_id: int, increment: int, current_ts: int = None) -> None:

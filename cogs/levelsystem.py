@@ -385,6 +385,10 @@ class LevelSystem(commands.Cog):
         position = [[i+1, u[1]] for i, u in enumerate(all_users) if u[0] == ctx.author.id]
         position = [it for subpos in position for it in subpos] if position else ['??', 0]
 
+        all_vc_users = await Tools.get_all_user_voices_by_xp()
+        vc_position = [[i+1, u[4]] for i, u in enumerate(all_vc_users) if u[0] == ctx.author.id]
+        vc_position = [it for subpos in vc_position for it in subpos] if vc_position else ['??', 0]
+
         embed = discord.Embed(title="__Profile__", colour=member.color, timestamp=ctx.message.created_at)
         embed.add_field(name="**Chat Level**", value=f"{user[0][2]}.", inline=True)
         embed.add_field(name="**Chat Rank**", value=f"# {position[0]}.", inline=True)
@@ -393,7 +397,7 @@ class LevelSystem(commands.Cog):
         embed.add_field(name="**Messages**", value=f"{user[0][4]}.", inline=False)
 
         embed.add_field(name="**Voice Level**", value=f"{user_voice[3]}.", inline=True)
-        embed.add_field(name="**Voice Rank**", value=f"# ??.", inline=True)
+        embed.add_field(name="**Voice Rank**", value=f"# {vc_position[0]}.", inline=True)
         embed.add_field(name="**Voice EXP**", value=f"{user_voice[4]} / {await LevelSystem.get_xp(user[0][2])}.", inline=True)
         
 
