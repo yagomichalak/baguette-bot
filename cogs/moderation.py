@@ -1,7 +1,6 @@
 from pytz import timezone
 import discord
 from discord.ext import commands, tasks
-import asyncio
 from mysqldb import the_database
 from datetime import datetime
 import time
@@ -10,11 +9,11 @@ import os
 
 from extra.banned_things import chat_filter, website_filter
 from extra.menu import Confirm
+from extra.prompt.menu import ConfirmButton
 from extra import utils
 from extra.moderation.firewall import ModerationFirewallTable
 
-from typing import List, Dict, Tuple
-from pprint import pprint
+from typing import List, Dict, Tuple, Optional
 import re
 import emoji
 from cogs.misc import Misc
@@ -30,7 +29,8 @@ admin_role_id = int(os.getenv('ADMIN_ROLE_ID'))
 owner_role_id = int(os.getenv('OWNER_ROLE_ID'))
 server_id = int(os.getenv('SERVER_ID'))
 nsfw_channel_id = int(os.getenv('NSFW_CHANNEL_ID'))
-staff_role_id = int(os.getenv('STAFF_ROLE_ID'))
+# staff_role_id = int(os.getenv('STAFF_ROLE_ID'))
+staff_role_id = 777886754936979471
 member_dot_role_id = int(os.getenv('MEMBER_DOT_ROLE_ID'))
 teacher_role_id: int = int(os.getenv("TEACHER_ROLE_ID"))
 organizer_role_id: int = int(os.getenv("ORGANIZER_ROLE_ID"))
@@ -181,6 +181,7 @@ class Moderation(*moderation_cogs):
 		if new_role:
 			# Checks ID of the new role and compares to the Staff role ID.
 			if new_role.id == staff_role_id:
+				print(await self.get_staff_member(after.id))
 				if not await self.get_staff_member(after.id):
 					staff_at = await utils.get_time()
 					staff_at = staff_at.strftime('%Y/%m/%d at %H:%M:%S')
@@ -1756,32 +1757,57 @@ class Moderation(*moderation_cogs):
 		await db.commit()
 		await mycursor.close()
 
+	async def delete_staff_member(self, user_id: int) -> None:
+		""" Deletes a Staff member from the database.
+		:param user_id: The ID of the Staff member. """
+
+		mycursor, db = await the_database()
+		await mycursor.execute("DELETE FROM StaffMember WHERE user_id = %s", (user_id,))
+		await db.commit()
+		await mycursor.close()
 	
 	@commands.command(aliases=['change_join_date', 'cjd', 'csjd'])
 	@commands.has_permissions(administrator=True)
-	async def change_staff_join_date(self, ctx: commands.Context, member: discord.Member = None, new_date: str = None) -> None:
+	async def change_staff_join_date(self, ctx: commands.Context, member: discord.Member = None, new_date: Optional[str] = None) -> None:
 		""" Changes the Staff member's join date, if they are not in the table,
 		it inserts them in there with the given joinin date.
 		:param member: The Staff member to insert.
-		:param new_date: The (new) joining date. """
+		:param new_date: The (new) joining date. [Optional]
+		
+		PS: If new_date is not informed, it'll prompt for the removal"""
 
+		author: discord.Member = ctx.author
 
 		if not member:
 			return await ctx.send(f"**Please, inform a member, {ctx.author.mention}!**")
 
-		if not new_date:
-			return await ctx.send(f"**Please, inform a date, {ctx.author.mention}!**")
-
-		if len(new_date) > 50:
+		if new_date and len(new_date) > 50:
 			return await ctx.send(f"**Please, inform a date with a max. of 50 characters, {ctx.author.mention}!**")
 
-		
-		if await self.get_staff_member(member.id):
+		if not new_date:
+			confirm_view = ConfirmButton(author, timeout=60)
+			embed = discord.Embed(
+				title="__Confirmation__",
+				description=f"**Are you sure you wanna delete {member.mention}'s Staff join date, {author.mention}!**?",
+				color=discord.Color.green(), timestamp=ctx.message.created_at)
+			msg = await ctx.send(embed=embed, view=confirm_view)
+			await confirm_view.wait()
+			if confirm_view.value is None:
+				await ctx.reply(f"**Timeout, {member.mention}!**")
+			elif not confirm_view:
+				await ctx.reply(f"**Declined, {member.mention}!**")
+			else:
+				await self.delete_staff_member(member.id)
+				await ctx.send(f"**Successfully deleted Staff join date from `{member}`, {ctx.author.mention}!**")
+			await utils.disable_buttons(confirm_view)
+			await msg.edit(view=confirm_view)
+
+		elif await self.get_staff_member(member.id):
 			await self.update_staff_member_join_date(member.id, new_date)
-			await ctx.send(f"**Successfully updated joining-date for `{member}`, {ctx.author.mention}!**")
+			await ctx.send(f"**Successfully updated Staff join date for `{member}`, {ctx.author.mention}!**")
 		else:
 			await self.insert_staff_member(user_id=member.id, infractions_given=0, staff_at=new_date)
-			await ctx.send(f"**Successfully inserted `{member}` with the given joining-date, {ctx.author.mention}!**")
+			await ctx.send(f"**Successfully inserted `{member}` with the given Staff join date, {ctx.author.mention}!**")
 
 	@commands.command(aliases=['fire', 'wall', 'fire_wall'])
 	@commands.has_permissions(administrator=True)

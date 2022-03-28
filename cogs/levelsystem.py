@@ -131,7 +131,6 @@ class LevelSystem(commands.Cog):
                 await Misc.update_user_server_status_vc_time(status_ts=current_ts, addition=addition, label="daily-time", past_days=1, channel_id=bc.id)
                 await Misc.update_user_server_status_vc_time(status_ts=current_ts, addition=addition, label="weekly-time", past_days=7, channel_id=bc.id)
         else:
-            # print('opa')
             if not before.mute and after.mute: # User muted
                 if addition is not None:
                     await self.update_user_server_time(user_id=member.id, add_time=addition, reset_ts=True)
