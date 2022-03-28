@@ -190,10 +190,7 @@ class UserVoiceSystem(commands.Cog):
 
         embed = discord.Embed(
             description=f"**Voice Time:**\n{h:d} hours, {m:02d} minutes and {s:02d} seconds." \
-            f"\n**Timestamp:** {f'<t:{user_voice[2]}:R>' if user_voice[2] else 'None.'}" \
-            f"\n**Voice Level:** {user_voice[3]}" \
-            f"\n**Voice XP:** {user_voice[4]}"
-            ,
+            f"\n**Timestamp:** {f'<t:{user_voice[2]}:R>' if user_voice[2] else 'None.'}",
             color=member.color,
             timestamp=current_time
         )
