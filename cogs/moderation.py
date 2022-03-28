@@ -666,7 +666,7 @@ class Moderation(*moderation_cogs):
 					user_id=staff_member.id, infraction_increment=1)
 
 			user_infractions = await self.get_user_infractions(member.id)
-			user_warns = [w for w in user_infractions if w[1] == 'warn']
+			user_warns = [w for w in user_infractions if w[1] == 'warn' and 'Message Spam' in w[2]]
 			if len(user_warns) >= 3:
 				ctx.author = self.client.user
 				await self.mute(context=ctx, member=member, reason=reason)
