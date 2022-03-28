@@ -360,7 +360,7 @@ class LevelSystem(commands.Cog):
 
         # Checks if the Ranking table exists.
         if not await self.table_member_status_exists():
-            return await ctx.send("**This command may be on maintenance!**", delete_after=3)
+            return await ctx.send("**This command ma'y be on maintenance!**", delete_after=3)
 
         # If not specified a member - then it's you!
         if not member:
@@ -373,17 +373,30 @@ class LevelSystem(commands.Cog):
         if not (user := await self.get_specific_user(member.id)):
             return await ctx.send(f"**{member} is not in the system, maybe they have to use the command by themselves!**")
 
+        # Gets the user's Voice data from the database
+        Tools = self.client.get_cog('Tools')
+        if not (user_voice := await Tools.get_user_voice(member.id)):
+            await Tools.insert_user_voice(member.id)
+            await asyncio.sleep(0.3)
+            user_voice = await Tools.get_user_voice(member.id)
+
         # Arranges the user's information into a well-formed embed
         all_users = await self.get_all_users_by_xp()
         position = [[i+1, u[1]] for i, u in enumerate(all_users) if u[0] == ctx.author.id]
         position = [it for subpos in position for it in subpos] if position else ['??', 0]
 
         embed = discord.Embed(title="__Profile__", colour=member.color, timestamp=ctx.message.created_at)
-        embed.add_field(name="**Level**", value=f"{user[0][2]}.", inline=True)
-        embed.add_field(name="**Rank**", value=f"# {position[0]}.", inline=True)
-        # embed.add_field(name="__**EXP**__", value=f"{user[0][1]} / {((user[0][2]+1)**5)}.", inline=False)
-        embed.add_field(name="**EXP**", value=f"{user[0][1]} / {await LevelSystem.get_xp(user[0][2])}.", inline=False)
-        embed.add_field(name="**Messages**", value=f"{user[0][4]}.", inline=True)
+        embed.add_field(name="**Chat Level**", value=f"{user[0][2]}.", inline=True)
+        embed.add_field(name="**Chat Rank**", value=f"# {position[0]}.", inline=True)
+        embed.add_field(name="**Chat EXP**", value=f"{user[0][1]} / {await LevelSystem.get_xp(user[0][2])}.", inline=True)
+
+        embed.add_field(name="**Messages**", value=f"{user[0][4]}.", inline=False)
+
+        embed.add_field(name="**Voice Level**", value=f"{user_voice[3]}.", inline=True)
+        embed.add_field(name="**Voice Rank**", value=f"# ??.", inline=True)
+        embed.add_field(name="**Voice EXP**", value=f"{user_voice[4]} / {await LevelSystem.get_xp(user[0][2])}.", inline=True)
+        
+
 
         mall, sall = divmod(user[0][5], 60)
         hall, mall = divmod(mall, 60)
