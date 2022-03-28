@@ -321,9 +321,7 @@ class Moderation(*moderation_cogs):
 		contents = message.content.split()
 		for word in contents:
 			if word.lower() in chat_filter:
-				print('mo')
 				await message.delete()
-				# await message.channel.send(f"**Watch your language, {message.author.mention}!**", delete_after=2)
 
 				# Cache message
 				timestamp = time.time()
@@ -666,7 +664,7 @@ class Moderation(*moderation_cogs):
 					user_id=staff_member.id, infraction_increment=1)
 
 			user_infractions = await self.get_user_infractions(member.id)
-			user_warns = [w for w in user_infractions if w[1] == 'warn' and 'Message Spam' in w[2]]
+			user_warns = [w for w in user_infractions if w[1] == 'warn' and 'Message Spam' in str(w[2])]
 			if len(user_warns) >= 3:
 				ctx.author = self.client.user
 				await self.mute(context=ctx, member=member, reason=reason)
