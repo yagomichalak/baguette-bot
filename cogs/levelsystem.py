@@ -381,11 +381,11 @@ class LevelSystem(commands.Cog):
 
         # Arranges the user's information into a well-formed embed
         all_users = await self.get_all_users_by_xp()
-        position = [[i+1, u[1]] for i, u in enumerate(all_users) if u[0] == ctx.author.id]
+        position = [[i+1, u[1]] for i, u in enumerate(all_users) if u[0] == member.id]
         position = [it for subpos in position for it in subpos] if position else ['??', 0]
 
         all_vc_users = await Tools.get_all_user_voices_by_xp()
-        vc_position = [[i+1, u[4]] for i, u in enumerate(all_vc_users) if u[0] == ctx.author.id]
+        vc_position = [[i+1, u[4]] for i, u in enumerate(all_vc_users) if u[0] == member.id]
         vc_position = [it for subpos in vc_position for it in subpos] if vc_position else ['??', 0]
 
         embed = discord.Embed(title="__Profile__", colour=member.color, timestamp=ctx.message.created_at)
