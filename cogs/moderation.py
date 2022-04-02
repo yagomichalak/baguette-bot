@@ -609,11 +609,10 @@ class Moderation(*moderation_cogs):
 	@commands.command()
 	@commands.check_any(is_allowed_members(), commands.has_any_role(*allowed_roles))
 	async def warn(self, ctx, member: discord.Member = None, *, reason=None):
-		'''
-		(MOD) Warns a member.
+		""" (MOD) Warns a member.
 		:param member: The @ or ID of the user to warn.
-		:param reason: The reason for warning the user. (Optional)
-		'''
+		:param reason: The reason for warning the user. (Optional) """
+
 		try:
 			await ctx.message.delete()
 		except Exception:
@@ -667,8 +666,6 @@ class Moderation(*moderation_cogs):
 			if len(user_warns) >= 3:
 				ctx.author = self.client.user
 				await self.mute(context=ctx, member=member, reason=reason)
-
-
 
 	async def get_mute_time(self, ctx: commands.Context, time: List[str]) -> Dict[str, int]:
 		""" Gets the mute time in seconds.
@@ -735,7 +732,6 @@ class Moderation(*moderation_cogs):
 		except:
 			pass
 
-
 		if not member:
 			return await ctx.send("**Please, specify a member!**", delete_after=3)
 
@@ -749,14 +745,11 @@ class Moderation(*moderation_cogs):
 			if not seconds:
 				return
 
-		# print('ah')
 		current_ts = int(await utils.get_timestamp())
 
-		# print(current_ts, seconds)
 		role = discord.utils.get(ctx.guild.roles, id=muted_role_id)
 
 		if role not in member.roles:
-			# await member.add_roles(role)
 			await member.move_to(None)
 			remove_roles = []
 			keep_roles = [role]
@@ -781,7 +774,6 @@ class Moderation(*moderation_cogs):
 					keep_roles.append(member_role)
 
 			await member.edit(roles=keep_roles)
-			# role_ids = [rr.id for rr in remove_roles]
 			if time:
 				user_role_ids = [(member.id, rr.id, current_ts, seconds) for rr in remove_roles]
 				await self.insert_in_muted(user_role_ids)
@@ -907,7 +899,7 @@ class Moderation(*moderation_cogs):
 
 	@commands.command()
 	@commands.check_any(is_allowed_members(), commands.has_any_role(*[mod_role_id, admin_role_id, owner_role_id]))
-	async def kick(self, ctx, member: discord.Member = None, *, reason=None):
+	async def kick(self, ctx, member: discord.Member = None, *, reason: Optional[str] = None) -> None:
 		""" (MOD) Kicks a member from the server.
 		:param member: The @ or ID of the user to kick.
 		:param reason: The reason for kicking the user. (Optional) """
@@ -936,8 +928,7 @@ class Moderation(*moderation_cogs):
 				embed.set_thumbnail(url=member.display_avatar)
 				await moderation_log.send(embed=embed)
 				# Inserts a infraction into the database
-				epoch = datetime.utcfromtimestamp(0)
-				current_ts = (datetime.utcnow() - epoch).total_seconds()
+				current_ts = await utils.get_timestamp()
 				await self.insert_user_infraction(
 					user_id=member.id, infr_type="kick", reason=reason, 
 					timestamp=current_ts , perpetrator=ctx.author.id)
@@ -961,11 +952,10 @@ class Moderation(*moderation_cogs):
 					await self.update_staff_member_counter(
 						user_id=staff_member.id, infraction_increment=1)
 
-
 	# Bans a member
 	@commands.command()
 	@commands.check_any(is_allowed_members(), commands.has_any_role(*[mod_role_id, admin_role_id, owner_role_id]))
-	async def ban(self, ctx, member: discord.Member = None, *, reason=None) -> None:
+	async def ban(self, ctx, member: discord.Member = None, *, reason: Optional[str] = None) -> None:
 		""" Bans a member from the server.
 		:param member: The @ or ID of the user to ban.
 		:param reason: The reason for banning the user. (Optional) """
@@ -974,16 +964,13 @@ class Moderation(*moderation_cogs):
 		if not member:
 			return await ctx.send('**Please, specify a member!**', delete_after=3)
 
-
 		# Bans and logs
 		try:
 			await member.ban(delete_message_days=0, reason=reason)
 		except Exception:
 			await ctx.send('**You cannot do that!**', delete_after=3)
 		else:
-			epoch = datetime.utcfromtimestamp(0)
-			current_ts = (datetime.utcnow() - epoch).total_seconds()
-
+			current_ts = await utils.get_timestamp()
 			staff_member = ctx.author
 			if not (staff_member_info := await self.get_staff_member(staff_member.id)):
 				staff_at = await utils.get_time()
@@ -1009,7 +996,6 @@ class Moderation(*moderation_cogs):
 				else:
 					await self.update_staff_member_counter(
 						user_id=staff_member.id, infraction_increment=1, ban_increment=1, timestamp=current_ts)
-
 
 			# General embed
 			general_embed = discord.Embed(description=f'**Reason:** {reason}', colour=discord.Colour.dark_red())
@@ -1039,11 +1025,12 @@ class Moderation(*moderation_cogs):
 	# Hardbans a member
 	@commands.command()
 	@commands.check_any(is_allowed_members(), commands.has_any_role(*[mod_role_id, admin_role_id, owner_role_id]))
-	async def hardban(self, ctx, member: discord.Member = None, *, reason=None) -> None:
+	async def hardban(self, ctx, member: discord.Member = None, *, reason: Optional[str] = None) -> None:
 		""" Hardbans a member from the server.
 		=> Bans and delete messages from the last day,
 		:param member: The @ or ID of the user to ban.
-		:param reason: The reason for banning the user. (Optional) """
+		:param reason: The reason for banning the user. [Optional] """
+
 		await ctx.message.delete()
 		if not member:
 			return await ctx.send('**Please, specify a member!**', delete_after=3)
@@ -1055,8 +1042,7 @@ class Moderation(*moderation_cogs):
 			await ctx.send('**You cannot do that!**', delete_after=3)
 		else:
 
-			epoch = datetime.utcfromtimestamp(0)
-			current_ts = (datetime.utcnow() - epoch).total_seconds()
+			current_ts = await utils.get_timestamp()
 
 			staff_member = ctx.author
 			if not (staff_member_info := await self.get_staff_member(staff_member.id)):
@@ -1107,11 +1093,10 @@ class Moderation(*moderation_cogs):
 	# Unbans a member
 	@commands.command()
 	@commands.has_permissions(administrator=True)
-	async def unban(self, ctx, *, member=None):
-		'''
-		(ADM) Unbans a member from the server.
-		:param member: The full nickname and # of the user to unban.
-		'''
+	async def unban(self, ctx, *, member = None):
+		""" (ADM) Unbans a member from the server.
+		:param member: The full nickname and # of the user to unban. """
+
 		await ctx.message.delete()
 		if not member:
 			return await ctx.send('**Please, inform a member!**', delete_after=3)
@@ -1150,16 +1135,13 @@ class Moderation(*moderation_cogs):
 		else:
 			await ctx.send('**Member not found!**', delete_after=3)
 
-
 	@commands.command()
 	@commands.has_permissions(administrator=True)
-	async def hackban(self, ctx, user_id: int = None, *, reason=None):
-		"""
-		(ADM) Bans a user that is currently not in the server.
+	async def hackban(self, ctx, user_id: int = None, *, reason: Optional[str] = None):
+		""" (ADM) Bans a user that is currently not in the server.
 		Only accepts user IDs.
 		:param user_id: Member ID
-		:param reason: The reason for hackbanning the user. (Optional)
-		"""
+		:param reason: The reason for hackbanning the user. [Optional] """
 
 		await ctx.message.delete()
 		if not user_id:
@@ -1186,8 +1168,7 @@ class Moderation(*moderation_cogs):
 			await moderation_log.send(embed=embed)
 
 			# Inserts a infraction into the database
-			epoch = datetime.utcfromtimestamp(0)
-			current_ts = (datetime.utcnow() - epoch).total_seconds()
+			current_ts = await utils.get_timestamp()
 			await self.insert_user_infraction(
 				user_id=member.id, infr_type="hackban", reason=reason, 
 				timestamp=current_ts , perpetrator=ctx.author.id)
@@ -1201,7 +1182,10 @@ class Moderation(*moderation_cogs):
 		except discord.errors.NotFound:
 			return await ctx.send("**Invalid user id!**", delete_after=3)
 
-	async def insert_in_muted(self, user_role_ids: List[Tuple[int]]):
+	async def insert_in_muted(self, user_role_ids: List[Tuple[int]]) -> None:
+		""" Inserts a user into the database.
+		:param use_role_ids: The list of the user's muted roles IDs. """
+
 		mycursor, db = await the_database()
 		await mycursor.executemany("""
 			INSERT INTO MutedMember (
@@ -1210,29 +1194,34 @@ class Moderation(*moderation_cogs):
 		await db.commit()
 		await mycursor.close()
 
-	async def get_muted_roles(self, user_id: int):
-		mycursor, db = await the_database()
+	async def get_muted_roles(self, user_id: int) -> List[Tuple[int, int]]:
+		""" Gets the muted roles from a specific muted member.
+		:param user_id: The user ID. """
+
+		mycursor, _ = await the_database()
 		await mycursor.execute("SELECT * FROM MutedMember WHERE user_id = %s", (user_id,))
 		user_roles = await mycursor.fetchall()
 		await mycursor.close()
 		return user_roles
 
-	async def remove_role_from_system(self, user_role_ids: int):
+	async def remove_role_from_system(self, user_role_ids: List[Tuple[int, int]]) -> None:
+		""" Removes all muted roles from a specific user.
+		:param user_role_ids: The list of the user's muted roles IDs. """
+
 		mycursor, db = await the_database()
 		await mycursor.executemany("DELETE FROM MutedMember WHERE user_id = %s AND role_id = %s", user_role_ids)
 		await db.commit()
 		await mycursor.close()
 
 
-	async def remove_all_roles_from_system(self, user_id: int):
+	async def remove_all_roles_from_system(self, user_id: int) -> None:
 		""" Removes all muted-roles linked to a user from the system.
-		:param user_id: The ID of the user. """
+		:param user_id: The user ID. """
 
 		mycursor, db = await the_database()
-		await mycursor.executemany("DELETE FROM MutedMember WHERE user_id = %s", (user_id,))
+		await mycursor.execute("DELETE FROM MutedMember WHERE user_id = %s", (user_id,))
 		await db.commit()
 		await mycursor.close()
-
 
 	@commands.command(hidden=True)
 	@commands.has_permissions(administrator=True)
@@ -1245,7 +1234,11 @@ class Moderation(*moderation_cogs):
 		await ctx.message.delete()
 		mycursor, db = await the_database()
 		await mycursor.execute("""CREATE TABLE MutedMember (
-			user_id BIGINT NOT NULL, role_id BIGINT NOT NULL, mute_ts BIGINT DEFAULT NULL, muted_for_seconds BIGINT DEFAULT NULL)""")
+			user_id BIGINT NOT NULL, 
+			role_id BIGINT NOT NULL, 
+			mute_ts BIGINT DEFAULT NULL, 
+			muted_for_seconds BIGINT DEFAULT NULL
+		)""")
 		await db.commit()
 		await mycursor.close()
 
@@ -1268,9 +1261,8 @@ class Moderation(*moderation_cogs):
 	@commands.command(hidden=True)
 	@commands.has_permissions(administrator=True)
 	async def reset_table_mutedmember(self, ctx):
-		'''
-		(ADM) Resets the MutedMember table.
-		'''
+		""" (ADM) Resets the MutedMember table. """
+
 		if not await self.check_table_mutedmember_exists():
 			return await ctx.send("**Table __MutedMember__ doesn't exist yet**")
 
@@ -1283,29 +1275,25 @@ class Moderation(*moderation_cogs):
 		return await ctx.send("**Table __MutedMember__ reset!**", delete_after=3)
 
 	async def check_table_mutedmember_exists(self) -> bool:
-		'''
-		Checks if the MutedMember table exists
-		'''
-		mycursor, db = await the_database()
+		""" Checks if the MutedMember table exists. """
+
+		mycursor, _ = await the_database()
 		await mycursor.execute("SHOW TABLE STATUS LIKE 'MutedMember'")
-		table_info = await mycursor.fetchall()
+		exists = await mycursor.fetchone()
 		await mycursor.close()
 
-		if len(table_info) == 0:
-			return False
-
-		else:
+		if exists:
 			return True
+		else:
+			return False
 		
-
 	# Infraction methods
 	@commands.command(aliases=['infr', 'show_warnings', 'sw', 'show_bans', 'sb', 'show_muted', 'sm', 'punishements'])
 	@commands.check_any(is_allowed_members(), commands.has_any_role(*allowed_roles))
-	async def infractions(self, ctx, member: discord.Member = None) -> None:
-		'''
-		Shows all infractions of a specific user.
-		:param member: The member to show the infractions from.
-		'''
+	async def infractions(self, ctx, member: Optional[discord.Member] = None) -> None:
+		""" Shows all infractions of a specific user.
+		:param member: The member to show the infractions from. [Optional] """
+
 		if not member:
 			return await ctx.send("**Inform a member!**")
 		
@@ -1322,7 +1310,6 @@ class Moderation(*moderation_cogs):
 		# Makes the initial embed with their amount of infractions
 		embed = discord.Embed(
 			title=f"Infractions for {member}",
-			# description=f"Warns: {warns} | Mutes: {mutes} | Kicks: {kicks} | Bans: {bans} | Hackbans: {hackbans}",
 			color=member.color,
 			timestamp=ctx.message.created_at)
 		embed.set_thumbnail(url=member.display_avatar)
@@ -1345,7 +1332,12 @@ class Moderation(*moderation_cogs):
 	# Database methods
 
 	async def insert_user_infraction(self, user_id: int, infr_type: str, reason: str, timestamp: int, perpetrator: int) -> None:
-		""" Insert a warning into the system. """
+		""" Insert a warning into the system.
+		:param user_id: The user ID.
+		:param infr_type: The infraction type.
+		:param reason: The infraction reason.
+		:param timestamp: The infraction action timestamp.
+		:param perpetrator: The ID of the perpetrator of infraction action. """
 
 		mycursor, db = await the_database()
 		await mycursor.execute("""
@@ -1359,7 +1351,8 @@ class Moderation(*moderation_cogs):
 
 
 	async def get_user_infractions(self, user_id: int) -> List[List[Union[str, int]]]:
-		""" Gets all infractions from a user. """
+		""" Gets all infractions from a user.
+		:param user_id: The user ID. """
 
 		mycursor, db = await the_database()
 		await mycursor.execute("SELECT * FROM UserInfractions WHERE user_id = %s", (user_id,))
@@ -1369,7 +1362,8 @@ class Moderation(*moderation_cogs):
 
 
 	async def get_user_infraction_by_infraction_id(self, infraction_id: int) -> List[List[Union[str, int]]]:
-		""" Gets a specific infraction by ID. """
+		""" Gets a specific infraction by ID.
+		:param infraction_id: The infraction ID. """
 
 		mycursor, db = await the_database()
 		await mycursor.execute("SELECT * FROM UserInfractions WHERE infraction_id = %s", (infraction_id,))
@@ -1378,7 +1372,8 @@ class Moderation(*moderation_cogs):
 		return user_infractions
 
 	async def remove_user_infraction(self, infraction_id: int) -> None:
-		""" Removes a specific infraction by ID. """
+		""" Removes a specific infraction by ID.
+		:param infraction_id: The infraction ID. """
 
 		mycursor, db = await the_database()
 		await mycursor.execute("DELETE FROM UserInfractions WHERE infraction_id = %s", (infraction_id,))
@@ -1386,7 +1381,8 @@ class Moderation(*moderation_cogs):
 		await mycursor.close()
 
 	async def remove_user_infractions(self, user_id: int) -> None:
-		""" Removes all infractions of a user by ID. """
+		""" Removes all infractions of a user by ID.
+		:parma user_id: The user ID. """
 
 		mycursor, db = await the_database()
 		await mycursor.execute("DELETE FROM UserInfractions WHERE user_id = %s", (user_id,))
@@ -1396,10 +1392,8 @@ class Moderation(*moderation_cogs):
 	@commands.command(aliases=['ri', 'remove_warn', 'remove_warning'])
 	@commands.has_permissions(administrator=True)
 	async def remove_infraction(self, ctx, infr_id: int = None):
-		"""
-		(MOD) Removes a specific infraction by ID.
-		:param infr_id: The infraction ID.
-		"""
+		""" (MOD) Removes a specific infraction by ID.
+		:param infr_id: The infraction ID. """
 
 		if not infr_id:
 			return await ctx.send("**Inform the infraction ID!**")
@@ -1413,11 +1407,9 @@ class Moderation(*moderation_cogs):
 
 	@commands.command(aliases=['ris', 'remove_warns', 'remove_warnings'])
 	@commands.has_permissions(administrator=True)
-	async def remove_infractions(self, ctx, member: discord.Member = None):
-		"""
-		(MOD) Removes all infractions for a specific user.
-		:param member: The member to get the warns from.
-		"""
+	async def remove_infractions(self, ctx, member: Optional[discord.Member] = None):
+		""" (MOD) Removes all infractions for a specific user.
+		:param member: The member to get the warns from. """
 
 		if not member:
 			return await ctx.send("**Inform a member!**")
@@ -1446,7 +1438,7 @@ class Moderation(*moderation_cogs):
 			infraction_id BIGINT NOT NULL AUTO_INCREMENT, 
 			perpetrator BIGINT NOT NULL, 
 			PRIMARY KEY(infraction_id)
-			)""")
+		)""")
 		await db.commit()
 		await mycursor.close()
 
@@ -1455,7 +1447,8 @@ class Moderation(*moderation_cogs):
 	@commands.command(hidden=True)
 	@commands.has_permissions(administrator=True)
 	async def drop_table_user_infractions(self, ctx) -> None:
-		""" (ADM) Creates the UserInfractions table """
+		""" (ADM) Creates the UserInfractions table. """
+
 		if not await self.check_table_user_infractions():
 			return await ctx.send("**Table __UserInfractions__ doesn't exist!**")
 		await ctx.message.delete()
@@ -1469,7 +1462,7 @@ class Moderation(*moderation_cogs):
 	@commands.command(hidden=True)
 	@commands.has_permissions(administrator=True)
 	async def reset_table_user_infractions(self, ctx) -> None:
-		""" (ADM) Creates the UserInfractions table """
+		""" (ADM) Creates the UserInfractions table. """
 
 		if not await self.check_table_user_infractions():
 			return await ctx.send("**Table __UserInfractions__ doesn't exist yet!**")
@@ -1483,18 +1476,17 @@ class Moderation(*moderation_cogs):
 		return await ctx.send("**Table __UserInfractions__ reset!**", delete_after=3)
 
 	async def check_table_user_infractions(self) -> bool:
-		""" Checks if the UserInfractions table exists """
+		""" Checks whether the UserInfractions table exists. """
 
-		mycursor, db = await the_database()
+		mycursor, _ = await the_database()
 		await mycursor.execute("SHOW TABLE STATUS LIKE 'UserInfractions'")
-		table_info = await mycursor.fetchall()
+		exists = await mycursor.fetchone()
 		await mycursor.close()
 
-		if len(table_info) == 0:
-			return False
-
-		else:
+		if exists:
 			return True
+		else:
+			return False
 
 
 	@commands.command()
@@ -1507,12 +1499,10 @@ class Moderation(*moderation_cogs):
 
 		channel = channel or ctx.channel
 
-
 		embed = discord.Embed(
 			description=f"**{channel.mention} is now on lockdown! 🔒**",
 			color=discord.Color.red()
 		)
-
 
 		if ctx.guild.default_role not in channel.overwrites:
 			overwrites = {
@@ -1564,7 +1554,6 @@ class Moderation(*moderation_cogs):
 
 		await ctx.send(embed=embed)
 
-
 	@commands.command(aliases=['bl'])
 	@commands.has_permissions(administrator=True)
 	async def blacklist(self, ctx, channel: discord.TextChannel = None) -> None:
@@ -1579,10 +1568,8 @@ class Moderation(*moderation_cogs):
 		if not await LevelSystem.table_important_vars_exists():
 			return await ctx.send(f"**This command is not ready to be used yet, {member.mention}!**")
 
-
 		if not ctx.guild:
 			return await ctx.send(f"**You cannot use this command in my DM's, {member.mention}!** ❌")
-
 
 		if not channel:
 			channel = ctx.channel
@@ -1593,7 +1580,6 @@ class Moderation(*moderation_cogs):
 		await LevelSystem.insert_important_var(label='bl_channel', value_int=channel.id)
 
 		await ctx.send(f"**{channel.mention} has been blacklisted, {member.mention}!** ✅")
-
 
 	@commands.command(aliases=['ubl'])
 	@commands.has_permissions(administrator=True)
@@ -1619,7 +1605,6 @@ class Moderation(*moderation_cogs):
 
 		await LevelSystem.delete_important_var(label='bl_channel', value_int=channel.id)
 		await ctx.send(f"**{channel.mention} has been unblacklisted, {member.mention}!** ✅")
-
 		
 	@commands.command(hidden=True)
 	@commands.has_permissions(administrator=True)
@@ -1679,16 +1664,15 @@ class Moderation(*moderation_cogs):
 	async def check_table_staff_member(self) -> bool:
 		""" Checks if the StaffMember table exists """
 
-		mycursor, db = await the_database()
+		mycursor, _ = await the_database()
 		await mycursor.execute("SHOW TABLE STATUS LIKE 'StaffMember'")
-		table_info = await mycursor.fetchall()
+		exists = await mycursor.fetchone()
 		await mycursor.close()
 
-		if len(table_info) == 0:
-			return False
-
-		else:
+		if exists:
 			return True
+		else:
+			return False
 
 	async def insert_staff_member(self, user_id: int, infractions_given: int, staff_at: str, bans_today: int = 0, ban_timestamp: int = None) -> None:
 		""" Inserts a Staff member into the database.
