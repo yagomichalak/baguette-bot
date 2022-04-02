@@ -15,6 +15,7 @@ from extra.useful_variables import xp_levels
 from extra import utils
 from extra.level.level_roles import LevelRoleTable, VCLevelRoleTable
 from extra.level.member_status import MemberStatusTable
+from extra.tools.important_vars import ImportantVarsTable
 
 owner_role_id: int = int(os.getenv('OWNER_ROLE_ID'))
 admin_role_id: int = int(os.getenv('ADMIN_ROLE_ID'))
@@ -27,7 +28,8 @@ game_channel_id: int = int(os.getenv('GAME_VOICE_CHANNEL_ID'))
 allowed_roles = [owner_role_id, admin_role_id, mod_role_id, jr_mod_role_id, trial_mod_role_id]
 
 level_cogs: List[commands.Cog] = [
-    LevelRoleTable, VCLevelRoleTable, MemberStatusTable
+    LevelRoleTable, VCLevelRoleTable, MemberStatusTable,
+    ImportantVarsTable
 ]
 
 class LevelSystem(*level_cogs):
@@ -158,7 +160,7 @@ class LevelSystem(*level_cogs):
         user_level = the_user[0][2]
         user_xp = the_user[0][1]
 
-        if user_xp >= await LevelSystem.get_xp(user_level):
+        if user_xp >= await self.get_xp(user_level):
             await self.check_user_perm_roles(user, user_level+1)
             await self.update_user_lvl(user.id, user_level+1)
             # await self.check_level_role(user, the_user[0][2]+1)
@@ -396,13 +398,13 @@ class LevelSystem(*level_cogs):
         embed = discord.Embed(title="__Profile__", colour=member.color, timestamp=ctx.message.created_at)
         embed.add_field(name="**Chat Level**", value=f"{user[0][2]}.", inline=True)
         embed.add_field(name="**Chat Rank**", value=f"# {position[0]}.", inline=True)
-        embed.add_field(name="**Chat EXP**", value=f"{user[0][1]} / {await LevelSystem.get_xp(user[0][2])}.", inline=True)
+        embed.add_field(name="**Chat EXP**", value=f"{user[0][1]} / {await self.get_xp(user[0][2])}.", inline=True)
 
         embed.add_field(name="**Messages**", value=f"{user[0][4]}.", inline=False)
 
         embed.add_field(name="**Voice Level**", value=f"{user_voice[3]}.", inline=True)
         embed.add_field(name="**Voice Rank**", value=f"# {vc_position[0]}.", inline=True)
-        embed.add_field(name="**Voice EXP**", value=f"{user_voice[4]} / {await LevelSystem.get_xp(user[0][2])}.", inline=True)
+        embed.add_field(name="**Voice EXP**", value=f"{user_voice[4]} / {await self.get_xp(user[0][2])}.", inline=True)
 
         mall, sall = divmod(user[0][5], 60)
         hall, mall = divmod(mall, 60)
@@ -492,11 +494,11 @@ class LevelSystem(*level_cogs):
             await self.update_user_lvl(member.id, level)
             await asyncio.sleep(0.1)
             # await self.set_user_xp(member.id, ((level-1)** 5))
-            await self.set_user_xp(member.id, await LevelSystem.get_xp(level-1))
+            await self.set_user_xp(member.id, await self.get_xp(level-1))
 
         else:
             # await self.set_user_xp(member.id, ((level-1)** 5))
-            await self.set_user_xp(member.id, await LevelSystem.get_xp(level-1))
+            await self.set_user_xp(member.id, await self.get_xp(level-1))
             await asyncio.sleep(0.1)
             await self.update_user_lvl(member.id, level)
 
@@ -530,11 +532,11 @@ class LevelSystem(*level_cogs):
             await Tools.update_user_voice_lvl(member.id, level)
             await asyncio.sleep(0.1)
             # await self.set_user_xp(member.id, ((level-1)** 5))
-            await self.set_user_xp(member.id, await LevelSystem.get_xp(level-1))
+            await self.set_user_xp(member.id, await self.get_xp(level-1))
 
         else:
             # await self.set_user_xp(member.id, ((level-1)** 5))
-            await self.set_user_xp(member.id, await LevelSystem.get_xp(level-1))
+            await self.set_user_xp(member.id, await self.get_xp(level-1))
             await asyncio.sleep(0.1)
             await Tools.update_user_voice_lvl(member.id, level)
 
