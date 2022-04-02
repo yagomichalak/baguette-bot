@@ -359,7 +359,7 @@ class LevelSystem(commands.Cog):
 
         # Checks if the Ranking table exists.
         if not await self.table_member_status_exists():
-            return await ctx.send("**This command ma'y be on maintenance!**", delete_after=3)
+            return await ctx.send("**This command may be on maintenance!**", delete_after=3)
 
         # If not specified a member - then it's you!
         if not member:

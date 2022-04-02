@@ -485,8 +485,6 @@ class Moderation(*moderation_cogs):
 	async def serverinfo(self, ctx):
 		""" Shows some information about the server. """
 		guild = ctx.guild
-		color = discord.Color.green()
-
 
 		em = discord.Embed(description=guild.description, color=ctx.author.color)
 		online = len({m.id for m in guild.members if m.status is not discord.Status.offline})
@@ -627,19 +625,19 @@ class Moderation(*moderation_cogs):
 			# # General embed
 			general_embed = discord.Embed(description=f'**Reason:** {reason}', colour=discord.Colour.dark_gold())
 			general_embed.set_author(name=f'{member} has been warned', icon_url=member.display_avatar)
-			await ctx.send(embed=general_embed)
+			msg = await ctx.send(embed=general_embed)
 			# Moderation log embed
 			moderation_log = discord.utils.get(ctx.guild.channels, id=mod_log_id)
 			embed = discord.Embed(
-				description=F"**Warned** {member.mention}\n**Reason:** {reason}\n**Location:** {ctx.channel.mention}",
+				description=f"**Warned** {member.mention}\n**Reason:** {reason}\n" \
+					f"**Channel:** {ctx.channel.mention}\n**Location:** [Jump URL]({msg.jump_url})",
 				color=discord.Color.dark_gold(),
 				timestamp=ctx.message.created_at)
 			embed.set_author(name=f"{ctx.author} (ID {ctx.author.id})", icon_url=ctx.author.display_avatar)
 			embed.set_thumbnail(url=member.display_avatar)
 			await moderation_log.send(embed=embed)
 			# Inserts a infraction into the database
-			epoch = datetime.utcfromtimestamp(0)
-			current_ts = (datetime.utcnow() - epoch).total_seconds()
+			current_ts = await utils.get_timestamp()
 			await self.insert_user_infraction(
 				user_id=member.id, infr_type="warn", reason=reason,
 				timestamp=current_ts , perpetrator=ctx.author.id)
@@ -727,12 +725,11 @@ class Moderation(*moderation_cogs):
 	@commands.command()
 	@commands.check_any(is_allowed_members(), commands.has_any_role(*allowed_roles, member_dot_role_id))
 	async def mute(self, ctx, member: discord.Member = None, reason: str =  None, *, time: str = None):
-		"""
-		Mutes a member for a determined amount of time or indefinitely.
+		""" Mutes a member for a determined amount of time or indefinitely.
 		:param member: The @ or the ID of the user to tempmute.
 		:param reason: The reason for the tempmute.
-		:param time: The time for the mute (Optional). Default = Forever
-		"""
+		:param time: The time for the mute (Optional). Default = Forever """
+
 		try:
 			await ctx.message.delete()
 		except:
@@ -792,11 +789,12 @@ class Moderation(*moderation_cogs):
 				# General embed
 				general_embed = discord.Embed(description=f"**For:** `{time_dict['days']}d` `{time_dict['hours']}h`, `{time_dict['minutes']}m`\n**Reason:** {reason}", colour=discord.Colour.dark_grey(), timestamp=ctx.message.created_at)
 				general_embed.set_author(name=f"{member} has been tempmuted", icon_url=member.display_avatar)
-				await ctx.send(embed=general_embed)
+				msg = await ctx.send(embed=general_embed)
 				# Moderation log embed
 				moderation_log = discord.utils.get(ctx.guild.channels, id=mod_log_id)
 				embed = discord.Embed(
-					description=F"**Tempmuted** {member.mention} for `{time_dict['days']}d` `{time_dict['hours']}h`, `{time_dict['minutes']}m`\n**Reason:** {reason}\n**Location:** {ctx.channel.mention}",
+					description=f"**Tempmuted** {member.mention} for `{time_dict['days']}d` `{time_dict['hours']}h`, `{time_dict['minutes']}m`\n**Reason:** {reason}\n" \
+						f"**Channel:** {ctx.channel.mention}\n**Location:** [Jump URL]({msg.jump_url})",
 					color=discord.Color.lighter_grey(),
 					timestamp=ctx.message.created_at)
 				embed.set_author(name=f"{ctx.author} (ID {ctx.author.id})", icon_url=ctx.author.display_avatar)
@@ -849,11 +847,11 @@ class Moderation(*moderation_cogs):
 	# Unmutes a member
 	@commands.command()
 	@commands.check_any(is_allowed_members(), commands.has_any_role(*allowed_roles, member_dot_role_id))
-	async def unmute(self, ctx, member: discord.Member = None, *, reason = None):
-		'''
-		(MOD) Unmutes a member.
+	async def unmute(self, ctx, member: discord.Member = None, *, reason: Optional[str] = None):
+		""" (MOD) Unmutes a member.
 		:param member: The @ or the ID of the user to unmute.
-		'''
+		:param reason: The reason for the unmute. [Optional] """
+
 		await ctx.message.delete()
 		role = discord.utils.get(ctx.guild.roles, id=muted_role_id)
 		if not member:
@@ -888,11 +886,12 @@ class Moderation(*moderation_cogs):
 			# General embed
 			general_embed = discord.Embed(description=f'**Reason:** {reason}', colour=discord.Colour.light_gray(), timestamp=ctx.message.created_at)
 			general_embed.set_author(name=f'{member} has been unmuted', icon_url=member.display_avatar)
-			await ctx.send(embed=general_embed)
+			msg = await ctx.send(embed=general_embed)
 			# Moderation log embed
 			moderation_log = discord.utils.get(ctx.guild.channels, id=mod_log_id)
 			embed = discord.Embed(
-				description=F"**Unmuted** {member.mention}\n**Reason:** {reason}\n**Location:** {ctx.channel.mention}",
+				description=F"**Unmuted** {member.mention}\n**Reason:** {reason}\n" \
+					f"**Channel:** {ctx.channel.mention}\n**Location:** [Jump URL]({msg.jump_url})",
 				color=discord.Color.light_gray(),
 				timestamp=ctx.message.created_at)
 			embed.set_author(name=f"{ctx.author} (ID {ctx.author.id})", icon_url=ctx.author.display_avatar)
@@ -909,11 +908,10 @@ class Moderation(*moderation_cogs):
 	@commands.command()
 	@commands.check_any(is_allowed_members(), commands.has_any_role(*[mod_role_id, admin_role_id, owner_role_id]))
 	async def kick(self, ctx, member: discord.Member = None, *, reason=None):
-		'''
-		(MOD) Kicks a member from the server.
+		""" (MOD) Kicks a member from the server.
 		:param member: The @ or ID of the user to kick.
-		:param reason: The reason for kicking the user. (Optional)
-		'''
+		:param reason: The reason for kicking the user. (Optional) """
+
 		await ctx.message.delete()
 		if not member:
 			await ctx.send('**Please, specify a member!**', delete_after=3)
@@ -926,11 +924,12 @@ class Moderation(*moderation_cogs):
 				# General embed
 				general_embed = discord.Embed(description=f'**Reason:** {reason}', colour=discord.Colour.magenta())
 				general_embed.set_author(name=f'{member} has been kicked', icon_url=member.display_avatar)
-				await ctx.send(embed=general_embed)
+				msg = await ctx.send(embed=general_embed)
 				# Moderation log embed
 				moderation_log = discord.utils.get(ctx.guild.channels, id=mod_log_id)
 				embed = discord.Embed(
-					description=F"**Kicked** {member.mention}\n**Reason:** {reason}\n**Location:** {ctx.channel.mention}",
+					description=f"**Kicked** {member.mention}\n**Reason:** {reason}\n" \
+					f"**Channel:** {ctx.channel.mention}\n**Location:** [Jump URL]({msg.jump_url})",
 					color=discord.Color.magenta(),
 					timestamp=ctx.message.created_at)
 				embed.set_author(name=f"{ctx.author} (ID {ctx.author.id})", icon_url=ctx.author.display_avatar)
@@ -1015,11 +1014,12 @@ class Moderation(*moderation_cogs):
 			# General embed
 			general_embed = discord.Embed(description=f'**Reason:** {reason}', colour=discord.Colour.dark_red())
 			general_embed.set_author(name=f'{member} has been banned', icon_url=member.display_avatar)
-			await ctx.send(embed=general_embed)
+			msg = await ctx.send(embed=general_embed)
 			# Moderation log embed
 			moderation_log = discord.utils.get(ctx.guild.channels, id=mod_log_id)
 			embed = discord.Embed(
-				description=F"**Banned** {member.mention}\n**Reason:** {reason}\n**Location:** {ctx.channel.mention}",
+				description=f"**Banned** {member.mention}\n**Reason:** {reason}\n" \
+					f"**Channel:** {ctx.channel.mention}\n**Location:** [Jump URL]({msg.jump_url})",
 				color=discord.Color.dark_red(),
 				timestamp=ctx.message.created_at)
 			embed.set_author(name=f"{ctx.author} (ID {ctx.author.id})", icon_url=ctx.author.display_avatar)
@@ -1036,14 +1036,12 @@ class Moderation(*moderation_cogs):
 
 			await self.client.get_cog('LevelSystem').increment_important_var_int(label="m_infractions")
 
-
-
 	# Hardbans a member
 	@commands.command()
 	@commands.check_any(is_allowed_members(), commands.has_any_role(*[mod_role_id, admin_role_id, owner_role_id]))
 	async def hardban(self, ctx, member: discord.Member = None, *, reason=None) -> None:
 		""" Hardbans a member from the server.
-		=> Bans and delete messages from the last 7 days,
+		=> Bans and delete messages from the last day,
 		:param member: The @ or ID of the user to ban.
 		:param reason: The reason for banning the user. (Optional) """
 		await ctx.message.delete()
@@ -1081,16 +1079,15 @@ class Moderation(*moderation_cogs):
 					await self.update_staff_member_counter(
 						user_id=staff_member.id, infraction_increment=1, ban_increment=1, timestamp=current_ts)
 
-
-
 			# General embed
 			general_embed = discord.Embed(description=f'**Reason:** {reason}', colour=discord.Colour.dark_red())
 			general_embed.set_author(name=f'{member} has been hardbanned', icon_url=member.display_avatar)
-			await ctx.send(embed=general_embed)
+			msg = await ctx.send(embed=general_embed)
 			# Moderation log embed
 			moderation_log = discord.utils.get(ctx.guild.channels, id=mod_log_id)
 			embed = discord.Embed(
-				description=F"**Hardbanned** {member.mention}\n**Reason:** {reason}\n**Location:** {ctx.channel.mention}",
+				description=F"**Hardbanned** {member.mention}\n**Reason:** {reason}\n" \
+					f"**Channel:** {ctx.channel.mention}\n**Location:** [Jump URL]({msg.jump_url})",
 				color=discord.Color.dark_red(),
 				timestamp=ctx.message.created_at)
 			embed.set_author(name=f"{ctx.author} (ID {ctx.author.id})", icon_url=ctx.author.display_avatar)
@@ -1133,11 +1130,12 @@ class Moderation(*moderation_cogs):
 				# General embed
 				general_embed = discord.Embed(colour=discord.Colour.red())
 				general_embed.set_author(name=f'{user} has been unbanned', icon_url=user.display_avatar)
-				await ctx.send(embed=general_embed)
+				msg = await ctx.send(embed=general_embed)
 				# Moderation log embed
 				moderation_log = discord.utils.get(ctx.guild.channels, id=mod_log_id)
 				embed = discord.Embed(
-					description=F"**Unbanned** {user.display_name} (ID {user.id})\n**Location:** {ctx.channel.mention}",
+					description=F"**Unbanned** {user.display_name} (ID {user.id})\n" \
+						f"**Channel:** {ctx.channel.mention}\n**Location:** [Jump URL]({msg.jump_url})",
 					color=discord.Color.red(),
 					timestamp=ctx.message.created_at)
 				embed.set_author(name=f"{ctx.author} (ID {ctx.author.id})", icon_url=ctx.author.display_avatar)
@@ -1175,12 +1173,13 @@ class Moderation(*moderation_cogs):
 			general_embed = discord.Embed(description=f'**Reason:** {reason}', colour=discord.Colour.dark_teal(),
 										  timestamp=ctx.message.created_at)
 			general_embed.set_author(name=f'{self.client.get_user(user_id)} has been hackbanned')
-			await ctx.send(embed=general_embed)
+			msg = await ctx.send(embed=general_embed)
 
 			# Moderation log embed
 			moderation_log = discord.utils.get(ctx.guild.channels, id=mod_log_id)
 			embed = discord.Embed(
-				description=F"**Hackbanned** {self.client.get_user(user_id)} (ID {member.id})\n**Reason:** {reason}\n**Location:** {ctx.channel.mention}",
+				description=F"**Hackbanned** {self.client.get_user(user_id)} (ID {member.id})\n**Reason:** {reason}\n" \
+					f"**Channel:** {ctx.channel.mention}\n**Location:** [Jump URL]({msg.jump_url})",
 				color=discord.Color.dark_teal(),
 				timestamp=ctx.message.created_at)
 			embed.set_author(name=f"{ctx.author} (ID {ctx.author.id})", icon_url=ctx.author.display_avatar)
