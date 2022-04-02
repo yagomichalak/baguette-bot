@@ -1,16 +1,19 @@
 import discord
 from discord.ext import commands, tasks, menus
 from mysqldb import the_database
-from extra.menu import Confirm, SwitchPages
+
 from typing import List, Dict, Union, Any
-import time
 from datetime import date, datetime
 import asyncio
 import os
-from extra.useful_variables import xp_levels
-from extra import utils
+
 import emoji
 from cogs.misc import Misc
+
+from extra.menu import Confirm, SwitchPages
+from extra.useful_variables import xp_levels
+from extra import utils
+from extra.level.level_roles import LevelRoleTable
 
 owner_role_id: int = int(os.getenv('OWNER_ROLE_ID'))
 admin_role_id: int = int(os.getenv('ADMIN_ROLE_ID'))
@@ -22,8 +25,12 @@ game_channel_id: int = int(os.getenv('GAME_VOICE_CHANNEL_ID'))
 
 allowed_roles = [owner_role_id, admin_role_id, mod_role_id, jr_mod_role_id, trial_mod_role_id]
 
+level_cogs: List[commands.Cog] = [
+    LevelRoleTable
+]
 
-class LevelSystem(commands.Cog):
+
+class LevelSystem(*level_cogs):
     """ A category for the Level System. """
 
     def __init__(self, client) -> None:
@@ -32,7 +39,6 @@ class LevelSystem(commands.Cog):
         self.xp_multiplier = 1
 
         self.ticket_category_id: int = int(os.getenv('TICKET_CAT_ID'))
-
 
     @commands.Cog.listener()
     async def on_ready(self) -> None:
@@ -43,15 +49,11 @@ class LevelSystem(commands.Cog):
             if multiplier := await self.get_important_var(label="xp_multiplier"):
                 self.xp_multiplier = multiplier[2]
 
-
         print('LevelSystem cog is online')
-
 
     # In-game commands
     @commands.Cog.listener()
     async def on_message(self, message):
-
-        # return
 
         if not message.guild:
             return
@@ -60,7 +62,6 @@ class LevelSystem(commands.Cog):
             return
         elif not await self.table_member_status_exists():
             return
-
 
         time_xp = await utils.get_timestamp()
 
@@ -75,7 +76,6 @@ class LevelSystem(commands.Cog):
             
         await self.update_user_server_messages(message.author.id, 1)
 
-    ###
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
 
@@ -85,14 +85,7 @@ class LevelSystem(commands.Cog):
         if not await self.table_member_status_exists():
             return
 
-
         # After voice state
-        # bm = before.mute
-        # bsm = before.self_mute
-        # if before.mute != after.mute: return
-        # if before.deaf != before.deaf: return
-        # if before.self_mute != after.self_mute: return
-        # if before.self_deaf != after.self_deaf: return
         if before.self_stream != after.self_stream: return
         if before.self_video != after.self_video: return
 
@@ -103,13 +96,11 @@ class LevelSystem(commands.Cog):
 
         user_info = await self.get_specific_user(member.id)
         if not user_info:
-            #user_id: int, xp_time: int, xp: int = 0, lvl: int = 1, messages: int = 0, vc_time: int = 0, vc_ts: int = None
             if ac:
                 await self.insert_user(user_id=member.id, xp_time=current_ts, vc_ts=current_ts)
                 user_info = await self.get_specific_user(member.id)
             else:
                 return await self.insert_user(user_id=member.id, xp_time=current_ts)
-
 
         if not bc:
             if not after.mute and not after.self_mute:
@@ -149,7 +140,6 @@ class LevelSystem(commands.Cog):
             elif before.self_mute and not after.self_mute: # User was unmuted
                 await self.update_user_server_timestamp(user_id=member.id, new_ts=current_ts)
 
-
     async def update_data(self, user, time_xp: int, channel: discord.TextChannel):
         the_member = await self.get_specific_user(user.id)
 
@@ -162,21 +152,8 @@ class LevelSystem(commands.Cog):
         else:
             return await self.insert_user(user_id=user.id, xp=5, xp_time=time_xp)
 
-    # async def level_up(self, user: discord.Member, channel: discord.TextChannel) -> None:
-    #     epoch = datetime.utcfromtimestamp(0)
-    #     the_user = await self.get_specific_user(user.id)
-    #     lvl_end = int(the_user[0][1] ** (1 / 5))
-
-    #     if the_user[0][2] < lvl_end:
-    #         await self.update_user_lvl(user.id, the_user[0][2]+1)
-    #         # await self.check_level_role(user, the_user[0][2]+1)
-    #         await self.check_level_roles_deeply(user, the_user[0][2]+1)
-    #         return await channel.send(
-    #             f"""🇬🇧 {user.mention} has reached level **{the_user[0][2] + 1}!**\n🇫🇷 {user.mention} a atteint niveau **{the_user[0][2] + 1} !**""")
-
     async def level_up(self, user: discord.Member, channel: discord.TextChannel) -> None:
         the_user = await self.get_specific_user(user.id)
-        # lvl_end = int(the_user[0][1] ** (1 / 5))
 
         user_level = the_user[0][2]
         user_xp = the_user[0][1]
@@ -188,7 +165,6 @@ class LevelSystem(commands.Cog):
             await self.check_level_roles_deeply(user, user_level+1)
             return await channel.send(
                 f"""🇬🇧 {user.mention} has reached level **{user_level + 1}!**\n🇫🇷 {user.mention} a atteint le niveau **{user_level + 1} !**""")
-
 
     @staticmethod
     async def get_xp(level: int) -> int:
@@ -261,8 +237,6 @@ class LevelSystem(commands.Cog):
         total_time = await self.get_total_time()
         time_past_1 = await Misc.select_user_server_status_time(label='daily-time')
         time_past_7 = await Misc.select_user_server_status_time(label='weekly-time')
-        # print('time1', time_past_1)
-        # print('time7', time_past_7)
 
         # All
         mall, sall = divmod(total_time, 60)
@@ -305,7 +279,6 @@ class LevelSystem(commands.Cog):
 
         guild = ctx.guild
 
-        # print(c_msg_1, await Misc.select_most_active_user_server_status(label='daily-messages', sublabel='messages'))
         # Weekly msg
         c_msg_7 = (guild.get_channel(c_msg_7[5]), c_msg_7[3]) if (
             c_msg_7 := await Misc.select_most_active_user_server_status(label='weekly-messages', sublabel='messages')) else (None, None)
@@ -398,8 +371,6 @@ class LevelSystem(commands.Cog):
         embed.add_field(name="**Voice Level**", value=f"{user_voice[3]}.", inline=True)
         embed.add_field(name="**Voice Rank**", value=f"# {vc_position[0]}.", inline=True)
         embed.add_field(name="**Voice EXP**", value=f"{user_voice[4]} / {await LevelSystem.get_xp(user[0][2])}.", inline=True)
-        
-
 
         mall, sall = divmod(user[0][5], 60)
         hall, mall = divmod(mall, 60)
@@ -432,8 +403,6 @@ class LevelSystem(commands.Cog):
     async def leaderboard(self, ctx):
         """ Shows the top ten members in the level leaderboard. """
 
-        # users = await self.get_users()
-
         all_users = await self.get_all_users_by_xp()
         position = [[i+1, u[1]] for i, u in enumerate(all_users) if u[0] == ctx.author.id]
         position = [it for subpos in position for it in subpos] if position else ['??', 0]
@@ -454,8 +423,6 @@ class LevelSystem(commands.Cog):
     @Misc.check_whitelist()
     async def voice_leaderboard(self, ctx):
         """ Shows the top ten members in the voice level leaderboard. """
-
-        # users = await self.get_users()
 
         Tools = self.client.get_cog('Tools')
         all_users = await Tools.get_all_user_voices_by_xp()
@@ -514,10 +481,6 @@ class LevelSystem(commands.Cog):
         updated = await self.check_level_role(member, level)
         if updated:
             all_level_roles = await self.select_level_role()
-            # excluded = [lvl_role[1] for lvl_role in all_level_roles if lvl_role[1] != updated]
-
-            # await member.remove_roles(excluded, atomic=True)
-
 
             level_roles = set(
                 [a_role for lvl_role in all_level_roles if (
@@ -535,7 +498,6 @@ class LevelSystem(commands.Cog):
                     if ex in member_roles and ex.id not in special_roles:
                         member_roles.remove(ex)
                 await member.edit(roles=member_roles)
-
 
     async def check_user_perm_roles(self, member: discord.Member, level: int) -> None:
         """ Checks whether the member should get the user perm roles when leveling up. """
@@ -571,15 +533,12 @@ class LevelSystem(commands.Cog):
         """ Makes an embedded message for the level scoreboard. """
 
         position = kwargs.get('position')
-
-        # tribe_embed.set_footer(text=f"Requested by {ctx.author}", icon_url=ctx.author.display_avatar)
         member = ctx.author
 
         leaderboard = discord.Embed(
             title="__Le Salon Français' Level Ranking Leaderboard__",
             description="All registered users and their levels and experience points.",
             colour=ctx.author.color, timestamp=ctx.message.created_at)
-
 
         leaderboard.description += f"\n**Your XP:** `{position[1]}` | **#**`{position[0]}`"
         leaderboard.set_thumbnail(url=ctx.guild.icon.url)
@@ -594,22 +553,18 @@ class LevelSystem(commands.Cog):
         for i, v in enumerate(entries, start=offset):
             leaderboard.set_footer(text=f"({i} of {lentries})")
 
-
         return leaderboard
 
     async def _make_voice_level_score_embed(self, ctx: commands.Context, entries, offset: int, lentries: int, kwargs) -> discord.Embed:
         """ Makes an embedded message for the voice level scoreboard. """
 
         position = kwargs.get('position')
-
-        # tribe_embed.set_footer(text=f"Requested by {ctx.author}", icon_url=ctx.author.display_avatar)
         member = ctx.author
 
         leaderboard = discord.Embed(
             title="__Le Salon Français' Voice Level Ranking Leaderboard__",
             description="All registered users and their voice levels and experience points.",
             colour=ctx.author.color, timestamp=ctx.message.created_at)
-
 
         leaderboard.description += f"\n**Your Voice XP:** `{position[1]}` | **#**`{position[0]}`"
         leaderboard.set_thumbnail(url=ctx.guild.icon.url)
@@ -624,10 +579,8 @@ class LevelSystem(commands.Cog):
         for i, v in enumerate(entries, start=offset):
             leaderboard.set_footer(text=f"({i} of {lentries})")
 
-
         return leaderboard
     
-
     @commands.has_permissions(administrator=True)
     @commands.command(hidden=True)
     async def create_table_member_status(self, ctx):
@@ -892,108 +845,6 @@ class LevelSystem(commands.Cog):
 
     # Database
 
-    async def select_specific_level_role(self, level: int = None, role_id: int = None) -> List[int]:
-        """ Selects a specific level role from the database by level or role ID. """
-
-        mycursor, db = await the_database()
-        if level:
-            await mycursor.execute("SELECT * FROM LevelRoles WHERE level = %s", (level,))
-        elif role_id:
-            await mycursor.execute("SELECT * FROM LevelRoles WHERE role_id = %s", (role_id,))
-
-        level_role = await mycursor.fetchone()
-        await mycursor.close()
-        return level_role
-
-    async def select_level_role(self) -> List[List[int]]:
-        """ Selects level roles from the database. """
-
-        mycursor, db = await the_database()
-        await mycursor.execute("SELECT * FROM LevelRoles ORDER BY level")
-        level_roles = await mycursor.fetchall()
-        await mycursor.close()
-        return level_roles
-
-
-    async def insert_level_role(self, level: int, role_id: int) -> None:
-        """ Inserts a level role into the database.
-        :param level: The level to insert.
-        :param role_id: The ID of the role to attach to the level. """
-
-        mycursor, db = await the_database()
-        await mycursor.execute("INSERT INTO LevelRoles (level, role_id) VALUES (%s, %s)", (level, role_id))
-        await db.commit()
-        await mycursor.close()
-
-    async def delete_level_role(self, level: int = None, role_id: int = None) -> None:
-        """ Deletes a level role into the database by level or role ID.
-        :param level: The level to delete. """
-
-        mycursor, db = await the_database()
-        if level:
-            await mycursor.execute("DELETE FROM LevelRoles WHERE level = %s", (level,))
-        elif role_id:
-            await mycursor.execute("DELETE FROM LevelRoles WHERE role_id = %s", (role_id,))
-        await db.commit()
-        await mycursor.close()
-
-
-    @commands.command(hidden=True)
-    @commands.has_permissions(administrator=True)
-    async def create_table_level_roles(self, ctx) -> None:
-        """ Creates the LevelRoles table. """
-
-        if await self.table_level_roles_exists():
-            return await ctx.send("**The `LevelRoles` table already exists!**")
-
-        mycursor, db = await the_database()
-        await mycursor.execute("""
-            CREATE TABLE LevelRoles (level int NOT NULL, role_id bigint NOT NULL)""")
-        await db.commit()
-        await mycursor.close()
-        await ctx.send("**Created `LevelRoles` table!**")
-
-    @commands.command(hidden=True)
-    @commands.has_permissions(administrator=True)
-    async def drop_table_level_roles(self, ctx) -> None:
-        """ Drops the LevelRoles table. """
-
-        if not await self.table_level_roles_exists():
-            return await ctx.send("**The `LevelRoles` table doesn't exist!**")
-
-        mycursor, db = await the_database()
-        await mycursor.execute("DROP TABLE LevelRoles")
-        await db.commit()
-        await mycursor.close()
-        await ctx.send("**Dropped `LevelRoles` table!**")
-
-    @commands.command(hidden=True)
-    @commands.has_permissions(administrator=True)
-    async def reset_table_level_roles(self, ctx) -> None:
-        """ Resets the LevelRoles table. """
-
-        if not await self.table_level_roles_exists():
-            return await ctx.send("**The `LevelRoles` table doesn't exist yet!**")
-
-        mycursor, db = await the_database()
-        await mycursor.execute("DELETE FROM LevelRoles")
-        await db.commit()
-        await mycursor.close()
-        await ctx.send("**Reset `LevelRoles` table!**")
-
-    async def table_level_roles_exists(self) -> bool:
-        """ Checks whether the LevelRoles table exists. """
-
-        mycursor, db = await the_database()
-        await mycursor.execute(f"SHOW TABLE STATUS LIKE 'LevelRoles'")
-        table_info = await mycursor.fetchall()
-        await mycursor.close()
-        if len(table_info) == 0:
-                return False
-        else:
-            return True
-
-
     @commands.command(aliases=['show_multiplier', 'xp_multiplier', 'show_xp_multiplier', 'xpm', 'xp_rate', 'xprate'])
     @commands.has_any_role(*[trial_mod_role_id, jr_mod_role_id, mod_role_id, admin_role_id, owner_role_id])
     async def multiplier(self, ctx) -> None:
@@ -1018,7 +869,6 @@ class LevelSystem(commands.Cog):
 
             else:
                 await ctx.send(f"**There isn't a XP multiplier set yet, so the XP rate still is `{self.xp_rate}`XP per message**")
-
 
     @commands.command(aliases=['xpboost', 'set_xp_boost', 'setpxpboost', 'setxprate'])
     @commands.has_permissions(administrator=True)
@@ -1052,9 +902,6 @@ class LevelSystem(commands.Cog):
             self.xp_multiplier = percentage
             await ctx.send(f"**XP multiplier percentage has been set to `{self.xp_multiplier}`%, {member.mention}!**")
 
-
-
-
     @commands.command(aliases=['xpchannels', 'xpc'])
     @commands.has_permissions(administrator=True)
     async def xp_channels(self, ctx) -> None:
@@ -1080,7 +927,6 @@ class LevelSystem(commands.Cog):
             )
 
         await ctx.send(embed=embed)
-
 
     @commands.command(aliases=['set_xp_channel', 'setxpchannel', 'sxpc', 'enablexp'])
     @commands.has_permissions(administrator=True)
@@ -1108,7 +954,6 @@ class LevelSystem(commands.Cog):
         await self.insert_important_var(label='xp_channel', value_int=channel.id)
 
         await ctx.send(f"**{channel.mention} has been enabled for XP, {member.mention}!** ✅")
-
 
     @commands.command(aliases=['unset_xp_channel', 'unsetxpchannel', 'uxpc','disablexp', 'disablexpchannel'])
     @commands.has_permissions(administrator=True)
@@ -1168,7 +1013,6 @@ class LevelSystem(commands.Cog):
         await db.commit()
         await mycursor.close()
 
-
     async def get_important_var(self, label: str, value_str: str = None, value_int: int = None, multiple: bool = False) -> Union[Union[str, int], List[Union[str, int]]]:
         """ Gets an important var.
         :param label: The label o that var.
@@ -1213,7 +1057,6 @@ class LevelSystem(commands.Cog):
 
         await db.commit()
         await mycursor.close()
-
 
     @commands.command(hidden=True)
     @commands.has_permissions(administrator=True)
@@ -1261,7 +1104,7 @@ class LevelSystem(commands.Cog):
     async def table_important_vars_exists(self) -> bool:
         """ Checks whether the ImportantVars table exists. """
 
-        mycursor, db = await the_database()
+        mycursor, _ = await the_database()
         await mycursor.execute(f"SHOW TABLE STATUS LIKE 'ImportantVars'")
         table_info = await mycursor.fetchall()
         await mycursor.close()
@@ -1269,7 +1112,6 @@ class LevelSystem(commands.Cog):
                 return False
         else:
             return True
-
 
     @tasks.loop(minutes=1)
     async def check_weekend_boost(self) -> None:
@@ -1326,8 +1168,6 @@ class LevelSystem(commands.Cog):
             self.xp_multiplier = percentage
             await general_channel.send(text)
             await xp_boost_vc.edit(name=vc_name)
-
-
 
 """ 
 Setup:
