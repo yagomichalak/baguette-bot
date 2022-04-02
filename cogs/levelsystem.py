@@ -13,7 +13,7 @@ from cogs.misc import Misc
 from extra.menu import Confirm, SwitchPages
 from extra.useful_variables import xp_levels
 from extra import utils
-from extra.level.level_roles import LevelRoleTable
+from extra.level.level_roles import LevelRoleTable, VCLevelRoleTable
 from extra.level.member_status import MemberStatusTable
 
 owner_role_id: int = int(os.getenv('OWNER_ROLE_ID'))
@@ -27,7 +27,7 @@ game_channel_id: int = int(os.getenv('GAME_VOICE_CHANNEL_ID'))
 allowed_roles = [owner_role_id, admin_role_id, mod_role_id, jr_mod_role_id, trial_mod_role_id]
 
 level_cogs: List[commands.Cog] = [
-    LevelRoleTable, MemberStatusTable
+    LevelRoleTable, VCLevelRoleTable, MemberStatusTable
 ]
 
 class LevelSystem(*level_cogs):
@@ -201,6 +201,38 @@ class LevelSystem(*level_cogs):
         if list_index and (previous_role_id := level_roles[list_index-1][1]):
             if previous_role := discord.utils.get(member.guild.roles, id=previous_role_id):
                 if previous_role in member.roles and previous_role.id not in special_roles:
+                    try:
+                        await member.remove_roles(previous_role)
+                    except Exception as ee:
+                        print(ee)
+
+        return role_id
+
+    async def check_voice_level_role(self, member: discord.Member, level: int) -> Union[None, int]:
+        """ Checks if the member voice level has a role attached to it
+        and gives the role to the member if so.
+        :param member: The member to check.
+        :param level: The current level of the member. """
+
+        role_id = None
+        list_index = 0
+
+        level_roles = await self.select_vc_level_role()
+        for i, level_r in enumerate(level_roles):
+            if level >= level_r[0]:
+                role_id = level_r[1]
+                list_index = i
+
+        if not role_id or not (current_role := discord.utils.get(member.guild.roles, id=role_id)):
+            return
+
+        try:
+            await member.add_roles(current_role)
+        except Exception as e:
+            print(e)
+        if list_index and (previous_role_id := level_roles[list_index-1][1]):
+            if previous_role := discord.utils.get(member.guild.roles, id=previous_role_id):
+                if previous_role in member.roles:
                     try:
                         await member.remove_roles(previous_role)
                     except Exception as ee:
@@ -442,11 +474,10 @@ class LevelSystem(*level_cogs):
     async def setlevel(self, ctx, member: discord.Member = None, level: int = None) -> None:
         """ Sets a level to a user.
         :param member: The member to whom the level is gonna be set.
-        :param level: The new level to which the user's level is gonna be set.
-        """
+        :param level: The new level to which the user's level is gonna be set. """
 
         if not member:
-            return await ctx.send(f"**Please, inform a member to set a new level value, {ctx.author.mention}!**")
+            return await ctx.send(f"**Please, inform a member to set a new level to, {ctx.author.mention}!**")
 
         if not level:
             return await ctx.send(f"**Please, inform the level that you want the user to have, {ctx.author.mention}!**")
@@ -471,6 +502,44 @@ class LevelSystem(*level_cogs):
 
         await asyncio.sleep(0.1)
         await self.check_level_roles_deeply(member, level)
+        await ctx.send(f"**The member {member.mention} is now level {level}!**")
+
+    @commands.command()
+    @commands.has_permissions(administrator=True)
+    async def setvclevel(self, ctx, member: discord.Member = None, level: int = None) -> None:
+        """ Sets a Voice Channel level to a user.
+        :param member: The member to whom the level is gonna be set.
+        :param level: The new level to which the user's level is gonna be set. """
+
+        if not member:
+            return await ctx.send(f"**Please, inform a member to set a new VC level to, {ctx.author.mention}!**")
+
+        if not level:
+            return await ctx.send(f"**Please, inform the VC level that you want the user to have, {ctx.author.mention}!**")
+
+        if level <= 0:
+            return await ctx.send(f"**Please, inform a positive number greater than 0, {ctx.author.mention}!**")
+
+        Tools = self.client.get_cog('Tools')
+
+        if not (the_user := await Tools.get_user_voice(member.id)):
+            return await ctx.send(f"**Member is not in the system yet, {ctx.author.mention}!**")
+
+
+        if level >= the_user[3]:
+            await Tools.update_user_voice_lvl(member.id, level)
+            await asyncio.sleep(0.1)
+            # await self.set_user_xp(member.id, ((level-1)** 5))
+            await self.set_user_xp(member.id, await LevelSystem.get_xp(level-1))
+
+        else:
+            # await self.set_user_xp(member.id, ((level-1)** 5))
+            await self.set_user_xp(member.id, await LevelSystem.get_xp(level-1))
+            await asyncio.sleep(0.1)
+            await Tools.update_user_voice_lvl(member.id, level)
+
+        await asyncio.sleep(0.1)
+        await self.check_voice_level_roles_deeply(member, level)
         await ctx.send(f"**The member {member.mention} is now level {level}!**")
 
     async def check_level_roles_deeply(self, member: discord.Member, level: int) -> None:
@@ -499,6 +568,30 @@ class LevelSystem(*level_cogs):
                         member_roles.remove(ex)
                 await member.edit(roles=member_roles)
 
+    async def check_voice_level_roles_deeply(self, member: discord.Member, level: int) -> None:
+        """ Checks the voice level role of the member deeply, involving all voice level roles.
+        :param member: The member to check.
+        :param level: The voice level of the member. """
+
+        updated = await self.check_voice_level_role(member, level)
+        if updated:
+            all_level_roles = await self.select_vc_level_role()
+
+            level_roles = set(
+                [a_role for lvl_role in all_level_roles if (
+                    a_role := discord.utils.get(member.guild.roles, id=lvl_role[1])
+                    ) and lvl_role[1] != updated
+                ]
+            )
+
+            member_roles = member.roles
+            excluded = level_roles & set(member_roles)
+            if excluded:
+                for ex in excluded:
+                    if ex in member_roles:
+                        member_roles.remove(ex)
+                await member.edit(roles=member_roles)
+
     async def check_user_perm_roles(self, member: discord.Member, level: int) -> None:
         """ Checks whether the member should get the user perm roles when leveling up. """
 
@@ -518,16 +611,6 @@ class LevelSystem(*level_cogs):
                 await member.add_roles(role)
             except:
                 pass
-
-    async def set_user_xp(self, user_id: int, the_xp: int) -> None:
-        """ Sets the user's XP with the given number. 
-        :param user_id: The user's ID. 
-        :param the_xp: The new XP value to which set the user's level. """
-
-        mycursor, db = await the_database()
-        await mycursor.execute("UPDATE MemberStatus SET user_xp = %s WHERE user_id = %s", (the_xp, user_id))
-        await db.commit()
-        await mycursor.close()
 
     async def _make_level_score_embed(self, ctx: commands.Context, entries, offset: int, lentries: int, kwargs) -> discord.Embed:
         """ Makes an embedded message for the level scoreboard. """
@@ -638,6 +721,66 @@ class LevelSystem(*level_cogs):
             await ctx.send(f"**Something went wrong with it, {member.mention}!**")
         else:
             await ctx.send(f"**Unset level `{level}` from `{role.name if role else level_role[1]}`, {member.mention}!**")
+
+    @commands.command(aliases=['setvclevelrole', 'set_vclevelrole', 'set_voice_level_role', 'set_vclvlrole', 'set_vc_lvl_role'])
+    @commands.has_permissions(administrator=True)
+    async def set_vc_level_role(self, ctx, level: int = None, *, role: discord.Role = None) -> None:
+        """ Sets a level role to the level system.
+        :param level: The level to set.
+        :param role: The role to attach to the level. """
+
+        member = ctx.author
+
+        if not level:
+            return await ctx.send(f"**Please, inform a level, {member.mention}!**")
+
+        if not role:
+            return await ctx.send(f"**Please, inform a role, {member.mention}!**")
+
+        if await self.select_specific_level_role(level=level):
+            return await ctx.send(f"**There already is a role attached to the level `{level}`, {member.mention}!**")
+
+        confirm = await Confirm(f"**Set level `{level}` to role `{role.name}`, {member.mention}?**").prompt(ctx)
+        if not confirm:
+            return
+
+        try:
+            await self.insert_level_role(level, role.id)
+        except Exception as e:
+            print(e)
+            await ctx.send(f"**Something went wrong with it, {member.mention}!**")
+        else:
+            await ctx.send(f"**Set level `{level}` to role `{role.name}`, {member.mention}!**")
+
+    @commands.command(aliases=['unsetvclevelrole', 'unset_vclevelrole', 'delete_vclevelrole' 'unset_voice_level_role', 'delete_vc_level_role'])
+    @commands.has_permissions(administrator=True)
+    async def unset_vc_level_role(self, ctx, level: int = None) -> None:
+        """ Sets a Voice Channel level role to the Voice level system.
+        :param level: The level to set. """
+
+        member = ctx.author
+
+        if not level:
+            return await ctx.send(f"**Please, inform a VC level, {member.mention}!**")
+
+        if not (level_role := await self.select_specific_vc_level_role(level=level)):
+            return await ctx.send(f"**There isn't a role attached to the VC level `{level}` yet, {member.mention}!**")
+
+        role = discord.utils.get(ctx.guild.roles, id=level_role[1])
+
+        confirm = await Confirm(f"**Unset VC level `{level}` from role `{role.name if role else level_role[1]}`, {member.mention}?**").prompt(ctx)
+        if not confirm:
+            return
+
+        try:
+            await self.delete_vc_level_role(level=level)
+        except Exception as e:
+            print(e)
+            await ctx.send(f"**Something went wrong with it, {member.mention}!**")
+        else:
+            await ctx.send(f"**Unset level `{level}` from `{role.name if role else level_role[1]}`, {member.mention}!**")
+
+
 
     @commands.command(aliases=['showlevelroles', 'showlvlroles', 'show_lvlroles', 'level_roles', 'levelroles'])
     @Misc.check_whitelist()
@@ -856,6 +999,7 @@ Setup:
 b!create_table_member_status
 b!create_table_level_roles
 b!create_table_important_vars
+b!create_table_vc_level_roles
 """
 
 

@@ -270,3 +270,5 @@ class ConvertTimeView(discord.ui.View):
                 f"🇬🇧 {member.mention} has reached level **{temp_lvl}🔈!**" \
                 f"\n🇫🇷 {member.mention} a atteint le niveau **{temp_lvl}🔈 !**"
             )
+            await self.check_voice_level_roles_deeply(member, temp_lvl)
+

@@ -127,6 +127,16 @@ class MemberStatusTable(commands.Cog):
         await db.commit()
         await mycursor.close()
 
+    async def set_user_xp(self, user_id: int, the_xp: int) -> None:
+        """ Sets the user's XP with the given number. 
+        :param user_id: The user's ID. 
+        :param the_xp: The new XP value to which set the user's level. """
+
+        mycursor, db = await the_database()
+        await mycursor.execute("UPDATE MemberStatus SET user_xp = %s WHERE user_id = %s", (the_xp, user_id))
+        await db.commit()
+        await mycursor.close()
+        
     async def remove_user(self, user_id: int) -> None:
         mycursor, db = await the_database()
         await mycursor.execute("DELETE FROM MemberStatus WHERE user_id = %s", (user_id,))
