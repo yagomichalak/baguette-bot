@@ -14,6 +14,7 @@ from extra.menu import Confirm, SwitchPages
 from extra.useful_variables import xp_levels
 from extra import utils
 from extra.level.level_roles import LevelRoleTable
+from extra.level.member_status import MemberStatusTable
 
 owner_role_id: int = int(os.getenv('OWNER_ROLE_ID'))
 admin_role_id: int = int(os.getenv('ADMIN_ROLE_ID'))
@@ -26,9 +27,8 @@ game_channel_id: int = int(os.getenv('GAME_VOICE_CHANNEL_ID'))
 allowed_roles = [owner_role_id, admin_role_id, mod_role_id, jr_mod_role_id, trial_mod_role_id]
 
 level_cogs: List[commands.Cog] = [
-    LevelRoleTable
+    LevelRoleTable, MemberStatusTable
 ]
-
 
 class LevelSystem(*level_cogs):
     """ A category for the Level System. """
@@ -581,185 +581,6 @@ class LevelSystem(*level_cogs):
 
         return leaderboard
     
-    @commands.has_permissions(administrator=True)
-    @commands.command(hidden=True)
-    async def create_table_member_status(self, ctx):
-        """ (ADM) Creates the MemberStatus table. """
-
-        if await self.table_member_status_exists():
-            return await ctx.send("**The `MemberStatus` table already exists!**")
-
-        mycursor, db = await the_database()
-        await mycursor.execute(
-            """CREATE TABLE MemberStatus (
-            user_id BIGINT, user_xp BIGINT, user_lvl INT,
-            user_xp_time INT, user_messages INT DEFAULT 0,
-            vc_time BIGINT DEFAULT 0, vc_ts BIGINT
-            )""")
-        await db.commit()
-        await mycursor.close()
-                
-        await ctx.send("**Table `MemberStatus` created!**")
-
-    @commands.has_permissions(administrator=True)
-    @commands.command(hidden=True)
-    async def drop_table_member_status(self, ctx):
-        """ (ADM) Drops the MemberStatus table. """
-
-        if not await self.table_member_status_exists():
-            return await ctx.send("**The `MemberStatus` table doesn't exist!**")
-
-        mycursor, db = await the_database()
-        await mycursor.execute("DROP TABLE MemberStatus")
-        await db.commit()
-        await mycursor.close()
-
-        await ctx.send("**Table `MemberStatus` dropped!**")
-
-    @commands.has_permissions(administrator=True)
-    @commands.command(hidden=True)
-    async def reset_table_member_status(self, ctx):
-        """ (ADM) Resets the MemberStatus table. """
-
-
-        if not await self.table_member_status_exists():
-            return await ctx.send("**The `MemberStatus` table doesn't exist yet!**")
-
-        mycursor, db = await the_database()
-        await mycursor.execute("DELETE FROM MemberStatus")
-        await db.commit()
-        await mycursor.close()
-
-        await ctx.send("**Table `MemberStatus` reseted!**")
-
-    async def table_member_status_exists(self) -> bool:
-        """ Checks whether the LevelRoles table exists. """
-
-        mycursor, db = await the_database()
-        await mycursor.execute(f"SHOW TABLE STATUS LIKE 'MemberStatus'")
-        table_info = await mycursor.fetchall()
-        await mycursor.close()
-        if len(table_info) == 0:
-                return False
-        else:
-            return True
-
-    async def insert_user(self, user_id: int, xp_time: int, xp: int = 0, lvl: int = 1, messages: int = 0, vc_time: int = 0, vc_ts: int = None) -> None:
-        mycursor, db = await the_database()
-        await mycursor.execute("""
-            INSERT INTO MemberStatus (user_id, user_xp, user_lvl, user_xp_time, user_messages, vc_time, vc_ts) 
-            VALUES (%s, %s, %s, %s, %s, %s, %s)""", 
-            (user_id, xp, lvl, xp_time, messages, vc_time, vc_ts))
-        await db.commit()
-        await mycursor.close()
-
-    async def update_user_xp(self, user_id: int, xp: int) -> None:
-        mycursor, db = await the_database()
-        await mycursor.execute("UPDATE MemberStatus SET user_xp = user_xp + %s WHERE user_id = %s", (xp, user_id))
-        await db.commit()
-        await mycursor.close()
-
-    async def update_user_lvl(self, user_id: int, level: int) -> None:
-        mycursor, db = await the_database()
-        await mycursor.execute("UPDATE MemberStatus set user_lvl = %s WHERE user_id = %s", (level, user_id))
-        await db.commit()
-        await mycursor.close()
-
-
-    async def update_user_xp_time(self, user_id: int, time: int) -> None:
-        mycursor, db = await the_database()
-        await mycursor.execute("UPDATE MemberStatus SET user_xp_time = %s WHERE user_id = %s", (time, user_id))
-        await db.commit()
-        await mycursor.close()
-
-    async def update_user_server_messages(self, user_id: int, add_msg: int) -> None:
-        mycursor, db = await the_database()
-        await mycursor.execute(
-            "UPDATE MemberStatus SET user_messages = user_messages + %s WHERE user_id = %s", (add_msg, user_id))
-        await db.commit()
-        await mycursor.close()
-
-
-    async def update_user_server_time(self, user_id: int, add_time: int, reset_ts: bool = False) -> None:
-        mycursor, db = await the_database()
-        if reset_ts:
-            await mycursor.execute(
-                "UPDATE MemberStatus SET vc_time = vc_time + %s, vc_ts = NULL WHERE user_id = %s", (add_time, user_id))
-        else:
-            await mycursor.execute(
-                "UPDATE MemberStatus SET vc_time = vc_time + %s WHERE user_id = %s", (add_time, user_id))
-        await db.commit()
-        await mycursor.close()
-
-    async def update_user_server_timestamp(self, user_id: int, new_ts: int) -> None:
-        mycursor, db = await the_database()
-        await mycursor.execute("UPDATE MemberStatus SET vc_ts = %s WHERE user_id = %s", (new_ts, user_id))
-        await db.commit()
-        await mycursor.close()
-
-
-    async def remove_user(self, user_id: int) -> None:
-        mycursor, db = await the_database()
-        await mycursor.execute("DELETE FROM MemberStatus WHERE user_id = %s", (user_id,))
-        await db.commit()
-        await mycursor.close()
-
-    async def clear_user_lvl(self, user_id: int) -> None:
-        mycursor, db = await the_database()
-        await mycursor.execute("UPDATE MemberStatus SET user_xp = 0, user_lvl = 1 WHERE user_id = %s", (user_id,))
-        await db.commit()
-        await mycursor.close()
-
-    async def get_users(self) -> List[List[int]]:
-        """ Gets all users from the MemberStatus system. """
-
-        mycursor, db = await the_database()
-        await mycursor.execute("SELECT * FROM MemberStatus")
-        members = await mycursor.fetchall()
-        await mycursor.close()
-        return members
-
-
-    async def get_specific_user(self, user_id: int) -> List[int]:
-        """ Gets a specific user from the MemberStatus system. 
-        :param user_id: The ID of the user to get. """
-
-        mycursor, db = await the_database()
-        await mycursor.execute("SELECT * FROM MemberStatus WHERE user_id = %s", (user_id,))
-        member = await mycursor.fetchall()
-        await mycursor.close()
-        return member
-
-
-    async def get_all_users_by_xp(self) -> List[List[int]]:
-        """ Gets all users from the MembersScore table ordered by XP. """
-
-        mycursor, db = await the_database()
-        await mycursor.execute("SELECT * FROM MemberStatus ORDER BY user_xp DESC")
-        users = await mycursor.fetchall()
-        await mycursor.close()
-        return users
-
-
-    async def get_total_messages(self) -> int:
-        """ Gets the total amount of messages sent in the server. """
-
-        mycursor, db = await the_database()
-        await mycursor.execute("SELECT SUM(user_messages) FROM MemberStatus")
-        total = number[0] if (number := await mycursor.fetchone()) else 0
-        await mycursor.close()
-        return total
-
-    async def get_total_time(self) -> int:
-        """ Gets the total time spent in the server's VCs. """
-
-        mycursor, db = await the_database()
-        await mycursor.execute("SELECT SUM(vc_time) FROM MemberStatus")
-        total = number[0] if (number := await mycursor.fetchone()) else 0
-        await mycursor.close()
-        return total
-
-
     @commands.command(aliases=['setlevelrole', 'set_levelrole', 'set_lvlrole', 'set_lvl_role'])
     @commands.has_permissions(administrator=True)
     async def set_level_role(self, ctx, level: int = None, *, role: discord.Role = None) -> None:
@@ -777,7 +598,6 @@ class LevelSystem(*level_cogs):
 
         if await self.select_specific_level_role(level=level):
             return await ctx.send(f"**There already is a role attached to the level `{level}`, {member.mention}!**")
-
 
         confirm = await Confirm(f"**Set level `{level}` to role `{role.name}`, {member.mention}?**").prompt(ctx)
         if not confirm:
@@ -819,8 +639,6 @@ class LevelSystem(*level_cogs):
         else:
             await ctx.send(f"**Unset level `{level}` from `{role.name if role else level_role[1]}`, {member.mention}!**")
 
-
-
     @commands.command(aliases=['showlevelroles', 'showlvlroles', 'show_lvlroles', 'level_roles', 'levelroles'])
     @Misc.check_whitelist()
     async def show_level_roles(self, ctx) -> None:
@@ -839,11 +657,9 @@ class LevelSystem(*level_cogs):
         for lvl_role in level_roles:
             embed.add_field(name=f"Level {lvl_role[0]}", value=f"**Role:** <@&{lvl_role[1]}>", inline=True)
 
-
         await ctx.send(embed=embed)
 
 
-    # Database
 
     @commands.command(aliases=['show_multiplier', 'xp_multiplier', 'show_xp_multiplier', 'xpm', 'xp_rate', 'xprate'])
     @commands.has_any_role(*[trial_mod_role_id, jr_mod_role_id, mod_role_id, admin_role_id, owner_role_id])
@@ -978,140 +794,6 @@ class LevelSystem(*level_cogs):
 
         await self.delete_important_var(label='xp_channel', value_int=channel.id)
         await ctx.send(f"**{channel.mention} has been disabled for XP, {member.mention}!** ✅")
-
-    async def insert_important_var(self, label: str, value_str: str = None, value_int: int = None) -> None:
-        """ Gets an important var.
-        :param label: The label o that var. """
-
-        mycursor, db = await the_database()
-        await mycursor.execute("INSERT INTO ImportantVars (label, value_str, value_int) VALUES (%s, %s, %s)", (label, value_str, value_int))
-        await db.commit()
-        await mycursor.close()
-
-    async def update_important_var(self, label: str, value_str: str = None, value_int: str = None) -> None:
-        """ Gets an important var.
-        :param label: The label o that var. """
-        
-        mycursor, db = await the_database()
-        if value_str is not None and value_int is not None:
-            await mycursor.execute("UPDATE ImportantVars SET value_str = %s, value_int = %s WHERE label = %s", (value_str, value_int, label))
-        elif value_str is not None:
-            await mycursor.execute("UPDATE ImportantVars SET value_str = %s WHERE label = %s", (value_str, label))
-        else:
-            await mycursor.execute("UPDATE ImportantVars SET value_int = %s WHERE label = %s", (value_int, label))
-
-        await db.commit()
-        await mycursor.close()
-
-    async def increment_important_var_int(self, label: str, increment: int = 1) -> None:
-        """ Increments an integer value of an important var by a value.
-        :param label: The lable of the important var.
-        :param increment: Ther increment value to apply. Default = 1. """
-
-        mycursor, db = await the_database()
-        await mycursor.execute("UPDATE ImportantVars SET value_int = value_int + %s WHERE label = %s", (increment, label))
-        await db.commit()
-        await mycursor.close()
-
-    async def get_important_var(self, label: str, value_str: str = None, value_int: int = None, multiple: bool = False) -> Union[Union[str, int], List[Union[str, int]]]:
-        """ Gets an important var.
-        :param label: The label o that var.
-        :param value_str: The string value. (Optional)
-        :param value_int: The integer value. (Optional)
-        :param multiple: Whether to get multiple values. """
-
-        mycursor, db = await the_database()
-        if value_str and value_int:
-            await mycursor.execute("SELECT * FROM ImportantVars WHERE label = %s AND value_str = %s AND value_int = %s", (label, value_str, value_int))
-        elif value_str:
-            await mycursor.execute("SELECT * FROM ImportantVars WHERE label = %s AND value_str = %s", (label, value_str))
-        elif value_int:
-            await mycursor.execute("SELECT * FROM ImportantVars WHERE label = %s AND value_int = %s", (label, value_int))
-        else:
-            await mycursor.execute("SELECT * FROM ImportantVars WHERE label = %s", (label,))
-
-        important_var = None
-        if multiple:
-            important_var = await mycursor.fetchall()
-        else:
-            important_var = await mycursor.fetchone()
-        await mycursor.close()
-        return important_var
-
-    async def delete_important_var(self, label: str, value_str: str = None, value_int: int = None) -> None:
-        """ Deletes an important var.
-        :param label: The label o that var.
-        :param value_str: The string value. (Optional)
-        :param value_int: The integer value. (Optional) """
-
-        mycursor, db = await the_database()
-
-        if value_str and value_int:
-            await mycursor.execute("DELETE FROM ImportantVars WHERE label = %s and value_str = %s and value_int = %s", (label, value_str, value_int))
-        elif value_str:
-            await mycursor.execute("DELETE FROM ImportantVars WHERE label = %s and value_str = %s", (label, value_str))
-        elif value_int:
-            await mycursor.execute("DELETE FROM ImportantVars WHERE label = %s and value_int = %s", (label, value_int))
-        else:
-            await mycursor.execute("DELETE FROM ImportantVars WHERE label = %s", (label,))
-
-        await db.commit()
-        await mycursor.close()
-
-    @commands.command(hidden=True)
-    @commands.has_permissions(administrator=True)
-    async def create_table_important_vars(self, ctx) -> None:
-        """ Creates the ImportantVars table. """
-
-        if await self.table_important_vars_exists():
-            return await ctx.send("**The `ImportantVars` table already exists!**")
-
-        mycursor, db = await the_database()
-        await mycursor.execute("""
-            CREATE TABLE ImportantVars (label VARCHAR(15), value_str VARCHAR(30), value_int BIGINT DEFAULT 0)""")
-        await db.commit()
-        await mycursor.close()
-        await ctx.send("**Created `ImportantVars` table!**")
-
-    @commands.command(hidden=True)
-    @commands.has_permissions(administrator=True)
-    async def drop_table_important_vars(self, ctx) -> None:
-        """ Drops the ImportantVars table. """
-
-        if not await self.table_important_vars_exists():
-            return await ctx.send("**The `ImportantVars` table doesn't exist!**")
-
-        mycursor, db = await the_database()
-        await mycursor.execute("DROP TABLE ImportantVars")
-        await db.commit()
-        await mycursor.close()
-        await ctx.send("**Dropped `ImportantVars` table!**")
-
-    @commands.command(hidden=True)
-    @commands.has_permissions(administrator=True)
-    async def reset_table_important_vars(self, ctx) -> None:
-        """ Resets the ImportantVars table. """
-
-        if not await self.table_important_vars_exists():
-            return await ctx.send("**The `ImportantVars` table doesn't exist yet!**")
-
-        mycursor, db = await the_database()
-        await mycursor.execute("DELETE FROM ImportantVars")
-        await db.commit()
-        await mycursor.close()
-        await ctx.send("**Reset `ImportantVars` table!**")
-
-    async def table_important_vars_exists(self) -> bool:
-        """ Checks whether the ImportantVars table exists. """
-
-        mycursor, _ = await the_database()
-        await mycursor.execute(f"SHOW TABLE STATUS LIKE 'ImportantVars'")
-        table_info = await mycursor.fetchall()
-        await mycursor.close()
-        if len(table_info) == 0:
-                return False
-        else:
-            return True
 
     @tasks.loop(minutes=1)
     async def check_weekend_boost(self) -> None:
