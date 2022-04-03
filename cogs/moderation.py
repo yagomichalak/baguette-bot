@@ -66,6 +66,7 @@ class Moderation(*moderation_cogs):
 	@commands.Cog.listener()
 	async def on_ready(self) -> None:
 		self.look_for_expired_tempmutes.start()
+		self.look_for_expired_tempbans.start()
 		self.look_for_monthly_infractions_record_reset.start()
 		print("Moderation cog is online!")
 
@@ -83,7 +84,7 @@ class Moderation(*moderation_cogs):
 				continue
 
 			try:
-				role = discord.utils.get(guild.roles, id=muted_role_id)
+				role = discord.utils.get(guild.roles, id=banned_role_id)
 				if role:
 					if user_roles := await self.get_muted_roles(member.id):
 
@@ -125,15 +126,60 @@ class Moderation(*moderation_cogs):
 			except Exception as e:
 				continue
 
-	async def get_expired_tempmutes(self, current_ts: int) -> List[int]:
-		""" Gets expired tempmutes. 
-		:param current_ts: The current timestamp. """
+	@tasks.loop(minutes=1)
+	async def look_for_expired_tempbans(self) -> None:
+		""" Looks for expired tempbans and unmutes the users. """
 
-		mycursor, db = await the_database()
-		await mycursor.execute("SELECT DISTINCT(user_id) FROM MutedMember WHERE (%s -  mute_ts) >= muted_for_seconds", (current_ts,))
-		tempmutes = list(map(lambda m: m[0], await mycursor.fetchall()))
-		await mycursor.close()
-		return tempmutes
+		current_ts = await utils.get_timestamp()
+		tempbans = await self.get_expired_tempbans(current_ts)
+		guild = self.client.get_guild(server_id)
+
+		for tb in tempbans:
+			member = discord.utils.get(guild.members, id=tb)
+			if not member:
+				continue
+
+			try:
+				role = discord.utils.get(guild.roles, id=muted_role_id)
+				if role:
+					if user_roles := await self.get_tempbanned_roles(member.id):
+
+						bot = discord.utils.get(guild.members, id=self.client.user.id)
+
+						member_roles = list([
+							a_role for the_role in user_roles if (a_role := discord.utils.get(guild.roles, id=the_role[1]))
+							and a_role < bot.top_role
+						])
+						member_roles.extend(member.roles)
+
+						member_roles = list(set(member_roles))
+						if role in member_roles:
+							member_roles.remove(role)
+
+						await member.edit(roles=member_roles)
+						try:
+							await self.remove_all_tempbanned_roles_from_system(member.id)
+						except Exception as e:
+							print(e)
+							pass
+
+						else:
+
+							# Moderation log embed
+							moderation_log = discord.utils.get(guild.channels, id=mod_log_id)
+							embed = discord.Embed(
+								description=F"**Untempbanned** {member.mention}\n**Reason:** Tempban is over",
+								color=discord.Color.purple())
+							embed.set_author(name=f"{self.client.user} (ID {self.client.user.id})", icon_url=self.client.user.display_avatar)
+							embed.set_thumbnail(url=member.display_avatar)
+							await moderation_log.send(embed=embed)
+							try:
+								await member.send(embed=embed)
+							except:
+								pass
+
+			except Exception as e:
+				continue
 
 	@tasks.loop(minutes=1)
 	async def look_for_monthly_infractions_record_reset(self):

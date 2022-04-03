@@ -26,7 +26,8 @@ class TempbannedMemberTable(commands.Cog):
             user_id BIGINT NOT NULL, 
             role_id BIGINT NOT NULL, 
             mute_ts BIGINT DEFAULT NULL, 
-            tempbanned_for_seconds BIGINT DEFAULT NULL
+            tempbanned_for_seconds BIGINT DEFAULT NULL,
+            PRIMARY KEY(user_id, role_id)
         )""")
         await db.commit()
         await mycursor.close()
@@ -98,6 +99,16 @@ class TempbannedMemberTable(commands.Cog):
         user_roles = await mycursor.fetchall()
         await mycursor.close()
         return user_roles
+
+    async def get_expired_tempbans(self, current_ts: int) -> List[int]:
+        """ Gets expired tempmutes. 
+        :param current_ts: The current timestamp. """
+
+        mycursor, _ = await the_database()
+        await mycursor.execute("SELECT DISTINCT(user_id) FROM TempbannedMember WHERE (%s -  mute_ts) >= tempbanned_for_seconds", (current_ts,))
+        tempbans = list(map(lambda m: m[0], await mycursor.fetchall()))
+        await mycursor.close()
+        return tempbans
 
     async def remove_tempbanned_role_from_system(self, user_role_ids: List[Tuple[int, int]]) -> None:
         """ Removes all tempbanned roles from a specific user.

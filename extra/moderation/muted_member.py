@@ -26,7 +26,8 @@ class MutedMemberTable(commands.Cog):
             user_id BIGINT NOT NULL, 
             role_id BIGINT NOT NULL, 
             mute_ts BIGINT DEFAULT NULL, 
-            muted_for_seconds BIGINT DEFAULT NULL
+            muted_for_seconds BIGINT DEFAULT NULL,
+            PRIMARY KEY(user_id, role_id)
         )""")
         await db.commit()
         await mycursor.close()
@@ -97,6 +98,16 @@ class MutedMemberTable(commands.Cog):
         user_roles = await mycursor.fetchall()
         await mycursor.close()
         return user_roles
+
+    async def get_expired_tempmutes(self, current_ts: int) -> List[int]:
+        """ Gets expired tempmutes. 
+        :param current_ts: The current timestamp. """
+
+        mycursor, _ = await the_database()
+        await mycursor.execute("SELECT DISTINCT(user_id) FROM MutedMember WHERE (%s -  mute_ts) >= muted_for_seconds", (current_ts,))
+        tempmutes = list(map(lambda m: m[0], await mycursor.fetchall()))
+        await mycursor.close()
+        return tempmutes
 
     async def remove_role_from_system(self, user_role_ids: List[Tuple[int, int]]) -> None:
         """ Removes all muted roles from a specific user.
