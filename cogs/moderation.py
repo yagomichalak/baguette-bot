@@ -23,19 +23,24 @@ import re
 import emoji
 from cogs.misc import Misc
 
+# IDs
+server_id = int(os.getenv('SERVER_ID'))
+
 mod_log_id = int(os.getenv('MOD_LOG_CHANNEL_ID'))
-muted_role_id = int(os.getenv('MUTED_ROLE_ID'))
+nsfw_channel_id = int(os.getenv('NSFW_CHANNEL_ID'))
 general_channel = int(os.getenv('GENERAL_CHANNEL_ID'))
+
+muted_role_id = int(os.getenv('MUTED_ROLE_ID'))
+banned_role_id = int(os.getenv('BANNED_ROLE_ID'))
+
 last_deleted_message = []
+
 mod_role_id = int(os.getenv('MOD_ROLE_ID'))
 jr_mod_role_id = int(os.getenv('JR_MOD_ROLE_ID'))
 trial_mod_role_id = int(os.getenv('TRIAL_MOD_ROLE_ID'))
 admin_role_id = int(os.getenv('ADMIN_ROLE_ID'))
 owner_role_id = int(os.getenv('OWNER_ROLE_ID'))
-server_id = int(os.getenv('SERVER_ID'))
-nsfw_channel_id = int(os.getenv('NSFW_CHANNEL_ID'))
-# staff_role_id = int(os.getenv('STAFF_ROLE_ID'))
-staff_role_id = 777886754936979471
+staff_role_id = int(os.getenv('STAFF_ROLE_ID'))
 member_dot_role_id = int(os.getenv('MEMBER_DOT_ROLE_ID'))
 teacher_role_id: int = int(os.getenv("TEACHER_ROLE_ID"))
 organizer_role_id: int = int(os.getenv("ORGANIZER_ROLE_ID"))
@@ -58,13 +63,11 @@ class Moderation(*moderation_cogs):
 		self.image_cache = {}
 		self.message_cache = {}
 
-
 	@commands.Cog.listener()
 	async def on_ready(self) -> None:
 		self.look_for_expired_tempmutes.start()
 		self.look_for_monthly_infractions_record_reset.start()
 		print("Moderation cog is online!")
-
 
 	@tasks.loop(minutes=1)
 	async def look_for_expired_tempmutes(self) -> None:
@@ -875,7 +878,7 @@ class Moderation(*moderation_cogs):
 			embed.set_thumbnail(url=member.display_avatar)
 			await moderation_log.send(embed=embed)
 			try:
-				await member.send(embed=embed)
+				await member.send(embed=general_embed)
 			except:
 				pass
 
@@ -1035,7 +1038,7 @@ class Moderation(*moderation_cogs):
 
 		current_ts = int(await utils.get_timestamp())
 
-		role = discord.utils.get(ctx.guild.roles, id=muted_role_id)
+		role = discord.utils.get(ctx.guild.roles, id=banned_role_id)
 
 		if role not in member.roles:
 			await member.move_to(None)
@@ -1133,7 +1136,7 @@ class Moderation(*moderation_cogs):
 		:param reason: The reason for the untempban. [Optional] """
 
 		await ctx.message.delete()
-		role = discord.utils.get(ctx.guild.roles, id=muted_role_id)
+		role = discord.utils.get(ctx.guild.roles, id=banned_role_id)
 		if not member:
 			return await ctx.send("**Please, specify a member!**", delete_after=3)
 
@@ -1178,7 +1181,7 @@ class Moderation(*moderation_cogs):
 			embed.set_thumbnail(url=member.display_avatar)
 			await moderation_log.send(embed=embed)
 			try:
-				await member.send(embed=embed)
+				await member.send(embed=general_embed)
 			except:
 				pass
 

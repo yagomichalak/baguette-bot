@@ -17,7 +17,7 @@ class TempbannedMemberTable(commands.Cog):
     async def create_table_tempbanned_member(self, ctx) -> None:
         """ (ADM) Creates the TempbannedMember table. """
 
-        if await self.check_table_TempbannedMember_exists():
+        if await self.check_table_tempbanned_member_exists():
             return await ctx.send("**Table __TempbannedMember__ already exists!**")
         
         await ctx.message.delete()
@@ -38,7 +38,7 @@ class TempbannedMemberTable(commands.Cog):
     async def drop_table_tempbanned_member(self, ctx) -> None:
         """ (ADM) Creates the TempbannedMember table """
 
-        if not await self.check_table_TempbannedMember_exists():
+        if not await self.check_table_tempbanned_member_exists():
             return await ctx.send("**Table __TempbannedMember__ doesn't exist!**")
         await ctx.message.delete()
         mycursor, db = await the_database()
@@ -53,7 +53,7 @@ class TempbannedMemberTable(commands.Cog):
     async def reset_table_tempbanned_member(self, ctx):
         """ (ADM) Resets the TempbannedMember table. """
 
-        if not await self.check_table_TempbannedMember_exists():
+        if not await self.check_table_tempbanned_member_exists():
             return await ctx.send("**Table __TempbannedMember__ doesn't exist yet**")
 
         await ctx.message.delete()
