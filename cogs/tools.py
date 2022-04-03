@@ -22,7 +22,6 @@ class Tools(*tool_cogs):
         super().__init__(self)
         self.client = client
 
-
     @commands.Cog.listener()
     async def on_ready(self) -> None:
         """ Tells when the cog is ready to go. """
@@ -30,7 +29,6 @@ class Tools(*tool_cogs):
         self.advertise_patreon.start()
         self.solve_broken_roles.start()
         print('Tool cog is online!')
-
 
 def setup(client: commands.Bot) -> None:
     """ Cog's setup function. """

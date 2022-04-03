@@ -1398,6 +1398,7 @@ class Moderation(*moderation_cogs):
 			warns = len([w for w in user_infractions if w[1] == 'warn'])
 			mutes = len([m for m in user_infractions if m[1] == 'mute'])
 			kicks = len([k for k in user_infractions if k[1] == 'kick'])
+			tempbans = len([b for b in user_infractions if b[1] == 'tempban'])
 			bans = len([b for b in user_infractions if b[1] == 'ban'])
 			hackbans = len([hb for hb in user_infractions if hb[1] == 'hackban'])
 		else:
@@ -1409,7 +1410,7 @@ class Moderation(*moderation_cogs):
 			color=member.color,
 			timestamp=ctx.message.created_at)
 		embed.set_thumbnail(url=member.display_avatar)
-		embed.set_footer(text=f"Warns: {warns} | Mutes: {mutes} | Kicks: {kicks} | Bans: {bans} | Hackbans: {hackbans}", icon_url=ctx.author.display_avatar)
+		embed.set_footer(text=f"Warns: {warns} | Mutes: {mutes} | Kicks: {kicks} | Tempbans: {tempbans} | Bans: {bans} | Hackbans: {hackbans}", icon_url=ctx.author.display_avatar)
 
 		# Loops through each infraction and adds a field to the embedded message
 		## 0-user_id, 1-infraction_type, 2-infraction_reason, 3-infraction_ts, 4-infraction_id, 5-perpetrator

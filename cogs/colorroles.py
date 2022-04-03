@@ -59,7 +59,6 @@ class ColourRoles(commands.Cog):
 
 		}
 
-
 	@commands.Cog.listener()
 	async def on_ready(self) -> None:
 		print('ColourRoles cog is online!')
@@ -89,7 +88,6 @@ class ColourRoles(commands.Cog):
 						await self.delete_user_colour_role(after.id, old_role.id)
 					except:
 						pass
-
 		else:
 			new_role = None
 
