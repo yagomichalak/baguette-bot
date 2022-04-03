@@ -404,7 +404,7 @@ class LevelSystem(*level_cogs):
 
         embed.add_field(name="**Voice Level**", value=f"{user_voice[3]}.", inline=True)
         embed.add_field(name="**Voice Rank**", value=f"# {vc_position[0]}.", inline=True)
-        embed.add_field(name="**Voice EXP**", value=f"{user_voice[4]} / {await self.get_xp(user[0][2])}.", inline=True)
+        embed.add_field(name="**Voice EXP**", value=f"{user_voice[4]} / {await self.get_xp(user_voice[3])}.", inline=True)
 
         mall, sall = divmod(user[0][5], 60)
         hall, mall = divmod(mall, 60)
@@ -491,15 +491,11 @@ class LevelSystem(*level_cogs):
             return await ctx.send(f"**Member is not in the system yet, {ctx.author.mention}!**")
 
         if level >= the_user[0][2]:
-            await self.update_user_lvl(member.id, level)
-            await asyncio.sleep(0.1)
-            # await self.set_user_xp(member.id, ((level-1)** 5))
             await self.set_user_xp(member.id, await self.get_xp(level-1))
+            await self.update_user_lvl(member.id, level)
 
         else:
-            # await self.set_user_xp(member.id, ((level-1)** 5))
             await self.set_user_xp(member.id, await self.get_xp(level-1))
-            await asyncio.sleep(0.1)
             await self.update_user_lvl(member.id, level)
 
         await asyncio.sleep(0.1)
@@ -529,16 +525,13 @@ class LevelSystem(*level_cogs):
 
 
         if level >= the_user[3]:
+            await Tools.set_user_voice_xp(member.id, await self.get_xp(level-1))
             await Tools.update_user_voice_lvl(member.id, level)
-            await asyncio.sleep(0.1)
             # await self.set_user_xp(member.id, ((level-1)** 5))
-            await self.set_user_xp(member.id, await self.get_xp(level-1))
 
         else:
             # await self.set_user_xp(member.id, ((level-1)** 5))
             await Tools.set_user_voice_xp(member.id, await self.get_xp(level-1))
-            print(await self.get_xp(level-1))
-            await asyncio.sleep(0.1)
             await Tools.update_user_voice_lvl(member.id, level)
 
         await asyncio.sleep(0.1)
