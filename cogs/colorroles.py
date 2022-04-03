@@ -1,12 +1,13 @@
 import discord
 from discord.ext import commands
-from typing import Dict
 
-from discord.ext.commands.converter import ColorConverter
 from mysqldb import the_database
-from typing import List, Optional
+from typing import List, Dict, Optional
+import os
 from cogs.misc import Misc
 
+booster_role_id: int = int(os.getenv('BOOSTER_ROLE_ID'))
+booster_color_role_id: int = int(os.getenv('BOOSTER_COLOR_ROLE_ID'))
 
 class ColourRoles(commands.Cog):
 	""" Category for Colour Roles management and commands. """
@@ -104,6 +105,43 @@ class ColourRoles(commands.Cog):
 					except:
 						pass
 
+	@commands.Cog.listener()
+	async def on_member_update(self, before, after):
+		""" Adds or removes the Booster role from people when they get or 
+		get removed the Booster role from them. """
+
+		if not after.guild:
+			return
+		
+
+		roles = before.roles
+		roles2 = after.roles
+		if len(roles2) == len(roles):
+			return
+
+		old_role = new_role = None
+
+		# Gets the added role
+		for r2 in roles2:
+			if r2 not in roles:
+				new_role = r2
+				break
+
+		# Gets the removed role
+		for r in roles:
+			if r not in roles2:
+				old_role = r
+				break
+
+		if new_role: # Became a Booster
+			if new_role.id == booster_role_id:
+				await self.insert_user_colour_role(after.id, booster_color_role_id)
+				pass
+
+		if old_role: # Not a Booster anymore
+			if old_role.id == booster_role_id:
+				await self.delete_user_colour_role(after.id, booster_color_role_id)
+				pass
 	
 	@commands.command(aliases=['colour', 'colour_inventory', 'color', 'colors', 'color_inventory', 'inventory', 'inv'])
 	@commands.cooldown(1, 5, commands.BucketType.user)

@@ -12,7 +12,6 @@ tool_cogs: List[commands.Cog] = [
     ScheduledEventsSystem, ScheduledEventsTable
 ]
 
-
 class Tools(*tool_cogs):
     """ Category for tool commands and features. """
 

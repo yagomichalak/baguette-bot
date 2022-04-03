@@ -22,6 +22,7 @@ admin_role_id: int = int(os.getenv('ADMIN_ROLE_ID'))
 mod_role_id: int = int(os.getenv('MOD_ROLE_ID'))
 jr_mod_role_id: int = int(os.getenv('JR_MOD_ROLE_ID'))
 trial_mod_role_id: int = int(os.getenv('TRIAL_MOD_ROLE_ID'))
+
 afk_channel_id: int = int(os.getenv('AFK_CHANNEL_ID'))
 game_channel_id: int = int(os.getenv('GAME_VOICE_CHANNEL_ID'))
 
