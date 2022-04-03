@@ -243,7 +243,6 @@ class Moderation(*moderation_cogs):
 					# Creates a new Staff member entry in the database.
 					await self.insert_staff_member(user_id=after.id, infractions_given=0, staff_at=staff_at)
 
-	# Chat filter
 	@commands.Cog.listener()
 	async def on_message(self, message):
 		if not message.guild:
@@ -604,7 +603,6 @@ class Moderation(*moderation_cogs):
 		else:
 			await ctx.send("**I couldn't snipe any messages!**")
 
-	# Purge command
 	@commands.command()
 	@commands.check_any(is_allowed_members(), commands.has_any_role(*[jr_mod_role_id, mod_role_id, admin_role_id, owner_role_id]))
 	async def purge(self, ctx, amount=0, member: discord.Member = None):
@@ -639,7 +637,6 @@ class Moderation(*moderation_cogs):
 		else:
 			await ctx.channel.purge(limit=amount)
 
-	# Warns a member
 	@commands.command()
 	@commands.check_any(is_allowed_members(), commands.has_any_role(*allowed_roles))
 	async def warn(self, ctx, member: discord.Member = None, *, reason=None):
@@ -752,7 +749,6 @@ class Moderation(*moderation_cogs):
 		else:
 			return the_time_dict, seconds
 
-	# Mutes a member temporarily
 	@commands.command()
 	@commands.check_any(is_allowed_members(), commands.has_any_role(*allowed_roles, member_dot_role_id))
 	async def mute(self, ctx, member: discord.Member = None, reason: str =  None, *, time: str = None):
@@ -870,7 +866,6 @@ class Moderation(*moderation_cogs):
 		else:
 			await ctx.send(f'**{member} is already tempbanned!**', delete_after=5)
 
-	# Unmutes a member
 	@commands.command()
 	@commands.check_any(is_allowed_members(), commands.has_any_role(*allowed_roles, member_dot_role_id))
 	async def unmute(self, ctx, member: discord.Member = None, *, reason: Optional[str] = None):
@@ -986,7 +981,6 @@ class Moderation(*moderation_cogs):
 					await self.update_staff_member_counter(
 						user_id=staff_member.id, infraction_increment=1)
 
-	# Bans a member
 	@commands.command()
 	@commands.check_any(is_allowed_members(), commands.has_any_role(*[mod_role_id, admin_role_id, owner_role_id]))
 	async def ban(self, ctx, member: discord.Member = None, *, reason: Optional[str] = None) -> None:
@@ -1056,7 +1050,6 @@ class Moderation(*moderation_cogs):
 
 			await self.client.get_cog('LevelSystem').increment_important_var_int(label="m_infractions")
 
-	# Tempbans a member temporarily
 	@commands.command()
 	@commands.check_any(is_allowed_members(), commands.has_any_role(*allowed_roles, member_dot_role_id))
 	async def tempban(self, ctx, member: discord.Member = None, reason: str =  None, *, time: str = None):
@@ -1173,7 +1166,6 @@ class Moderation(*moderation_cogs):
 		else:
 			await ctx.send(f'**{member} is already muted!**', delete_after=5)
 
-	# Unmutes a member
 	@commands.command()
 	@commands.check_any(is_allowed_members(), commands.has_any_role(*allowed_roles, member_dot_role_id))
 	async def untempban(self, ctx, member: discord.Member = None, *, reason: Optional[str] = None):
@@ -1234,7 +1226,6 @@ class Moderation(*moderation_cogs):
 		else:
 			await ctx.send(f'**{member} is not even muted!**', delete_after=5)
 
-	# Hardbans a member
 	@commands.command()
 	@commands.check_any(is_allowed_members(), commands.has_any_role(*[mod_role_id, admin_role_id, owner_role_id]))
 	async def hardban(self, ctx, member: discord.Member = None, *, reason: Optional[str] = None) -> None:
@@ -1302,7 +1293,6 @@ class Moderation(*moderation_cogs):
 
 			await self.client.get_cog('LevelSystem').increment_important_var_int(label="m_infractions")
 
-	# Unbans a member
 	@commands.command()
 	@commands.has_permissions(administrator=True)
 	async def unban(self, ctx, *, member = None):
@@ -1651,7 +1641,6 @@ Setup:
 b!create_table_mutedmembers
 b!create_table_user_infractions
 b!create_table_staff_member
-
 b!create_table_firewall
 """
 def setup(client) -> None:
