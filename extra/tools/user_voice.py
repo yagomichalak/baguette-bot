@@ -361,3 +361,13 @@ class UserVoiceTable(commands.Cog):
         await db.commit()
         await mycursor.close()
 
+    async def set_user_voice_xp(self, user_id: int, new_xp: int) -> None:
+        """ Sets the user's voice XP to a specific amount.
+        :param user_id: The ID of the user to update.
+        :param new_xp: The new amount of XP to set to. """
+
+        mycursor, db = await the_database()
+        await mycursor.execute("UPDATE UserVoice SET user_xp = %s WHERE user_id = %s", (new_xp, user_id))
+        await db.commit()
+        await mycursor.close()
+

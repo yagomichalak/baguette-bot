@@ -536,7 +536,8 @@ class LevelSystem(*level_cogs):
 
         else:
             # await self.set_user_xp(member.id, ((level-1)** 5))
-            await self.set_user_xp(member.id, await self.get_xp(level-1))
+            await Tools.set_user_voice_xp(member.id, await self.get_xp(level-1))
+            print(await self.get_xp(level-1))
             await asyncio.sleep(0.1)
             await Tools.update_user_voice_lvl(member.id, level)
 
@@ -739,7 +740,7 @@ class LevelSystem(*level_cogs):
         if not role:
             return await ctx.send(f"**Please, inform a role, {member.mention}!**")
 
-        if await self.select_specific_level_role(level=level):
+        if await self.select_specific_vc_level_role(level=level):
             return await ctx.send(f"**There already is a role attached to the level `{level}`, {member.mention}!**")
 
         confirm = await Confirm(f"**Set level `{level}` to role `{role.name}`, {member.mention}?**").prompt(ctx)
@@ -747,7 +748,7 @@ class LevelSystem(*level_cogs):
             return
 
         try:
-            await self.insert_level_role(level, role.id)
+            await self.insert_vc_level_role(level, role.id)
         except Exception as e:
             print(e)
             await ctx.send(f"**Something went wrong with it, {member.mention}!**")
@@ -799,6 +800,26 @@ class LevelSystem(*level_cogs):
         )
 
         level_roles = await self.select_level_role()
+        for lvl_role in level_roles:
+            embed.add_field(name=f"Level {lvl_role[0]}", value=f"**Role:** <@&{lvl_role[1]}>", inline=True)
+
+        await ctx.send(embed=embed)
+
+    @commands.command(aliases=['showvclevelroles', 'showvclvlroles', 'show_vclvlroles', 'vc_level_roles', 'vclevelroles'])
+    @Misc.check_whitelist()
+    async def show_vc_level_roles(self, ctx) -> None:
+        """ Shows the existing VC level roles. """
+
+        member = ctx.author
+
+        embed = discord.Embed(
+            title="__VC Level Roles Menu__",
+            description="All VC level roles that were set.",
+            color=member.color,
+            timestamp=ctx.message.created_at
+        )
+
+        level_roles = await self.select_vc_level_role()
         for lvl_role in level_roles:
             embed.add_field(name=f"Level {lvl_role[0]}", value=f"**Role:** <@&{lvl_role[1]}>", inline=True)
 

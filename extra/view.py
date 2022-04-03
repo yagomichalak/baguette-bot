@@ -152,6 +152,7 @@ class ConvertTimeView(discord.ui.View):
         self.user_info = user_info
         self.convertion_rate: int = 600 # 10 minutes
         self.vc_xp_rate: int = 20 # Per minute
+        self.cog = self.client.get_cog('LevelSystem')
 
 
     @discord.ui.button(style=discord.ButtonStyle.blurple, label="Convert VC Time into XP!", custom_id="convert_vc_time_into_crumbs", emoji="💰")
@@ -165,7 +166,6 @@ class ConvertTimeView(discord.ui.View):
         h, m = divmod(m, 60)
 
         await interaction.response.defer()
-        LevelSystem = self.client.get_cog('LevelSystem')
         Tools = self.client.get_cog('Tools')
         if self.user_info[1] < 600:
             return await interaction.followup.send(f"**You don't have the minimum of `10` minutes to convert into `XP`, {member.mention}!**")
@@ -270,5 +270,5 @@ class ConvertTimeView(discord.ui.View):
                 f"🇬🇧 {member.mention} has reached level **{temp_lvl}🔈!**" \
                 f"\n🇫🇷 {member.mention} a atteint le niveau **{temp_lvl}🔈 !**"
             )
-            await self.check_voice_level_roles_deeply(member, temp_lvl)
+            await self.cog.check_voice_level_roles_deeply(member, temp_lvl)
 
