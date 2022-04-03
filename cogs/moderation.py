@@ -15,6 +15,8 @@ from extra import utils
 from extra.moderation.firewall import ModerationFirewallTable
 from extra.moderation.muted_member import MutedMemberTable
 from extra.moderation.tempbanned_member import TempbannedMemberTable
+from extra.moderation.staff_member import StaffMemberTable
+from extra.moderation.user_infractions import UserInfractionsTable
 
 from typing import List, Dict, Tuple, Optional
 import re
@@ -41,7 +43,8 @@ organizer_role_id: int = int(os.getenv("ORGANIZER_ROLE_ID"))
 allowed_roles = [owner_role_id, admin_role_id, mod_role_id, jr_mod_role_id, trial_mod_role_id]
 
 moderation_cogs: List[commands.Cog] = [
-	ModerationFirewallTable, MutedMemberTable, TempbannedMemberTable
+	ModerationFirewallTable, MutedMemberTable, TempbannedMemberTable,
+	StaffMemberTable, UserInfractionsTable,
 ]
 
 class Moderation(*moderation_cogs):
@@ -191,7 +194,6 @@ class Moderation(*moderation_cogs):
 					# Creates a new Staff member entry in the database.
 					await self.insert_staff_member(user_id=after.id, infractions_given=0, staff_at=staff_at)
 
-
 	# Chat filter
 	@commands.Cog.listener()
 	async def on_message(self, message):
@@ -201,13 +203,13 @@ class Moderation(*moderation_cogs):
 		if message.author.bot:
 			return
 
-		# perms = message.channel.permissions_for(message.author)
-		# if perms.administrator:
-		# 	return
+		perms = message.channel.permissions_for(message.author)
+		if perms.administrator:
+			return
 
-		# for role in message.author.roles:
-		# 	if role.id in allowed_roles:
-		# 		return
+		for role in message.author.roles:
+			if role.id in allowed_roles:
+				return
 
 		ctx = await self.client.get_context(message)
 		ctx.author = self.client.user
@@ -229,7 +231,6 @@ class Moderation(*moderation_cogs):
 			await message.delete()
 			await self.warn(context=ctx, member=message.author, reason="Mass Mention")
 
-		# https://discord.com/events/777886754761605140/957657541628821584
 		# Invite tracker
 		msg = str(message.content)
 		if ('discord.gg/' in msg.lower() and '?event=' not in msg.lower()
@@ -239,7 +240,6 @@ class Moderation(*moderation_cogs):
 			if not await utils.is_allowed([*allowed_roles, organizer_role_id, teacher_role_id]).predicate(ctx):
 				
 				is_from_guild = await self.check_invite_guild(msg, message.guild, invite_root)
-
 
 				if not is_from_guild:
 					await message.delete()
@@ -254,7 +254,6 @@ class Moderation(*moderation_cogs):
 				if not is_from_guild:
 					await message.delete()
 					return await message.author.send("**Please, stop sending invites! (Invite Advertisement)**")
-
 
 	async def check_invite_guild(self, msg, guild, invite_root: str):
 		""" Checks whether it's a guild invite or not. """
@@ -314,7 +313,6 @@ class Moderation(*moderation_cogs):
 		else:
 			return False
 
-
 	async def check_cache_messages(self, ctx: commands.Context, message: discord.Message) -> None:
 		""" Checks the user who used a banned word. 
 		:param member: The user that is gonna be added to cache. """
@@ -336,7 +334,6 @@ class Moderation(*moderation_cogs):
 				else:
 					self.banned_words_cache[member.id] = [timestamp]
 
-
 				if len(user_cache := self.banned_words_cache.get(member.id)) >= 3:
 					sub = user_cache[-1] - user_cache[-3]
 					if sub <= 60:
@@ -345,7 +342,6 @@ class Moderation(*moderation_cogs):
 						except:
 							pass
 						return
-						# return await self.warn(context=ctx, member=member, reason="Excess of Banned Words")
 
 	async def check_banned_websites(self, ctx: commands.Context, message: discord.Message) -> None:
 		""" Checks whether the user posted a banned website link. 
@@ -360,7 +356,6 @@ class Moderation(*moderation_cogs):
 				except:
 					pass
 				return
-
 
 	async def check_message_spam(self, ctx: commands.Context, message: discord.Message) -> None:
 		""" Checks whether it is a message spam. 
@@ -401,7 +396,6 @@ class Moderation(*moderation_cogs):
 		:param ctx: The context of the message.
 		:param message: The user message. """
 
-
 		lenat = len(message.attachments)
 
 		if lenat == 0:
@@ -415,11 +409,9 @@ class Moderation(*moderation_cogs):
 		else:
 			self.image_cache[member.id] = [timestamp] * len(message.attachments)
 
-
 		if len(message.attachments) >= 5:
 			message.delete()
 			return await self.warn(context=ctx, member=member, reason="Image Spam")
-
 
 		if len(self.image_cache[member.id]) >= 10:
 			sub = user_cache[-1] - user_cache[-10]
@@ -434,15 +426,13 @@ class Moderation(*moderation_cogs):
 		last_deleted_message.clear()
 		last_deleted_message.append(message)
 
-
 	@commands.command(aliases=['userinfo', 'whois'])
 	@Misc.check_whitelist()
 	async def user(self, ctx, member: discord.Member = None):
-		'''
-		Shows all the information about a member.
+		""" Shows all the information about a member.
 		:param member: The member to show the info.
-		:return: An embedded message with the user's information
-		'''
+		:return: An embedded message with the user's information. """
+
 		member = ctx.author if not member else member
 
 		embed = discord.Embed(color=member.color, timestamp=ctx.message.created_at)
@@ -482,11 +472,11 @@ class Moderation(*moderation_cogs):
 		if status == "dnd": return ':red_circle:'
 		if status == "offline": return ':black_circle:'
 
-
 	@commands.command(aliases=['si', 'server'])
 	@Misc.check_whitelist()
 	async def serverinfo(self, ctx):
 		""" Shows some information about the server. """
+
 		guild = ctx.guild
 
 		em = discord.Embed(description=guild.description, color=ctx.author.color)
@@ -516,9 +506,7 @@ class Moderation(*moderation_cogs):
 		em.set_footer(text=f"Created: {guild.created_at.strftime('%d/%m/%y')} ({created_at})")
 		await ctx.send(embed=em)
 
-
 	async def sort_time(self, guild: discord.Guild, at: datetime) -> str:
-
 
 		timedelta = await utils.get_time() - at.astimezone(timezone('Etc/GMT'))
 
@@ -556,9 +544,8 @@ class Moderation(*moderation_cogs):
 	@commands.command()
 	@commands.check_any(is_allowed_members(), commands.has_any_role(*allowed_roles))
 	async def snipe(self, ctx):
-		'''
-		(MOD) Snipes the last deleted message.
-		'''
+		""" (MOD) Snipes the last deleted message. """
+
 		message = last_deleted_message
 		if message:
 			message = message[0]
@@ -568,17 +555,13 @@ class Moderation(*moderation_cogs):
 		else:
 			await ctx.send("**I couldn't snipe any messages!**")
 
-
 	# Purge command
-	# [owner_role_id, admin_role_id, mod_role_id, jr_mod_role_id, trial_mod_role_id]
 	@commands.command()
 	@commands.check_any(is_allowed_members(), commands.has_any_role(*[jr_mod_role_id, mod_role_id, admin_role_id, owner_role_id]))
 	async def purge(self, ctx, amount=0, member: discord.Member = None):
-		'''
-		(MOD) Purges messages.
+		""" (MOD) Purges messages.
 		:param amount: The amount of messages to purge.
-		:param member: The member from whom to purge the messages. (Optional)
-		'''
+		:param member: The member from whom to purge the messages. (Optional) """
 
 		perms = ctx.channel.permissions_for(ctx.author)
 		if not perms.administrator:
@@ -606,7 +589,6 @@ class Moderation(*moderation_cogs):
 			
 		else:
 			await ctx.channel.purge(limit=amount)
-
 
 	# Warns a member
 	@commands.command()
@@ -1363,7 +1345,6 @@ class Moderation(*moderation_cogs):
 		except discord.errors.NotFound:
 			return await ctx.send("**Invalid user id!**", delete_after=3)
 		
-	# Infraction methods
 	@commands.command(aliases=['infr', 'show_warnings', 'sw', 'show_bans', 'sb', 'show_muted', 'sm', 'punishements'])
 	@commands.check_any(is_allowed_members(), commands.has_any_role(*allowed_roles))
 	async def infractions(self, ctx, member: Optional[discord.Member] = None) -> None:
@@ -1405,66 +1386,6 @@ class Moderation(*moderation_cogs):
 		# Shows the infractions
 		await ctx.send(embed=embed)
 
-	# Database methods
-
-	async def insert_user_infraction(self, user_id: int, infr_type: str, reason: str, timestamp: int, perpetrator: int) -> None:
-		""" Insert a warning into the system.
-		:param user_id: The user ID.
-		:param infr_type: The infraction type.
-		:param reason: The infraction reason.
-		:param timestamp: The infraction action timestamp.
-		:param perpetrator: The ID of the perpetrator of infraction action. """
-
-		mycursor, db = await the_database()
-		await mycursor.execute("""
-			INSERT INTO UserInfractions (
-			user_id, infraction_type, infraction_reason,
-			infraction_ts, perpetrator)
-			VALUES (%s, %s, %s, %s, %s)""",
-			(user_id, infr_type, reason, timestamp, perpetrator))
-		await db.commit()
-		await mycursor.close()
-
-
-	async def get_user_infractions(self, user_id: int) -> List[List[Union[str, int]]]:
-		""" Gets all infractions from a user.
-		:param user_id: The user ID. """
-
-		mycursor, db = await the_database()
-		await mycursor.execute("SELECT * FROM UserInfractions WHERE user_id = %s", (user_id,))
-		user_infractions = await mycursor.fetchall()
-		await mycursor.close()
-		return user_infractions
-
-
-	async def get_user_infraction_by_infraction_id(self, infraction_id: int) -> List[List[Union[str, int]]]:
-		""" Gets a specific infraction by ID.
-		:param infraction_id: The infraction ID. """
-
-		mycursor, db = await the_database()
-		await mycursor.execute("SELECT * FROM UserInfractions WHERE infraction_id = %s", (infraction_id,))
-		user_infractions = await mycursor.fetchall()
-		await mycursor.close()
-		return user_infractions
-
-	async def remove_user_infraction(self, infraction_id: int) -> None:
-		""" Removes a specific infraction by ID.
-		:param infraction_id: The infraction ID. """
-
-		mycursor, db = await the_database()
-		await mycursor.execute("DELETE FROM UserInfractions WHERE infraction_id = %s", (infraction_id,))
-		await db.commit()
-		await mycursor.close()
-
-	async def remove_user_infractions(self, user_id: int) -> None:
-		""" Removes all infractions of a user by ID.
-		:parma user_id: The user ID. """
-
-		mycursor, db = await the_database()
-		await mycursor.execute("DELETE FROM UserInfractions WHERE user_id = %s", (user_id,))
-		await db.commit()
-		await mycursor.close()
-
 	@commands.command(aliases=['ri', 'remove_warn', 'remove_warning'])
 	@commands.has_permissions(administrator=True)
 	async def remove_infraction(self, ctx, infr_id: int = None):
@@ -1490,80 +1411,11 @@ class Moderation(*moderation_cogs):
 		if not member:
 			return await ctx.send("**Inform a member!**")
 		
-		if user_infractions := await self.get_user_infractions(member.id):
+		if await self.get_user_infractions(member.id):
 			await self.remove_user_infractions(member.id)
 			await ctx.send(f"**Removed all infractions for {member.mention}!**")
 		else:
 			await ctx.send(f"**{member.mention} doesn't have any existent infractions!**")
-
-	@commands.command(hidden=True)
-	@commands.has_permissions(administrator=True)
-	async def create_table_user_infractions(self, ctx) -> None:
-		""" (ADM) Creates the UserInfractions table. """
-
-		if await self.check_table_user_infractions():
-			return await ctx.send("**Table __UserInfractions__ already exists!**")
-		
-		await ctx.message.delete()
-		mycursor, db = await the_database()
-		await mycursor.execute("""CREATE TABLE UserInfractions (
-			user_id BIGINT NOT NULL, 
-			infraction_type VARCHAR(7) NOT NULL, 
-			infraction_reason VARCHAR(250) DEFAULT NULL, 
-			infraction_ts BIGINT NOT NULL, 
-			infraction_id BIGINT NOT NULL AUTO_INCREMENT, 
-			perpetrator BIGINT NOT NULL, 
-			PRIMARY KEY(infraction_id)
-		)""")
-		await db.commit()
-		await mycursor.close()
-
-		return await ctx.send("**Table __UserInfractions__ created!**", delete_after=3)
-
-	@commands.command(hidden=True)
-	@commands.has_permissions(administrator=True)
-	async def drop_table_user_infractions(self, ctx) -> None:
-		""" (ADM) Creates the UserInfractions table. """
-
-		if not await self.check_table_user_infractions():
-			return await ctx.send("**Table __UserInfractions__ doesn't exist!**")
-		await ctx.message.delete()
-		mycursor, db = await the_database()
-		await mycursor.execute("DROP TABLE UserInfractions")
-		await db.commit()
-		await mycursor.close()
-
-		return await ctx.send("**Table __UserInfractions__ dropped!**", delete_after=3)
-
-	@commands.command(hidden=True)
-	@commands.has_permissions(administrator=True)
-	async def reset_table_user_infractions(self, ctx) -> None:
-		""" (ADM) Creates the UserInfractions table. """
-
-		if not await self.check_table_user_infractions():
-			return await ctx.send("**Table __UserInfractions__ doesn't exist yet!**")
-
-		await ctx.message.delete()
-		mycursor, db = await the_database()
-		await mycursor.execute("DELETE FROM UserInfractions")
-		await db.commit()
-		await mycursor.close()
-
-		return await ctx.send("**Table __UserInfractions__ reset!**", delete_after=3)
-
-	async def check_table_user_infractions(self) -> bool:
-		""" Checks whether the UserInfractions table exists. """
-
-		mycursor, _ = await the_database()
-		await mycursor.execute("SHOW TABLE STATUS LIKE 'UserInfractions'")
-		exists = await mycursor.fetchone()
-		await mycursor.close()
-
-		if exists:
-			return True
-		else:
-			return False
-
 
 	@commands.command()
 	@commands.has_permissions(administrator=True)
@@ -1602,7 +1454,6 @@ class Moderation(*moderation_cogs):
 			embed.color = discord.Color.green()
 			await ctx.send(embed=embed)
 
-
 	@commands.command(aliases=['bl_channels', 'blc'])
 	@commands.has_permissions(administrator=True)
 	async def blacklisted_channels(self, ctx) -> None:
@@ -1611,7 +1462,6 @@ class Moderation(*moderation_cogs):
 		LevelSystem = self.client.get_cog('LevelSystem')
 		if not await LevelSystem.table_important_vars_exists():
 			return await ctx.send(f"**This command is not ready to be used yet, {member.mention}!**")
-
 
 		member = ctx.author
 
@@ -1681,149 +1531,6 @@ class Moderation(*moderation_cogs):
 
 		await LevelSystem.delete_important_var(label='bl_channel', value_int=channel.id)
 		await ctx.send(f"**{channel.mention} has been unblacklisted, {member.mention}!** ✅")
-		
-	@commands.command(hidden=True)
-	@commands.has_permissions(administrator=True)
-	async def create_table_staff_member(self, ctx) -> None:
-		""" (ADM) Creates the StaffMember table. """
-
-		if await self.check_table_staff_member():
-			return await ctx.send("**Table __StaffMember__ already exists!**")
-
-		await ctx.message.delete()
-		mycursor, db = await the_database()
-		await mycursor.execute("""CREATE TABLE StaffMember (
-			user_id BIGINT NOT NULL,
-			infractions_given INT NOT NULL DEFAULT 1,
-			joined_staff_at VARCHAR(50) DEFAULT NULL,
-			bans_today TINYINT(2) NOT NULL DEFAULT 0,
-			first_ban_timestamp BIGINT DEFAULT NULL,
-			PRIMARY KEY (user_id)
-			)""")
-		await db.commit()
-		await mycursor.close()
-
-		return await ctx.send("**Table __StaffMember__ created!**", delete_after=3)
-
-	@commands.command(hidden=True)
-	@commands.has_permissions(administrator=True)
-	async def drop_table_staff_member(self, ctx) -> None:
-		""" (ADM) Creates the StaffMember table """
-
-		if not await self.check_table_staff_member():
-			return await ctx.send("**Table __StaffMember__ doesn't exist!**")
-
-		await ctx.message.delete()
-		mycursor, db = await the_database()
-		await mycursor.execute("DROP TABLE StaffMember")
-		await db.commit()
-		await mycursor.close()
-
-		return await ctx.send("**Table __StaffMember__ dropped!**", delete_after=3)
-
-	@commands.command(hidden=True)
-	@commands.has_permissions(administrator=True)
-	async def reset_table_staff_member(self, ctx) -> None:
-		""" (ADM) Creates the StaffMember table """
-
-		if not await self.check_table_staff_member():
-			return await ctx.send("**Table __StaffMember__ doesn't exist yet!**")
-
-		await ctx.message.delete()
-		mycursor, db = await the_database()
-		await mycursor.execute("DELETE FROM StaffMember")
-		await db.commit()
-		await mycursor.close()
-
-		return await ctx.send("**Table __StaffMember__ reset!**", delete_after=3)
-
-	async def check_table_staff_member(self) -> bool:
-		""" Checks if the StaffMember table exists """
-
-		mycursor, _ = await the_database()
-		await mycursor.execute("SHOW TABLE STATUS LIKE 'StaffMember'")
-		exists = await mycursor.fetchone()
-		await mycursor.close()
-
-		if exists:
-			return True
-		else:
-			return False
-
-	async def insert_staff_member(self, user_id: int, infractions_given: int, staff_at: str, bans_today: int = 0, ban_timestamp: int = None) -> None:
-		""" Inserts a Staff member into the database.
-		:param user_id: The ID of the Staff member.
-		:param infractions_given: The infractions given by the Staff member.
-		:param staff_at: Timestamp for the Staff joining time (not reliable for old Staff members).
-		:param bans_today: First value to the bans_today counter. Default = 0.
-		:param ban_timestamp: Timestamp for the first ban. """
-
-		mycursor, db = await the_database()
-		await mycursor.execute("""INSERT INTO StaffMember (
-			user_id, infractions_given, joined_staff_at, bans_today, first_ban_timestamp
-			) VALUES (%s, %s, %s, %s, %s)""", (user_id, infractions_given, staff_at, bans_today, ban_timestamp))
-		await db.commit()
-		await mycursor.close()
-
-
-	async def get_staff_member(self, user_id: int) -> List[int]:
-		""" Gets a Staff member.
-		:param user_id: The ID of the Staff member. """
-
-		mycursor, db = await the_database()
-		await mycursor.execute("SELECT * FROM StaffMember WHERE user_id = %s", (user_id,))
-		staff_member = await mycursor.fetchone()
-		await mycursor.close()
-		return staff_member
-
-	async def update_staff_member_counter(self, user_id: int, infraction_increment: int = 0, ban_increment: int = 0, timestamp: int = None, reset_ban: bool = False) -> None:
-		""" Updates the Staff member's counters by a value.
-		:param user_id: The ID of the Staff member.
-		:param infraction_increment: The value to increment the infractions-given counter. Default = 0.
-		:param ban_increment: The value to increment the bans-today counter. Default = 0.
-		:param timestamp: The ban timestamp. Default = Null.
-		:param reset_ban: Whether it should reset the bans-today counter. Default = False. """
-
-		mycursor, db = await the_database()
-		if timestamp and reset_ban:
-			await mycursor.execute("""
-				UPDATE StaffMember 
-				SET bans_today = 1, infractions_given = infractions_given + %s, first_ban_timestamp = %s WHERE user_id = %s
-				""", (infraction_increment, timestamp, user_id))
-
-		elif timestamp:
-			await mycursor.execute("""
-				UPDATE StaffMember 
-				SET bans_today = bans_today + %s, infractions_given = infractions_given + %s, first_ban_timestamp = %s WHERE user_id = %s
-				""", (ban_increment, infraction_increment, timestamp, user_id))
-
-		else:
-			await mycursor.execute("""
-				UPDATE StaffMember 
-				SET infractions_given = infractions_given + %s, bans_today = bans_today + %s WHERE user_id = %s
-				""", (infraction_increment, ban_increment, user_id))
-
-		await db.commit()
-		await mycursor.close()
-
-	async def update_staff_member_join_date(self, user_id: int, joining_date: str) -> None:
-		""" Updates a user's joining Staff date.
-		:param user_id: The ID of the staff member.
-		:param joining_date: The joining date in text. """
-
-		mycursor, db = await the_database()
-		await mycursor.execute("UPDATE StaffMember SET joined_staff_at = %s WHERE user_id = %s", (joining_date, user_id))
-		await db.commit()
-		await mycursor.close()
-
-	async def delete_staff_member(self, user_id: int) -> None:
-		""" Deletes a Staff member from the database.
-		:param user_id: The ID of the Staff member. """
-
-		mycursor, db = await the_database()
-		await mycursor.execute("DELETE FROM StaffMember WHERE user_id = %s", (user_id,))
-		await db.commit()
-		await mycursor.close()
 	
 	@commands.command(aliases=['change_join_date', 'cjd', 'csjd'])
 	@commands.has_permissions(administrator=True)
@@ -1889,7 +1596,6 @@ class Moderation(*moderation_cogs):
 			if confirm:
 				await self.set_firewall_state(1)
 				await ctx.send(f"**Firewall activated, {member.mention}!**")
-
 
 """
 Setup:
