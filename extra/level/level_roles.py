@@ -129,7 +129,10 @@ class VCLevelRoleTable(commands.Cog):
 
         mycursor, db = await the_database()
         await mycursor.execute("""
-            CREATE TABLE VCLevelRoles (level int NOT NULL, role_id bigint NOT NULL)""")
+            CREATE TABLE VCLevelRoles (
+                level INT NOT NULL, 
+                role_id BIGINT NOT NULL
+            )""")
         await db.commit()
         await mycursor.close()
         await ctx.send("**Created `VCLevelRoles` table!**")

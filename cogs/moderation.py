@@ -11,7 +11,10 @@ from extra.banned_things import chat_filter, website_filter
 from extra.menu import Confirm
 from extra.prompt.menu import ConfirmButton
 from extra import utils
+
 from extra.moderation.firewall import ModerationFirewallTable
+from extra.moderation.muted_member import MutedMemberTable
+from extra.moderation.tempbanned_member import TempbannedMemberTable
 
 from typing import List, Dict, Tuple, Optional
 import re
@@ -38,7 +41,7 @@ organizer_role_id: int = int(os.getenv("ORGANIZER_ROLE_ID"))
 allowed_roles = [owner_role_id, admin_role_id, mod_role_id, jr_mod_role_id, trial_mod_role_id]
 
 moderation_cogs: List[commands.Cog] = [
-	ModerationFirewallTable
+	ModerationFirewallTable, MutedMemberTable, TempbannedMemberTable
 ]
 
 class Moderation(*moderation_cogs):
@@ -442,7 +445,7 @@ class Moderation(*moderation_cogs):
 		'''
 		member = ctx.author if not member else member
 
-		embed = discord.Embed(colour=member.color, timestamp=ctx.message.created_at)
+		embed = discord.Embed(color=member.color, timestamp=ctx.message.created_at)
 
 		embed.set_author(name=f"User Info: {member}")
 		embed.set_thumbnail(url=member.display_avatar)
@@ -622,7 +625,7 @@ class Moderation(*moderation_cogs):
 			await ctx.send("Please, specify a member!", delete_after=3)
 		else:
 			# # General embed
-			general_embed = discord.Embed(description=f'**Reason:** {reason}', colour=discord.Colour.dark_gold())
+			general_embed = discord.Embed(description=f'**Reason:** {reason}', color=discord.Color.dark_gold())
 			general_embed.set_author(name=f'{member} has been warned', icon_url=member.display_avatar)
 			msg = await ctx.send(embed=general_embed)
 			# Moderation log embed
@@ -779,15 +782,15 @@ class Moderation(*moderation_cogs):
 				await self.insert_in_muted(user_role_ids)
 
 				# General embed
-				general_embed = discord.Embed(description=f"**For:** `{time_dict['days']}d` `{time_dict['hours']}h`, `{time_dict['minutes']}m`\n**Reason:** {reason}", colour=discord.Colour.dark_grey(), timestamp=ctx.message.created_at)
-				general_embed.set_author(name=f"{member} has been tempmuted", icon_url=member.display_avatar)
+				general_embed = discord.Embed(description=f"**For:** `{time_dict['days']}d` `{time_dict['hours']}h`, `{time_dict['minutes']}m`\n**Reason:** {reason}", color=discord.Color.dark_gray(), timestamp=ctx.message.created_at)
+				general_embed.set_author(name=f"{member} has been muted", icon_url=member.display_avatar)
 				msg = await ctx.send(embed=general_embed)
 				# Moderation log embed
 				moderation_log = discord.utils.get(ctx.guild.channels, id=mod_log_id)
 				embed = discord.Embed(
-					description=f"**Tempmuted** {member.mention} for `{time_dict['days']}d` `{time_dict['hours']}h`, `{time_dict['minutes']}m`\n**Reason:** {reason}\n" \
+					description=f"**Muted** {member.mention} for `{time_dict['days']}d` `{time_dict['hours']}h`, `{time_dict['minutes']}m`\n**Reason:** {reason}\n" \
 						f"**Channel:** {ctx.channel.mention}\n**Location:** [Jump URL]({msg.jump_url})",
-					color=discord.Color.lighter_grey(),
+					color=discord.Color.dark_gray(),
 					timestamp=ctx.message.created_at)
 				embed.set_author(name=f"{ctx.author} (ID {ctx.author.id})", icon_url=ctx.author.display_avatar)
 				embed.set_thumbnail(url=member.display_avatar)
@@ -797,7 +800,7 @@ class Moderation(*moderation_cogs):
 				await self.insert_in_muted(user_role_ids)
 
 				# General embed
-				general_embed = discord.Embed(description=f'**Reason:** {reason}', colour=discord.Colour.dark_grey(), timestamp=ctx.message.created_at)
+				general_embed = discord.Embed(description=f'**Reason:** {reason}', color=discord.Color.dark_gray(), timestamp=ctx.message.created_at)
 				general_embed.set_author(name=f'{member} has been muted', icon_url=member.display_avatar)
 				await ctx.send(embed=general_embed)
 				# Moderation log embed
@@ -834,7 +837,7 @@ class Moderation(*moderation_cogs):
 				await self.update_staff_member_counter(
 					user_id=staff_member.id, infraction_increment=1)
 		else:
-			await ctx.send(f'**{member} is already muted!**', delete_after=5)
+			await ctx.send(f'**{member} is already tempbanned!**', delete_after=5)
 
 	# Unmutes a member
 	@commands.command()
@@ -876,7 +879,7 @@ class Moderation(*moderation_cogs):
 					pass
 
 			# General embed
-			general_embed = discord.Embed(description=f'**Reason:** {reason}', colour=discord.Colour.light_gray(), timestamp=ctx.message.created_at)
+			general_embed = discord.Embed(description=f'**Reason:** {reason}', color=discord.Color.lighter_gray(), timestamp=ctx.message.created_at)
 			general_embed.set_author(name=f'{member} has been unmuted', icon_url=member.display_avatar)
 			msg = await ctx.send(embed=general_embed)
 			# Moderation log embed
@@ -884,7 +887,7 @@ class Moderation(*moderation_cogs):
 			embed = discord.Embed(
 				description=F"**Unmuted** {member.mention}\n**Reason:** {reason}\n" \
 					f"**Channel:** {ctx.channel.mention}\n**Location:** [Jump URL]({msg.jump_url})",
-				color=discord.Color.light_gray(),
+				color=discord.Color.lighter_gray(),
 				timestamp=ctx.message.created_at)
 			embed.set_author(name=f"{ctx.author} (ID {ctx.author.id})", icon_url=ctx.author.display_avatar)
 			embed.set_thumbnail(url=member.display_avatar)
@@ -914,7 +917,7 @@ class Moderation(*moderation_cogs):
 				await ctx.send('**You cannot do that!**', delete_after=3)
 			else:
 				# General embed
-				general_embed = discord.Embed(description=f'**Reason:** {reason}', colour=discord.Colour.magenta())
+				general_embed = discord.Embed(description=f'**Reason:** {reason}', color=discord.Color.magenta())
 				general_embed.set_author(name=f'{member} has been kicked', icon_url=member.display_avatar)
 				msg = await ctx.send(embed=general_embed)
 				# Moderation log embed
@@ -998,7 +1001,7 @@ class Moderation(*moderation_cogs):
 						user_id=staff_member.id, infraction_increment=1, ban_increment=1, timestamp=current_ts)
 
 			# General embed
-			general_embed = discord.Embed(description=f'**Reason:** {reason}', colour=discord.Colour.dark_red())
+			general_embed = discord.Embed(description=f'**Reason:** {reason}', color=discord.Color.dark_red())
 			general_embed.set_author(name=f'{member} has been banned', icon_url=member.display_avatar)
 			msg = await ctx.send(embed=general_embed)
 			# Moderation log embed
@@ -1021,6 +1024,184 @@ class Moderation(*moderation_cogs):
 				pass
 
 			await self.client.get_cog('LevelSystem').increment_important_var_int(label="m_infractions")
+
+	# Tempbans a member temporarily
+	@commands.command()
+	@commands.check_any(is_allowed_members(), commands.has_any_role(*allowed_roles, member_dot_role_id))
+	async def tempban(self, ctx, member: discord.Member = None, reason: str =  None, *, time: str = None):
+		""" Tempbans a member from all channels for a determined amount of time or indefinitely.
+		:param member: The @ or the ID of the user to tempban.
+		:param reason: The reason for the tempban.
+		:param time: The time for the tempban (Optional). Default = Forever """
+
+		try:
+			await ctx.message.delete()
+		except:
+			pass
+
+		if not member:
+			return await ctx.send("**Please, specify a member!**", delete_after=3)
+
+		if not reason:
+			return await ctx.send(f"**Specify a reason!**", delete_after=3)
+
+		if time:
+
+			time_dict, seconds = await self.get_mute_time(ctx=ctx, time=time)
+			if not seconds:
+				return
+
+		current_ts = int(await utils.get_timestamp())
+
+		role = discord.utils.get(ctx.guild.roles, id=muted_role_id)
+
+		if role not in member.roles:
+			await member.move_to(None)
+			remove_roles = []
+			keep_roles = [role]
+
+			bot = discord.utils.get(ctx.guild.members, id=self.client.user.id)
+
+			for i, member_role in enumerate(member.roles):
+				if i == 0:
+					continue
+
+				if member_role.id == role.id:
+					continue
+
+				if member_role < bot.top_role:
+					if not member_role.is_premium_subscriber():
+						remove_roles.append(member_role)
+
+				if member_role.is_premium_subscriber():
+					keep_roles.append(member_role)
+
+				if member_role >= bot.top_role:
+					keep_roles.append(member_role)
+
+			await member.edit(roles=keep_roles)
+			if time:
+				user_role_ids = [(member.id, rr.id, current_ts, seconds) for rr in remove_roles]
+				await self.insert_in_tempbanned(user_role_ids)
+
+				# General embed
+				general_embed = discord.Embed(description=f"**For:** `{time_dict['days']}d` `{time_dict['hours']}h`, `{time_dict['minutes']}m`\n**Reason:** {reason}", color=discord.Color.dark_purple(), timestamp=ctx.message.created_at)
+				general_embed.set_author(name=f"{member} has been tempbanned", icon_url=member.display_avatar)
+				msg = await ctx.send(embed=general_embed)
+				# Moderation log embed
+				moderation_log = discord.utils.get(ctx.guild.channels, id=mod_log_id)
+				embed = discord.Embed(
+					description=f"**Tempbanned** {member.mention} for `{time_dict['days']}d` `{time_dict['hours']}h`, `{time_dict['minutes']}m`\n**Reason:** {reason}\n" \
+						f"**Channel:** {ctx.channel.mention}\n**Location:** [Jump URL]({msg.jump_url})",
+					color=discord.Color.dark_purple(),
+					timestamp=ctx.message.created_at)
+				embed.set_author(name=f"{ctx.author} (ID {ctx.author.id})", icon_url=ctx.author.display_avatar)
+				embed.set_thumbnail(url=member.display_avatar)
+				await moderation_log.send(embed=embed)
+			else:
+				user_role_ids = [(member.id, rr.id, None, None) for rr in remove_roles]
+				await self.insert_in_tempbanned(user_role_ids)
+
+				# General embed
+				general_embed = discord.Embed(description=f'**Reason:** {reason}', color=discord.Color.dark_purple(), timestamp=ctx.message.created_at)
+				general_embed.set_author(name=f'{member} has been tempbanned', icon_url=member.display_avatar)
+				await ctx.send(embed=general_embed)
+				# Moderation log embed
+				moderation_log = discord.utils.get(ctx.guild.channels, id=mod_log_id)
+				embed = discord.Embed(
+					description=F"**Tempbanned** {member.mention}\n**Reason:** {reason}\n**Location:** {ctx.channel.mention}",
+					color=discord.Color.dark_purple(),
+					timestamp=ctx.message.created_at)
+				embed.set_author(name=f"{ctx.author} (ID {ctx.author.id})", icon_url=ctx.author.display_avatar)
+				embed.set_thumbnail(url=member.display_avatar)
+				await moderation_log.send(embed=embed)
+
+			# # Inserts a infraction into the database
+			await self.insert_user_infraction(
+				user_id=member.id, infr_type="tempban", reason=reason, 
+				timestamp=current_ts , perpetrator=ctx.author.id)
+			try:
+				await member.send(embed=general_embed)
+			except:
+				pass
+
+			await self.client.get_cog('LevelSystem').increment_important_var_int(label="m_infractions")
+
+			if ctx.author.bot:
+				return
+
+			staff_member = ctx.author
+			if not await self.get_staff_member(staff_member.id):
+				staff_at = await utils.get_time()
+				staff_at = staff_at.strftime('%Y/%m/%d at %H:%M:%S')
+				return await self.insert_staff_member(
+					user_id=staff_member.id, infractions_given=1, staff_at=staff_at)
+			else:
+				await self.update_staff_member_counter(
+					user_id=staff_member.id, infraction_increment=1)
+		else:
+			await ctx.send(f'**{member} is already muted!**', delete_after=5)
+
+	# Unmutes a member
+	@commands.command()
+	@commands.check_any(is_allowed_members(), commands.has_any_role(*allowed_roles, member_dot_role_id))
+	async def untempban(self, ctx, member: discord.Member = None, *, reason: Optional[str] = None):
+		""" (MOD) Untempbans a member.
+		:param member: The @ or the ID of the user to untempban.
+		:param reason: The reason for the untempban. [Optional] """
+
+		await ctx.message.delete()
+		role = discord.utils.get(ctx.guild.roles, id=muted_role_id)
+		if not member:
+			return await ctx.send("**Please, specify a member!**", delete_after=3)
+
+		if not role:
+			return
+
+		if role in member.roles:
+			if user_roles := await self.get_tempbanned_roles(member.id):
+
+				bot = discord.utils.get(ctx.guild.members, id=self.client.user.id)
+
+				member_roles = list([
+					a_role for the_role in user_roles if (a_role := discord.utils.get(member.guild.roles, id=the_role[1]))
+					and a_role < bot.top_role
+				])
+				member_roles.extend(member.roles)
+
+				member_roles = list(set(member_roles))
+				if role in member_roles:
+					member_roles.remove(role)
+
+				await member.edit(roles=member_roles)
+				user_role_ids = [(member.id, mrole[1]) for mrole in user_roles]
+				try:
+					await self.remove_tempbanned_role_from_system(user_role_ids)
+				except Exception as e:
+					print(e)
+					pass
+
+			# General embed
+			general_embed = discord.Embed(description=f'**Reason:** {reason}', color=discord.Color.purple(), timestamp=ctx.message.created_at)
+			general_embed.set_author(name=f'{member} has been untempbanned', icon_url=member.display_avatar)
+			msg = await ctx.send(embed=general_embed)
+			# Moderation log embed
+			moderation_log = discord.utils.get(ctx.guild.channels, id=mod_log_id)
+			embed = discord.Embed(
+				description=F"**Untempbanned** {member.mention}\n**Reason:** {reason}\n" \
+					f"**Channel:** {ctx.channel.mention}\n**Location:** [Jump URL]({msg.jump_url})",
+				color=discord.Color.purple(),
+				timestamp=ctx.message.created_at)
+			embed.set_author(name=f"{ctx.author} (ID {ctx.author.id})", icon_url=ctx.author.display_avatar)
+			embed.set_thumbnail(url=member.display_avatar)
+			await moderation_log.send(embed=embed)
+			try:
+				await member.send(embed=embed)
+			except:
+				pass
+
+		else:
+			await ctx.send(f'**{member} is not even muted!**', delete_after=5)
 
 	# Hardbans a member
 	@commands.command()
@@ -1066,7 +1247,7 @@ class Moderation(*moderation_cogs):
 						user_id=staff_member.id, infraction_increment=1, ban_increment=1, timestamp=current_ts)
 
 			# General embed
-			general_embed = discord.Embed(description=f'**Reason:** {reason}', colour=discord.Colour.dark_red())
+			general_embed = discord.Embed(description=f'**Reason:** {reason}', color=discord.Color.dark_red())
 			general_embed.set_author(name=f'{member} has been hardbanned', icon_url=member.display_avatar)
 			msg = await ctx.send(embed=general_embed)
 			# Moderation log embed
@@ -1113,7 +1294,7 @@ class Moderation(*moderation_cogs):
 			if (user.name, user.discriminator) == (member_name, member_discriminator):
 				await ctx.guild.unban(user)
 				# General embed
-				general_embed = discord.Embed(colour=discord.Colour.red())
+				general_embed = discord.Embed(color=discord.Color.red())
 				general_embed.set_author(name=f'{user} has been unbanned', icon_url=user.display_avatar)
 				msg = await ctx.send(embed=general_embed)
 				# Moderation log embed
@@ -1152,7 +1333,7 @@ class Moderation(*moderation_cogs):
 		try:
 			await ctx.guild.ban(member, reason=reason)
 			# General embed
-			general_embed = discord.Embed(description=f'**Reason:** {reason}', colour=discord.Colour.dark_teal(),
+			general_embed = discord.Embed(description=f'**Reason:** {reason}', color=discord.Color.dark_teal(),
 										  timestamp=ctx.message.created_at)
 			general_embed.set_author(name=f'{self.client.get_user(user_id)} has been hackbanned')
 			msg = await ctx.send(embed=general_embed)
@@ -1181,111 +1362,6 @@ class Moderation(*moderation_cogs):
 
 		except discord.errors.NotFound:
 			return await ctx.send("**Invalid user id!**", delete_after=3)
-
-	async def insert_in_muted(self, user_role_ids: List[Tuple[int]]) -> None:
-		""" Inserts a user into the database.
-		:param use_role_ids: The list of the user's muted roles IDs. """
-
-		mycursor, db = await the_database()
-		await mycursor.executemany("""
-			INSERT INTO MutedMember (
-			user_id, role_id, mute_ts, muted_for_seconds) VALUES (%s, %s, %s, %s)""", user_role_ids
-		)
-		await db.commit()
-		await mycursor.close()
-
-	async def get_muted_roles(self, user_id: int) -> List[Tuple[int, int]]:
-		""" Gets the muted roles from a specific muted member.
-		:param user_id: The user ID. """
-
-		mycursor, _ = await the_database()
-		await mycursor.execute("SELECT * FROM MutedMember WHERE user_id = %s", (user_id,))
-		user_roles = await mycursor.fetchall()
-		await mycursor.close()
-		return user_roles
-
-	async def remove_role_from_system(self, user_role_ids: List[Tuple[int, int]]) -> None:
-		""" Removes all muted roles from a specific user.
-		:param user_role_ids: The list of the user's muted roles IDs. """
-
-		mycursor, db = await the_database()
-		await mycursor.executemany("DELETE FROM MutedMember WHERE user_id = %s AND role_id = %s", user_role_ids)
-		await db.commit()
-		await mycursor.close()
-
-
-	async def remove_all_roles_from_system(self, user_id: int) -> None:
-		""" Removes all muted-roles linked to a user from the system.
-		:param user_id: The user ID. """
-
-		mycursor, db = await the_database()
-		await mycursor.execute("DELETE FROM MutedMember WHERE user_id = %s", (user_id,))
-		await db.commit()
-		await mycursor.close()
-
-	@commands.command(hidden=True)
-	@commands.has_permissions(administrator=True)
-	async def create_table_mutedmember(self, ctx) -> None:
-		""" (ADM) Creates the UserInfractions table. """
-
-		if await self.check_table_mutedmember_exists():
-			return await ctx.send("**Table __MutedMember__ already exists!**")
-		
-		await ctx.message.delete()
-		mycursor, db = await the_database()
-		await mycursor.execute("""CREATE TABLE MutedMember (
-			user_id BIGINT NOT NULL, 
-			role_id BIGINT NOT NULL, 
-			mute_ts BIGINT DEFAULT NULL, 
-			muted_for_seconds BIGINT DEFAULT NULL
-		)""")
-		await db.commit()
-		await mycursor.close()
-
-		return await ctx.send("**Table __MutedMember__ created!**", delete_after=3)
-
-	@commands.command(hidden=True)
-	@commands.has_permissions(administrator=True)
-	async def drop_table_mutedmember(self, ctx) -> None:
-		""" (ADM) Creates the UserInfractions table """
-		if not await self.check_table_mutedmember_exists():
-			return await ctx.send("**Table __MutedMember__ doesn't exist!**")
-		await ctx.message.delete()
-		mycursor, db = await the_database()
-		await mycursor.execute("DROP TABLE MutedMember")
-		await db.commit()
-		await mycursor.close()
-
-		return await ctx.send("**Table __MutedMember__ dropped!**", delete_after=3)
-
-	@commands.command(hidden=True)
-	@commands.has_permissions(administrator=True)
-	async def reset_table_mutedmember(self, ctx):
-		""" (ADM) Resets the MutedMember table. """
-
-		if not await self.check_table_mutedmember_exists():
-			return await ctx.send("**Table __MutedMember__ doesn't exist yet**")
-
-		await ctx.message.delete()
-		mycursor, db = await the_database()
-		await mycursor.execute("DELETE FROM MutedMember")
-		await db.commit()
-		await mycursor.close()
-
-		return await ctx.send("**Table __MutedMember__ reset!**", delete_after=3)
-
-	async def check_table_mutedmember_exists(self) -> bool:
-		""" Checks if the MutedMember table exists. """
-
-		mycursor, _ = await the_database()
-		await mycursor.execute("SHOW TABLE STATUS LIKE 'MutedMember'")
-		exists = await mycursor.fetchone()
-		await mycursor.close()
-
-		if exists:
-			return True
-		else:
-			return False
 		
 	# Infraction methods
 	@commands.command(aliases=['infr', 'show_warnings', 'sw', 'show_bans', 'sb', 'show_muted', 'sm', 'punishements'])

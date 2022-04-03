@@ -69,3 +69,27 @@ else:
     await ctx.send(f"**Successful!**")
 finally:
     await mycursor.close()
+
+
+
+
+
+
+z!eval
+# Removes patreon role permissions from all channels
+from typing import List
+ban_role = discord.utils.get(guild.roles, id=777886754840641554)
+
+async with ctx.typing():
+    for i, gchannel in enumerate(ctx.guild.channels):
+        try:
+            overwrites = gchannel.overwrites
+            if overwrites.get(ban_role):
+                continue
+
+            await gchannel.set_permissions(ban_role,
+                read_messages=False, send_messages=False, connect=False, speak=False, view_channel=False)
+        except:
+            pass
+    else:
+        await ctx.send(f"**Done!**")
