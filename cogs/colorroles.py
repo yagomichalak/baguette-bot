@@ -31,7 +31,6 @@ class ColourRoles(commands.Cog):
 			"Tsunami of Charisma": 740186445784023071,
 			"Charisma over 9000": 740186469649350696,
 			"Charisma Superior": 740186498498035793,
-			"Event Winner": 764120155428356107,
 			"Patron Black Tier 1": 862731111339393034,
 			"Patron Black Tier 2": 939334189684252682,
 			"Patron Black Tier 3": 939334184076443680,
