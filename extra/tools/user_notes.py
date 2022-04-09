@@ -85,7 +85,7 @@ class UserNotesTable(commands.Cog):
         mycursor, db = await the_database()
         await mycursor.execute("""
             INSERT INTO UserNotes (
-                user_id, note, perpetrator_id, current_ts
+                user_id, note, perpetrator_id, created_at
             ) VALUES (%s, %s, %s, %s)
         """, (user_id, note, perpetrator_id, current_ts))
         await db.commit()
