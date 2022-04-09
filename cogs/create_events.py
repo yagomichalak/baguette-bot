@@ -58,6 +58,7 @@ class CreateEvents(CreateEventDatabase):
 
         # Gets the teacher's role
         teacher_role = discord.utils.get(guild.roles, id=teacher_role_id)
+        staff_role = discord.utils.get(guild.roles, id=staff_role_id)
 
         overwrites = {}
 
@@ -72,6 +73,11 @@ class CreateEvents(CreateEventDatabase):
         overwrites[teacher_role] = discord.PermissionOverwrite(
             manage_messages=True, manage_channels=True, mute_members=True, 
             stream=True, move_members=True, start_embedded_activities=True
+        )
+
+        # Staff permissions
+        overwrites[staff_role] = discord.PermissionOverwrite(
+            connect=True, speak=True
         )
 
         if french_lessons_role := guild.get_role(french_lesson_role_id):
@@ -92,6 +98,7 @@ class CreateEvents(CreateEventDatabase):
 
         # Gets the teacher's role
         teacher_role = discord.utils.get(guild.roles, id=teacher_role_id)
+        staff_role = discord.utils.get(guild.roles, id=staff_role_id)
 
         overwrites = {}
 
@@ -106,6 +113,11 @@ class CreateEvents(CreateEventDatabase):
         overwrites[teacher_role] = discord.PermissionOverwrite(
             manage_messages=True, manage_channels=True, mute_members=True, 
             stream=True, move_members=True, start_embedded_activities=True
+        )
+
+        # Staff permissions
+        overwrites[staff_role] = discord.PermissionOverwrite(
+            connect=True, speak=True
         )
         
         if english_lessons_role := guild.get_role(english_lesson_role_id):
@@ -125,6 +137,7 @@ class CreateEvents(CreateEventDatabase):
 
         # Gets the organizer's role
         organizer_role = discord.utils.get(guild.roles, id=organizer_role_id)
+        staff_role = discord.utils.get(guild.roles, id=staff_role_id)
 
         overwrites = {}
 
@@ -139,6 +152,11 @@ class CreateEvents(CreateEventDatabase):
         overwrites[organizer_role] = discord.PermissionOverwrite(
             manage_messages=True, manage_channels=True, mute_members=True, 
             stream=True, move_members=True, start_embedded_activities=True
+        )
+
+        # Staff permissions
+        overwrites[staff_role] = discord.PermissionOverwrite(
+            connect=True, speak=True
         )
 
         return overwrites
