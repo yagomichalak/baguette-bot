@@ -342,12 +342,16 @@ class TemporaryVc(commands.Cog):
 		:param member: The voice channel's owner. """
 
 		muted_role = discord.utils.get(member.guild.roles, id=int(os.getenv('MUTED_ROLE_ID')))
+		banned_role = discord.utils.get(member.guild.roles, id=int(os.getenv('BANNED_ROLE_ID')))
 
 		overwrites = {
 			member.guild.default_role: discord.PermissionOverwrite(
 				connect=None, speak=None, view_channel=True),
 
 			muted_role: discord.PermissionOverwrite(
+				connect=False, speak=False, stream=False, view_channel=True),
+
+			banned_role: discord.PermissionOverwrite(
 				connect=False, speak=False, stream=False, view_channel=True),
 
 			member: discord.PermissionOverwrite(
