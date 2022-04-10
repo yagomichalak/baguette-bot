@@ -59,15 +59,11 @@ class ScheduledEventsSystem(commands.Cog):
             # Updates time and advertises.
             await self.update_advertising_time(event_label="solve_broken_roles", current_ts=current_ts)
             dev_channel = self.client.get_channel(dev_channel_id)
-
-
+            
             mycursor, _ = await the_database()
             await mycursor.execute("SELECT user_id, user_lvl FROM MemberStatus")
             members = await mycursor.fetchall()
             await mycursor.close()
-
-            muted_role = discord.utils.get(dev_channel.guild.roles, id=muted_role_id)
-            banned_role = discord.utils.get(dev_channel.guild.roles, id=banned_role_id)
 
             sticky_roles = {
                 2: 862742944729268234,
@@ -89,7 +85,7 @@ class ScheduledEventsSystem(commands.Cog):
                     if not (member := discord.utils.get(dev_channel.guild.members, id=member_db[0])):
                         continue
 
-                    if member.get_role(muted_role) or member.get_role(banned_role):
+                    if member.get_role(muted_role_id) or member.get_role(banned_role_id):
                         continue
 
                     for role_lvl, role in sticky_roles.items():

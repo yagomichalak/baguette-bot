@@ -500,6 +500,7 @@ class LevelSystem(*level_cogs):
             await self.update_user_lvl(member.id, level)
 
         await asyncio.sleep(0.1)
+        print('woah')
         await self.check_level_roles_deeply(member, level)
         await ctx.send(f"**The member {member.mention} is now level {level}!**")
 
@@ -544,6 +545,8 @@ class LevelSystem(*level_cogs):
         :param member: The member to check.
         :param level: The level of the member. """
 
+        print(member, level)
+
         updated = await self.check_level_role(member, level)
         if updated:
             all_level_roles = await self.select_level_role()
@@ -563,6 +566,8 @@ class LevelSystem(*level_cogs):
                 for ex in excluded:
                     if ex in member_roles and ex.id not in special_roles:
                         member_roles.remove(ex)
+
+                print('zaah: ', member_roles)
                 await member.edit(roles=member_roles)
 
     async def check_voice_level_roles_deeply(self, member: discord.Member, level: int) -> None:
