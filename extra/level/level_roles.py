@@ -99,6 +99,15 @@ class LevelRoleTable(commands.Cog):
         await mycursor.close()
         return level_roles
 
+    async def get_level_role_ids(self) -> List[int]:
+        """ Gets all level roles IDs. """
+
+        mycursor, _ = await the_database()
+        await mycursor.execute("SELECT role_id FROM LevelRoles")
+        level_roles = await mycursor.fetchall()
+        await mycursor.close()
+        return list(map(lambda lr: lr[0], level_roles))
+
     async def delete_level_role(self, level: int = None, role_id: int = None) -> None:
         """ Deletes a level role from the database by level or role ID.
         :param level: The level to delete. """
@@ -208,6 +217,15 @@ class VCLevelRoleTable(commands.Cog):
         level_roles = await mycursor.fetchall()
         await mycursor.close()
         return level_roles
+
+    async def get_vc_level_role_ids(self) -> List[int]:
+        """ Gets all level roles IDs. """
+
+        mycursor, _ = await the_database()
+        await mycursor.execute("SELECT role_id FROM VCLevelRoles")
+        level_roles = await mycursor.fetchall()
+        await mycursor.close()
+        return list(map(lambda lr: lr[0], level_roles))
 
     async def delete_vc_level_role(self, level: int = None, role_id: int = None) -> None:
         """ Deletes a VC level role from the database by level or role ID.

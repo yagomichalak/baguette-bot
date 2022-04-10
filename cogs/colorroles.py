@@ -14,57 +14,19 @@ class ColourRoles(commands.Cog):
 
 	def __init__(self, client) -> None:
 		self.client = client
-		self.colour_roles: Dict[str, int] = {
-			"Kraken Purple": 838076939553603616,
-			"Dark Aqua": 838076937787932672,
-			"Royal Azure": 755573019526823967,
-			"Mahogany": 755812366813364416,
-			"Mint Blue": 755818573129318420,
-			"Silent": 732910420037337118,
-			"Shy": 732910493257302076,
-			"Discreet": 732916420110712852,
-			"Quiet": 732916589262798898,
-			"Talkative": 733022810934607943,
-			"Chatterbox": 733022972675227694,
-			"Smooth Talker": 740186380445024336,
-			"Charisma Bomb": 770113783074783232,
-			"Tsunami of Charisma": 740186445784023071,
-			"Charisma over 9000": 740186469649350696,
-			"Charisma Superior": 740186498498035793,
-			"Patron Black Tier 1": 862731111339393034,
-			"Patron Black Tier 2": 939334189684252682,
-			"Patron Black Tier 3": 939334184076443680,
-			"Booster Pink": 862732594188648478,
-			"Member Role": 726222316174049280,
-			"Stegadon Green": 880127231488315432,
-			"No Idea": 942435771116318823,
-			"Blue Skies": 947352119286038651,
-			"Sunflowers": 947351550395822090,
-			
-			"Admin": 821216341041086495,
-			"Moderator": 821215885858963508,
-			"muted": 792401656226119681,
-			"patreon supporter": 852545808318201876,
-
-			# "Lvl 10 Perms": 862742943072780308,
-			"Lvl 5 Perms": 862742944243253279,
-			"Lvl 2 Perms": 862742944729268234,
-
-			# Voice Channel Color roles
-			"lvl 100": 955151559757529088,
-			"lvl 80": 955151565801541662,
-			"lvl 60": 955151568498458734,
-			"lvl 40": 955151570566258728,
-			"lvl 20": 955151572587925535,
-
-		}
 
 	@commands.Cog.listener()
 	async def on_ready(self) -> None:
+
+		LevelSystem = self.client.get_cog('LevelSystem')
+		txt_color_roles = await LevelSystem.get_level_role_ids()
+		vc_color_roles = await LevelSystem.get_vc_level_role_ids()
+		all_color_ids = list(set(txt_color_roles + vc_color_roles))
+		self.colour_roles = all_color_ids
 		print('ColourRoles cog is online!')
 
-	@commands.Cog.listener()
-	async def on_member_update(self, before, after):
+	@commands.Cog.listener(name="on_member_update")
+	async def on_member_update_color_roles(self, before, after):
 		""" Checks whether the user got the Staff role. """
 
 		if not after.guild:
@@ -82,8 +44,7 @@ class ColourRoles(commands.Cog):
 					break
 
 			if old_role:
-				# Checks ID of the new role and compares to the Staff role ID.
-				if old_role.id == self.colour_roles.get('Booster Pink'):
+				if old_role.id == booster_role_id:
 					try:
 						await self.delete_user_colour_role(after.id, old_role.id)
 					except:
@@ -97,15 +58,14 @@ class ColourRoles(commands.Cog):
 					break
 
 			if new_role:
-				# Checks ID of the new role and compares to the Staff role ID.
-				if new_role.id in self.colour_roles.values():
+				if new_role.id in self.colour_roles:
 					try:
 						await self.insert_user_colour_role(after.id, new_role.id)
 					except:
 						pass
 
-	@commands.Cog.listener()
-	async def on_member_update(self, before, after):
+	@commands.Cog.listener(name="on_member_update_roles")
+	async def on_member_update_booster_role(self, before, after):
 		""" Adds or removes the Booster role from people when they get or 
 		get removed the Booster role from them. """
 
@@ -197,7 +157,7 @@ class ColourRoles(commands.Cog):
 
 
 		roles_to_check: List[discord.Role] = [
-			crole for colour_id in self.colour_roles.values() 
+			crole for colour_id in self.colour_roles 
 			if colour_id != colour_role.id and (crole := discord.utils.get(ctx.guild.roles, id=colour_id))
 		]
 

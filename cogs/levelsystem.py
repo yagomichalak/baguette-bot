@@ -545,12 +545,9 @@ class LevelSystem(*level_cogs):
         :param member: The member to check.
         :param level: The level of the member. """
 
-        print(member, level)
-
         updated = await self.check_level_role(member, level)
         if updated:
             all_level_roles = await self.select_level_role()
-
             level_roles = set(
                 [a_role for lvl_role in all_level_roles if (
                     a_role := discord.utils.get(member.guild.roles, id=lvl_role[1])
@@ -567,7 +564,6 @@ class LevelSystem(*level_cogs):
                     if ex in member_roles and ex.id not in special_roles:
                         member_roles.remove(ex)
 
-                print('zaah: ', member_roles)
                 await member.edit(roles=member_roles)
 
     async def check_voice_level_roles_deeply(self, member: discord.Member, level: int) -> None:
