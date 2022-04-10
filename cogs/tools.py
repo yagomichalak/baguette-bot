@@ -59,7 +59,7 @@ class Tools(*tool_cogs):
         await ctx.send(f"**Note has been successfully made for `{member}`, {perpetrator.mention}!**")
 
     @utils.is_allowed([staff_role_id], throw_exc=True)
-    @commands.command(name="show_user_notes", aliases=["notes", "get_notes", "user_notes", "get_user_notes", "show_user_notes"])
+    @commands.command(name="show_user_notes", aliases=["notes", "get_notes", "user_notes", "get_user_notes"])
     async def _show_user_notes(self, ctx, member: Union[discord.Member, discord.User] = None) -> None:
         """ Shows all notes from a specific user.
         :param member: The member from whom to show the notes. """
