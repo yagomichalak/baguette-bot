@@ -8,6 +8,8 @@ from typing import List, Union
 
 dev_channel_id: int = int(os.getenv('DEV_CHANNEL_ID'))
 general_channel_id: int = int(os.getenv('GENERAL_CHANNEL_ID'))
+muted_role_id: int = int(os.getenv("MUTED_ROLE_ID"))
+banned_role_id: int = int(os.getenv("BANNED_ROLE_ID"))
 
 class ScheduledEventsSystem(commands.Cog):
     """ Class for managing the ScheduledEventsSystem table in the database. """
@@ -64,6 +66,9 @@ class ScheduledEventsSystem(commands.Cog):
             members = await mycursor.fetchall()
             await mycursor.close()
 
+            muted_role = discord.utils.get(dev_channel.guild.roles, id=muted_role_id)
+            banned_role = discord.utils.get(dev_channel.guild.roles, id=banned_role_id)
+
             sticky_roles = {
                 2: 862742944729268234,
                 5: 862742944243253279,
@@ -82,6 +87,9 @@ class ScheduledEventsSystem(commands.Cog):
                 for member_db in members:
 
                     if not (member := discord.utils.get(dev_channel.guild.members, id=member_db[0])):
+                        continue
+
+                    if member.get_role(muted_role) or member.get_role(banned_role):
                         continue
 
                     for role_lvl, role in sticky_roles.items():

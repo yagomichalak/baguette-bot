@@ -43,11 +43,11 @@ class Tools(*tool_cogs):
         :param note: The note text. """
 
         perpetrator: discord.Member = ctx.author
-        if not note:
-            return await ctx.send(f"**Please, inform a note to add to the user, {perpetrator.mention}!**")
-
         if not member:
             return await ctx.send(f"**Please, inform the user to add the note to, {perpetrator.mention}!**")
+
+        if not note:
+            return await ctx.send(f"**Please, inform a note to add to the user, {perpetrator.mention}!**")
 
         if len(note) > 1000:
             return await ctx.send(f"**Please, inform a note that has a maximum of 1000 characters, {perpetrator.mention}!**")
