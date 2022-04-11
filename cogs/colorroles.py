@@ -14,6 +14,42 @@ class ColourRoles(commands.Cog):
 
 	def __init__(self, client) -> None:
 		self.client = client
+		self.colour_roles: List[int] = [
+			838076939553603616, # Kraken Purple
+			838076937787932672, # Dark Aqua
+			755573019526823967, # Royal Azure
+			755812366813364416, # Mahogany
+			755818573129318420, # Mint Blue
+			732910420037337118, # Silent
+			732910493257302076, # Shy
+			732916420110712852, # Discreet
+			732916589262798898, # Quiet
+			733022810934607943, # Talkative
+			733022972675227694, # Chatterbox
+			740186380445024336, # Smooth Talker
+			770113783074783232, # Charisma Bomb
+			740186445784023071, # Tsunami of Charisma
+			740186469649350696, # Charisma over 9000
+			740186498498035793, # Charisma Superior
+			862731111339393034, # Patron Black Tier 1
+			939334189684252682, # Patron Black Tier 2
+			939334184076443680, # Patron Black Tier 3
+			862732594188648478, # Booster Pink
+			726222316174049280, # Member Role
+			880127231488315432, # Stegadon Green
+			942435771116318823, # No Idea
+			947352119286038651, # Blue Skies
+			947351550395822090, # Sunflowers
+			
+			821216341041086495, # Admin
+			821215885858963508, # Moderator
+			792401656226119681, # muted
+			852545808318201876, # patreon supporter
+
+			# 862742943072780308, #  "Lvl 10 Perms
+			862742944243253279, # Lvl 5 Perms
+			862742944729268234, # Lvl 2 Perms
+		]
 
 	@commands.Cog.listener()
 	async def on_ready(self) -> None:
@@ -22,7 +58,7 @@ class ColourRoles(commands.Cog):
 		txt_color_roles = await LevelSystem.get_level_role_ids()
 		vc_color_roles = await LevelSystem.get_vc_level_role_ids()
 		all_color_ids = list(set(txt_color_roles + vc_color_roles))
-		self.colour_roles = all_color_ids
+		self.colour_roles = list(set(self.colour_roles + all_color_ids))
 		print('ColourRoles cog is online!')
 
 	@commands.Cog.listener(name="on_member_update")
