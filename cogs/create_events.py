@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 
 from extra import utils
-from extra.prompt.menu import ConfirmButton
+from extra.prompt.menu import ConfirmButton, EventRoomTypeView
 from extra.misc.events import CreateEventDatabase
 
 from mysqldb import the_database
@@ -198,18 +198,17 @@ class CreateEvents(CreateEventDatabase):
         elif room and not channel:
             await self.delete_event_room_by_txt_id(room[2])
 
-        confirm_view = ConfirmButton(member, timeout=60)
-        msg = await ctx.send("Do you want to create an event?", view=confirm_view)
-        await confirm_view.wait()
+        event_room_prompt = EventRoomTypeView(member, timeout=60)
+        msg = await ctx.send("What type is the main room for the event gonna be?", view=event_room_prompt)
+        await event_room_prompt.wait()
 
-        if confirm_view is None:
+        if event_room_prompt.value is None:
             return await ctx.reply("**Timeout!**", delete_after=3)
 
-        if not confirm_view:
+        if not event_room_prompt.value:
             return await ctx.reply("**Not creating it, then!**", delete_after=3)
 
         await msg.delete()
-
 
         overwrites = await self.get_event_permissions(guild)
 
@@ -221,11 +220,18 @@ class CreateEvents(CreateEventDatabase):
             text_channel = await events_category.create_text_channel(
                 name=event_title,
                 overwrites=overwrites)
-            # Creating voice channel
-            voice_channel = await events_category.create_voice_channel(
-                name=event_title,
-                user_limit=None,
-                overwrites=overwrites)
+            if event_room_prompt.room_type == 'voice':
+                # Creating voice channel
+                voice_channel = await events_category.create_voice_channel(
+                    name=event_title,
+                    user_limit=None,
+                    overwrites=overwrites)
+            else:
+                # Creating voice channel
+                voice_channel = await events_category.create_stage_channel(
+                    name=event_title,
+                    topic=event_title,
+                    overwrites=overwrites)
             # Inserts it into the database
             await self.insert_event_room(
                 user_id=member.id, vc_id=voice_channel.id, txt_id=text_channel.id,
@@ -236,7 +242,7 @@ class CreateEvents(CreateEventDatabase):
             await ctx.send(f"**{member.mention}, something went wrong, try again later!**")
 
         else:
-            await ctx.send(f"**{member.mention}, {text_channel.mention} is up and running!**")
+            await ctx.send(f"**{member.mention}, {text_channel.mention}-{voice_channel.mention} are up and running!**")
 
     @_create.command(name="english_lesson", aliases=["english_class", "englishlesson", "englishclas", "ec", "el"])
     @utils.is_allowed([organizer_role_id], throw_exc=True)
@@ -255,14 +261,14 @@ class CreateEvents(CreateEventDatabase):
         elif room and not channel:
             await self.delete_event_room_by_txt_id(room[2])
 
-        confirm_view = ConfirmButton(member, timeout=60)
-        msg = await ctx.send("Do you want to create an event?", view=confirm_view)
-        await confirm_view.wait()
+        event_room_prompt = EventRoomTypeView(member, timeout=60)
+        msg = await ctx.send("What type is the main room for the English lesson gonna be?", view=event_room_prompt)
+        await event_room_prompt.wait()
 
-        if confirm_view is None:
+        if event_room_prompt.value is None:
             return await ctx.reply("**Timeout!**", delete_after=3)
 
-        if not confirm_view:
+        if not event_room_prompt.value:
             return await ctx.reply("**Not creating it, then!**", delete_after=3)
 
         await msg.delete()
@@ -279,22 +285,24 @@ class CreateEvents(CreateEventDatabase):
             text_channel = await events_category.create_text_channel(
                 name=event_title,
                 overwrites=overwrites)
-            # Creating voice channel
-            voice_channel = await events_category.create_voice_channel(
-                name=event_title,
-                user_limit=None,
-                overwrites=overwrites)
-            # Inserts it into the database
-            await self.insert_event_room(
-                user_id=member.id, vc_id=voice_channel.id, txt_id=text_channel.id,
-                event_title=event_title, event_type="english_lesson"
-                )
+            if event_room_prompt.room_type == 'voice':
+                # Creating voice channel
+                voice_channel = await events_category.create_voice_channel(
+                    name=event_title,
+                    user_limit=None,
+                    overwrites=overwrites)
+            else:
+                # Creating voice channel
+                voice_channel = await events_category.create_stage_channel(
+                    name=event_title,
+                    topic=event_title,
+                    overwrites=overwrites)
         except Exception as e:
             print(e)
             await ctx.send(f"**{member.mention}, something went wrong, try again later!**")
 
         else:
-            await ctx.send(f"**{member.mention}, {text_channel.mention} is up and running!**")
+            await ctx.send(f"**{member.mention}, {text_channel.mention}-{voice_channel.mention} are up and running!**")
 
     @_create.command(name="french_lesson", aliases=["french_class", "frenchlesson", "frenchclas", "fc", "fl"])
     @utils.is_allowed([organizer_role_id], throw_exc=True)
@@ -313,18 +321,17 @@ class CreateEvents(CreateEventDatabase):
         elif room and not channel:
             await self.delete_event_room_by_txt_id(room[2])
 
-        confirm_view = ConfirmButton(member, timeout=60)
-        msg = await ctx.send("Do you want to create an event?", view=confirm_view)
-        await confirm_view.wait()
+        event_room_prompt = EventRoomTypeView(member, timeout=60)
+        msg = await ctx.send("What type is the main room for the French lesson gonna be?", view=event_room_prompt)
+        await event_room_prompt.wait()
 
-        if confirm_view is None:
+        if event_room_prompt.value is None:
             return await ctx.reply("**Timeout!**", delete_after=3)
 
-        if not confirm_view:
+        if not event_room_prompt.value:
             return await ctx.reply("**Not creating it, then!**", delete_after=3)
 
         await msg.delete()
-
 
         overwrites = await self.get_french_class_permissions(guild)
 
@@ -337,22 +344,24 @@ class CreateEvents(CreateEventDatabase):
             text_channel = await events_category.create_text_channel(
                 name=event_title,
                 overwrites=overwrites)
-            # Creating voice channel
-            voice_channel = await events_category.create_voice_channel(
-                name=event_title,
-                user_limit=None,
-                overwrites=overwrites)
-            # Inserts it into the database
-            await self.insert_event_room(
-                user_id=member.id, vc_id=voice_channel.id, txt_id=text_channel.id,
-                event_title=event_title, event_type="french_lesson"
-                )
+            if event_room_prompt.room_type == 'voice':
+                # Creating voice channel
+                voice_channel = await events_category.create_voice_channel(
+                    name=event_title,
+                    user_limit=None,
+                    overwrites=overwrites)
+            else:
+                # Creating voice channel
+                voice_channel = await events_category.create_stage_channel(
+                    name=event_title,
+                    topic=event_title,
+                    overwrites=overwrites)
         except Exception as e:
             print(e)
             await ctx.send(f"**{member.mention}, something went wrong, try again later!**")
 
         else:
-            await ctx.send(f"**{member.mention}, {text_channel.mention} is up and running!**")
+            await ctx.send(f"**{member.mention}, {text_channel.mention}-{voice_channel.mention} are up and running!**")
 
     # ==== Action Methods ====
 
