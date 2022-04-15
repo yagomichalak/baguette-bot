@@ -300,6 +300,11 @@ class CreateEvents(CreateEventDatabase):
                     name=event_title,
                     topic=event_title,
                     overwrites=overwrites)
+            # Inserts it into the database
+            await self.insert_event_room(
+                user_id=member.id, vc_id=voice_channel.id, txt_id=text_channel.id,
+                event_title=event_title, event_type="english_lesson"
+                )
         except Exception as e:
             print(e)
             await ctx.send(f"**{member.mention}, something went wrong, try again later!**")
@@ -359,6 +364,12 @@ class CreateEvents(CreateEventDatabase):
                     name=event_title,
                     topic=event_title,
                     overwrites=overwrites)
+
+            # Inserts it into the database
+            await self.insert_event_room(
+                user_id=member.id, vc_id=voice_channel.id, txt_id=text_channel.id,
+                event_title=event_title, event_type="french_lesson"
+                )
         except Exception as e:
             print(e)
             await ctx.send(f"**{member.mention}, something went wrong, try again later!**")
