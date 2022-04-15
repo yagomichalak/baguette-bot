@@ -72,7 +72,8 @@ class CreateEvents(CreateEventDatabase):
         # Teacher's permissions
         overwrites[teacher_role] = discord.PermissionOverwrite(
             manage_messages=True, manage_channels=True, mute_members=True, 
-            stream=True, move_members=True, start_embedded_activities=True
+            stream=True, move_members=True, start_embedded_activities=True,
+            manage_permissions=True
         )
 
         # Staff permissions
@@ -112,7 +113,8 @@ class CreateEvents(CreateEventDatabase):
         # Teacher's permissions
         overwrites[teacher_role] = discord.PermissionOverwrite(
             manage_messages=True, manage_channels=True, mute_members=True, 
-            stream=True, move_members=True, start_embedded_activities=True
+            stream=True, move_members=True, start_embedded_activities=True,
+            manage_permissions=True
         )
 
         # Staff permissions
@@ -151,7 +153,8 @@ class CreateEvents(CreateEventDatabase):
         # Organizer's permissions
         overwrites[organizer_role] = discord.PermissionOverwrite(
             manage_messages=True, manage_channels=True, mute_members=True, 
-            stream=True, move_members=True, start_embedded_activities=True
+            stream=True, move_members=True, start_embedded_activities=True,
+            manage_permissions=True
         )
 
         # Staff permissions
