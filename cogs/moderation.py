@@ -84,7 +84,7 @@ class Moderation(*moderation_cogs):
 				continue
 
 			try:
-				role = discord.utils.get(guild.roles, id=banned_role_id)
+				role = discord.utils.get(guild.roles, id=muted_role_id)
 				if role:
 					if user_roles := await self.get_muted_roles(member.id):
 
@@ -108,8 +108,6 @@ class Moderation(*moderation_cogs):
 							pass
 
 						else:
-
-
 							# Moderation log embed
 							moderation_log = discord.utils.get(guild.channels, id=mod_log_id)
 							embed = discord.Embed(
@@ -140,7 +138,7 @@ class Moderation(*moderation_cogs):
 				continue
 
 			try:
-				role = discord.utils.get(guild.roles, id=muted_role_id)
+				role = discord.utils.get(guild.roles, id=banned_role_id)
 				if role:
 					if user_roles := await self.get_tempbanned_roles(member.id):
 
@@ -236,7 +234,6 @@ class Moderation(*moderation_cogs):
 		if new_role:
 			# Checks ID of the new role and compares to the Staff role ID.
 			if new_role.id == staff_role_id:
-				print(await self.get_staff_member(after.id))
 				if not await self.get_staff_member(after.id):
 					staff_at = await utils.get_time()
 					staff_at = staff_at.strftime('%Y/%m/%d at %H:%M:%S')
