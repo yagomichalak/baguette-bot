@@ -150,7 +150,13 @@ S'il y a quelque chose dont vous n'êtes pas sûr, veuillez d'abord lire le cana
 For Italiano/English: https://discord.gg/mTCPdRsCdw
 For Русский/English: https://discord.gg/7pamu9NNex"""
 
+	ad_message = f"""**Advertisement**
+Interested to join a server that does **10-100$** giveaways literally all the time and offers help in all science topics (Chem, math , physics and languages?)
+Join this educational friendly server:
+https://discord.gg/5aKCykC2hh"""
+
 	await member.send(welcome_message)
+	await member.send(ad_message)
 
 @client.event
 async def on_member_remove(member):
