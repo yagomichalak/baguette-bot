@@ -8,7 +8,7 @@ load_dotenv()
 
 from cogs.misc import Misc
 from extra.custom_errors import CommandNotReady
-
+import asyncio
 
 server_id = int(os.getenv('SERVER_ID'))
 moderator_role_id = int(os.getenv('MOD_ROLE_ID'))
@@ -150,13 +150,24 @@ S'il y a quelque chose dont vous n'êtes pas sûr, veuillez d'abord lire le cana
 For Italiano/English: https://discord.gg/mTCPdRsCdw
 For Русский/English: https://discord.gg/7pamu9NNex"""
 
-	ad_message = f"""**Advertisement**
+	ad_message = f"""__**Advertisements**__
+
+:test_tube: **Chemistry Discord Server**
 Interested to join a server that does **10-100$** giveaways literally all the time and offers help in all science topics (Chem, math , physics and languages?)
 Join this educational friendly server:
 https://discord.gg/5aKCykC2hh"""
 
-	await member.send(welcome_message)
+	ad2_message = f""":flag_fr: **Learn French with Fluent**
+Learn French, Spanish, or Italian while browsing the web
+Fluent automatically translates words on websites so you can learn a language while browsing the web. 
+You never have to set aside extra time just to study. You can now learn from content that you're already interested in.
+https://www.fluent.co/"""
+
 	await member.send(ad_message)
+	await asyncio.sleep(0.3)
+	await member.send(ad2_message)
+	await asyncio.sleep(0.3)
+	await member.send(welcome_message)
 
 @client.event
 async def on_member_remove(member):
