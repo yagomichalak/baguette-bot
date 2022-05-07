@@ -30,7 +30,7 @@ class Tools(*tool_cogs):
     async def on_ready(self) -> None:
         """ Tells when the cog is ready to go. """
 
-        self.advertise_patreon.start()
+        # self.advertise_patreon.start()
         self.solve_broken_roles.start()
         print('Tool cog is online!')
 
