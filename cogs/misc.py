@@ -158,7 +158,7 @@ class Misc(*misc_cogs):
 
 
 		if members_channel := guild.get_channel(int(os.getenv('MEMBERS_CHANNEL_ID'))):
-			await members_channel.edit(name=f"Members: {len(guild.members)}")
+			await members_channel.edit(name=f"Membres: {len(guild.members)}")
 
 		if clock_channel := guild.get_channel(int(os.getenv('CLOCK_CHANNEL_ID'))):
 			time_now = datetime.now()
