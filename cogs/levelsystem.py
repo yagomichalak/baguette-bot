@@ -984,12 +984,12 @@ class LevelSystem(*level_cogs):
         if weekday != 0 and weekday != 4:
             return
 
-        vc_name: str = f"🟢 {percentage}% Boost Active"
+        vc_name: str = f"🟢 {percentage}% Boost Actif"
         text: str  = f"**Friday XP boost has been turned on; `{percentage}`%!**"
         if weekday == 0:
             percentage = 1
             text: str  = f"**Friday XP boost has been turned off; going back to `{percentage}`%!**"
-            vc_name: str = f"🔴 {global_percentage}% Boost Inactive"
+            vc_name: str = f"🔴 {global_percentage}% Boost Inactif"
             
 
         if get_current := await self.get_important_var(label='xp_multiplier'):

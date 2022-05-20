@@ -117,7 +117,7 @@ async def on_application_command_error(ctx, error) -> None:
 @tasks.loop(seconds=10)
 async def change_status():
 	guild = client.get_guild(server_id)
-	await client.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=f'{len(guild.members)} members.'))
+	await client.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=f'{len(guild.members)} membres.'))
 
 
 @client.event
