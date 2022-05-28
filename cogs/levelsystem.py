@@ -147,7 +147,7 @@ class LevelSystem(*level_cogs):
         the_member = await self.get_specific_user(user.id)
 
         if the_member:
-            if time_xp - the_member[0][3] >= 5 or the_member[0][1] == 0:
+            if time_xp - the_member[0][3] >= 20 or the_member[0][1] == 0:
                 await self.update_user_xp_time(user.id, time_xp)
                 new_xp = int(self.xp_rate + (self.xp_rate * self.xp_multiplier)/ 100)
                 await self.update_user_xp(user.id, new_xp)
