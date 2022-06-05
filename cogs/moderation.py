@@ -1643,6 +1643,74 @@ class Moderation(*moderation_cogs):
 				await self.set_firewall_state(1)
 				await ctx.send(f"**Firewall activated, {member.mention}!**")
 
+	@commands.command(aliases=["banlimit", "ban_limit", "bans_limit", "see_ban_limit", "see_bans_limit", "show_ban_limit"])
+	@commands.has_permissions(administrator=True)
+	async def show_bans_limit(self, ctx) -> None:
+		""" Shows the daily bans limit for mods and admins. """
+
+		member: discord.Member = ctx.author
+		default_mod, default_adm = 30, 70
+
+		LevelSystem = self.client.get_cog("LevelSystem")
+		if not await LevelSystem.table_important_vars_exists():
+			return await ctx.send(f"**This command is not ready to be used yet, {member.mention}!**")
+
+		# Moderators
+		if mod_limit := await LevelSystem.get_important_var(label="mod_ban_limit"):
+			mod_limit = mod_limit[2]
+		else:
+			mod_limit = default_mod
+		
+		# Admins
+		if adm_limit := await LevelSystem.get_important_var(label="adm_ban_limit"):
+			adm_limit = adm_limit[2]
+		else:
+			adm_limit = default_adm
+
+		await ctx.send(f"**Limits:\n• Mods: `{mod_limit}` daily bans;\n• Adms: `{adm_limit}` daily bans.\n{member.mention}**")
+	
+	@commands.command(aliases=['cdbl', 'change_ban_limit', 'change_bans_limit', 'edit_bans_limit'])
+	@commands.has_permissions(administrator=True)
+	async def change_daily_bans_limit(self, ctx, change_for: str = None, new_limit: str = None) -> None:
+		""" Changes the daily bans limit for mods and admins.
+		:param change_for: For whom to change it. (mod/adm) """
+
+		member: discord.Member = ctx.author
+		change_for_list: List[str] = ["mod", "adm"]
+
+		if not change_for:
+			return await ctx.send(
+				f"**Please, inform who to change it to, {member.mention}!\n{', '.join(change_for_list)}**"
+			)
+		change_for = change_for.lower()
+
+		if change_for not in change_for_list:
+			return await ctx.send(f"**Please, inform a valid `change_for`, {member.mention}!\n{', '.join(change_for_list)}**")
+
+		if not new_limit:
+			return await ctx.send(f"**Please, inform a new limit ot set it to, {member.mention}!**")
+
+		try:
+			new_limit = int(new_limit)
+		except ValueError:
+			return await ctx.send(f"**Please, inform an integer value, {member.mention}!**")
+
+		if new_limit < 0:
+			return await ctx.send(f"**Please, inform a number greater than or equal to zero, {member.mention}!**")
+
+		LevelSystem = self.client.get_cog('LevelSystem')
+		if not await LevelSystem.table_important_vars_exists():
+			return await ctx.send(f"**This command is not ready to be used yet, {member.mention}!**")
+
+		if await LevelSystem.get_important_var(label=f"{change_for}_ban_limit"):
+			# Update
+			await LevelSystem.update_important_var(label=f"{change_for}_ban_limit", value_int=new_limit)
+		else:
+			# Insert
+			await LevelSystem.insert_important_var(label=f"{change_for}_ban_limit", value_int=new_limit)
+
+		await ctx.send(f"**Changed daily bans limit for `{change_for}` to `{new_limit}`!, {member.mention}!**")
+
 """
 Setup:
 b!create_table_mutedmembers
