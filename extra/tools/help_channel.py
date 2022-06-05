@@ -84,7 +84,7 @@ class HelpChannel(commands.Cog):
             finally:
                 await message.add_reaction('❌')
 
-        elif emoji == '❔' and is_admin:
+        elif emoji == '❔':
             try:
                 thread = await message.create_thread(name=str(message.author.nick or message.author))
                 await thread.send(f"**Your suggestion has been brought here to this thread for review, {payload.member.mention}!**")
