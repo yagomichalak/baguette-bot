@@ -1004,16 +1004,25 @@ class Moderation(*moderation_cogs):
 					user_id=staff_member.id, infractions_given=1, staff_at=staff_at, 
 					bans_today=1, ban_timestamp=current_ts)
 			else:
+				LevelSystem = self.client.get_cog("LevelSystem")
+				mod_default, adm_default = 30, 70
+
+				if not (mod_ban_limit := await LevelSystem.get_important_var("mod_ban_limit")):
+					await LevelSystem.insert_important_var(label="mod_ban_limit", value_int=mod_default)
+					mod_ban_limit = mod_default
+				if not (adm_ban_limit := await LevelSystem.get_important_var("adm_ban_limit")):
+					await LevelSystem.insert_important_var(label="adm_ban_limit", value_int=mod_default)
+					adm_ban_limit = adm_default
 
 				if staff_member_info[4] and current_ts - staff_member_info[4] >= 86400:
 					await self.update_staff_member_counter(
 						user_id=staff_member.id, infraction_increment=1, reset_ban=True, timestamp=current_ts)
-				elif staff_member_info[3] >= 30 and not ctx.channel.permissions_for(staff_member).administrator:
+				elif staff_member_info[3] >= mod_ban_limit and not ctx.channel.permissions_for(staff_member).administrator:
 					try:
 						return await staff_member.send("**You have reached your daily ban limit. Please contact an admin.**")
 					except:
 						pass
-				elif staff_member_info[3] >= 70 and ctx.channel.permissions_for(staff_member).administrator:
+				elif staff_member_info[3] >= adm_ban_limit and ctx.channel.permissions_for(staff_member).administrator:
 					try:
 						return await staff_member.send("**You have reached your daily ban limit. Please contact the owner.**")
 					except:
