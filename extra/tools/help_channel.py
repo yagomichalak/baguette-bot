@@ -45,17 +45,11 @@ class HelpChannel(commands.Cog):
         message = await channel.fetch_message(payload.message_id)
         guild = self.client.get_guild(payload.guild_id)
 
-        perms = channel.permissions_for(member)
-
         is_owner = guild.owner_id == member.id
-        is_admin = perms.administrator
 
         if not is_owner:
             if emoji in ['✅', '❌']:
                 return await message.remove_reaction(emoji, member)
-
-        if not is_admin:
-            return
 
         if message.author.bot:
             return
