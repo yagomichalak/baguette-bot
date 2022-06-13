@@ -990,46 +990,48 @@ class Moderation(*moderation_cogs):
 			return await ctx.send('**Please, specify a member!**', delete_after=3)
 
 		# Bans and logs
+		current_ts = await utils.get_timestamp()
+		staff_member = ctx.author
+		if not (staff_member_info := await self.get_staff_member(staff_member.id)):
+			staff_at = await utils.get_time()
+			staff_at = staff_at.strftime('%Y/%m/%d at %H:%M:%S')
+			return await self.insert_staff_member(
+				user_id=staff_member.id, infractions_given=1, staff_at=staff_at, 
+				bans_today=1, ban_timestamp=current_ts)
+		else:
+			LevelSystem = self.client.get_cog("LevelSystem")
+			mod_default, adm_default = 30, 70
+
+			if not (mod_ban_limit := await LevelSystem.get_important_var("mod_ban_limit")):
+				await LevelSystem.insert_important_var(label="mod_ban_limit", value_int=mod_default)
+				mod_ban_limit = mod_default
+			if not (adm_ban_limit := await LevelSystem.get_important_var("adm_ban_limit")):
+				await LevelSystem.insert_important_var(label="adm_ban_limit", value_int=mod_default)
+				adm_ban_limit = adm_default
+
+			if staff_member_info[3] and current_ts - staff_member_info[4] >= 86400 or staff_member_info[3] and not staff_member_info[4]:
+				await self.update_staff_member_counter(
+					user_id=staff_member.id, infraction_increment=1, reset_ban=True, timestamp=current_ts)
+			elif staff_member_info[3] >= mod_ban_limit[2] and not ctx.channel.permissions_for(staff_member).administrator:
+				try:
+					return await staff_member.send("**You have reached your daily ban limit. Please contact an admin.**")
+				except:
+					pass
+			elif staff_member_info[3] >= adm_ban_limit[2] and ctx.channel.permissions_for(staff_member).administrator:
+				try:
+					return await staff_member.send("**You have reached your daily ban limit. Please contact the owner.**")
+				except:
+					pass
+
 		try:
-			await member.ban(delete_message_days=0, reason=reason)
+			# await member.ban(delete_message_days=0, reason=reason)
+			pass
 		except Exception:
 			await ctx.send('**You cannot do that!**', delete_after=3)
 		else:
-			current_ts = await utils.get_timestamp()
-			staff_member = ctx.author
-			if not (staff_member_info := await self.get_staff_member(staff_member.id)):
-				staff_at = await utils.get_time()
-				staff_at = staff_at.strftime('%Y/%m/%d at %H:%M:%S')
-				return await self.insert_staff_member(
-					user_id=staff_member.id, infractions_given=1, staff_at=staff_at, 
-					bans_today=1, ban_timestamp=current_ts)
-			else:
-				LevelSystem = self.client.get_cog("LevelSystem")
-				mod_default, adm_default = 30, 70
 
-				if not (mod_ban_limit := await LevelSystem.get_important_var("mod_ban_limit")):
-					await LevelSystem.insert_important_var(label="mod_ban_limit", value_int=mod_default)
-					mod_ban_limit = mod_default
-				if not (adm_ban_limit := await LevelSystem.get_important_var("adm_ban_limit")):
-					await LevelSystem.insert_important_var(label="adm_ban_limit", value_int=mod_default)
-					adm_ban_limit = adm_default
-
-				if staff_member_info[4] and current_ts - staff_member_info[4] >= 86400:
-					await self.update_staff_member_counter(
-						user_id=staff_member.id, infraction_increment=1, reset_ban=True, timestamp=current_ts)
-				elif staff_member_info[3] >= mod_ban_limit and not ctx.channel.permissions_for(staff_member).administrator:
-					try:
-						return await staff_member.send("**You have reached your daily ban limit. Please contact an admin.**")
-					except:
-						pass
-				elif staff_member_info[3] >= adm_ban_limit and ctx.channel.permissions_for(staff_member).administrator:
-					try:
-						return await staff_member.send("**You have reached your daily ban limit. Please contact the owner.**")
-					except:
-						pass
-				else:
-					await self.update_staff_member_counter(
-						user_id=staff_member.id, infraction_increment=1, ban_increment=1, timestamp=current_ts)
+			await self.update_staff_member_counter(
+					user_id=staff_member.id, infraction_increment=1, ban_increment=1, timestamp=current_ts)
 
 			# General embed
 			general_embed = discord.Embed(description=f'**Reason:** {reason}', color=discord.Color.dark_red())
@@ -1245,34 +1247,47 @@ class Moderation(*moderation_cogs):
 			return await ctx.send('**Please, specify a member!**', delete_after=3)
 
 		# Bans and logs
+
+		current_ts = await utils.get_timestamp()
+		staff_member = ctx.author
+		if not (staff_member_info := await self.get_staff_member(staff_member.id)):
+			staff_at = await utils.get_time()
+			staff_at = staff_at.strftime('%Y/%m/%d at %H:%M:%S')
+			return await self.insert_staff_member(
+				user_id=staff_member.id, infractions_given=1, staff_at=staff_at, 
+				bans_today=1, ban_timestamp=current_ts)
+		else:
+			LevelSystem = self.client.get_cog("LevelSystem")
+			mod_default, adm_default = 30, 70
+
+			if not (mod_ban_limit := await LevelSystem.get_important_var("mod_ban_limit")):
+				await LevelSystem.insert_important_var(label="mod_ban_limit", value_int=mod_default)
+				mod_ban_limit = mod_default
+			if not (adm_ban_limit := await LevelSystem.get_important_var("adm_ban_limit")):
+				await LevelSystem.insert_important_var(label="adm_ban_limit", value_int=mod_default)
+				adm_ban_limit = adm_default
+
+			if staff_member_info[3] and current_ts - staff_member_info[4] >= 86400 or staff_member_info[3] and not staff_member_info[4]:
+				await self.update_staff_member_counter(
+					user_id=staff_member.id, infraction_increment=1, reset_ban=True, timestamp=current_ts)
+			elif staff_member_info[3] >= mod_ban_limit[2] and not ctx.channel.permissions_for(staff_member).administrator:
+				try:
+					return await staff_member.send("**You have reached your daily ban limit. Please contact an admin.**")
+				except:
+					pass
+			elif staff_member_info[3] >= adm_ban_limit[2] and ctx.channel.permissions_for(staff_member).administrator:
+				try:
+					return await staff_member.send("**You have reached your daily ban limit. Please contact the owner.**")
+				except:
+					pass
+
 		try:
 			await member.ban(delete_message_days=1, reason=reason)
 		except Exception:
 			await ctx.send('**You cannot do that!**', delete_after=3)
 		else:
-
-			current_ts = await utils.get_timestamp()
-
-			staff_member = ctx.author
-			if not (staff_member_info := await self.get_staff_member(staff_member.id)):
-				staff_at = await utils.get_time()
-				staff_at = staff_at.strftime('%Y/%m/%d at %H:%M:%S')
-				return await self.insert_staff_member(
-					user_id=staff_member.id, infractions_given=1, staff_at=staff_at, 
-					bans_today=1, ban_timestamp=current_ts)
-			else:
-
-				if staff_member_info[4] and current_ts - staff_member_info[4] >= 86400:
-					await self.update_staff_member_counter(
-						user_id=staff_member.id, infraction_increment=1, reset_ban=True, timestamp=current_ts)
-				elif staff_member_info[3] >= 30 and not ctx.channel.permissions_for(staff_member).administrator:
-					try:
-						return await staff_member.send("**You have reached your daily ban limit. Please contact an admin.**")
-					except:
-						pass
-				else:
-					await self.update_staff_member_counter(
-						user_id=staff_member.id, infraction_increment=1, ban_increment=1, timestamp=current_ts)
+			await self.update_staff_member_counter(
+					user_id=staff_member.id, infraction_increment=1, ban_increment=1, timestamp=current_ts)
 
 			# General embed
 			general_embed = discord.Embed(description=f'**Reason:** {reason}', color=discord.Color.dark_red())
