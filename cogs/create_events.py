@@ -164,6 +164,12 @@ class CreateEvents(CreateEventDatabase):
 
         return overwrites
 
+    def is_allowed_members(allowed_members: List[int]):
+        def predicate(ctx):
+            return ctx.message.author.id in allowed_members
+
+        return commands.check(predicate)
+
     # CREATE EVENT
 
     @commands.group(name="create", aliases=["create_event", "create_lesson"])
@@ -186,7 +192,7 @@ class CreateEvents(CreateEventDatabase):
         await ctx.send(embed=embed)
 
     @_create.command(name="event")
-    @utils.is_allowed([organizer_role_id], throw_exc=True)
+    @commands.check_any(is_allowed_members([828674987141496923]), utils.is_allowed([organizer_role_id]))
     @commands.cooldown(1, 60, commands.BucketType.user)
     async def _create_event(self, ctx) -> None:
         """ Creates an event voice and text channel. """
@@ -248,7 +254,7 @@ class CreateEvents(CreateEventDatabase):
             await ctx.send(f"**{member.mention}, {text_channel.mention}-{voice_channel.mention} are up and running!**")
 
     @_create.command(name="english_lesson", aliases=["english_class", "englishlesson", "englishclas", "ec", "el"])
-    @utils.is_allowed([organizer_role_id], throw_exc=True)
+    @commands.check_any(is_allowed_members([828674987141496923]), utils.is_allowed([organizer_role_id]))
     @commands.cooldown(1, 60, commands.BucketType.user)
     async def _create_english_lesson(self, ctx) -> None:
         """ Creates a Voice and Text Channel for an English class. """
