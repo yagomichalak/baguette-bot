@@ -1036,8 +1036,7 @@ class Moderation(*moderation_cogs):
 				staff_bans += 1
 
 				try:
-					# await member.ban(delete_message_days=0, reason=reason)
-					pass
+					await member.ban(delete_message_days=0, reason=reason)
 				except Exception:
 					await ctx.send('**You cannot do that!**', delete_after=3)
 				else:
@@ -1248,15 +1247,18 @@ class Moderation(*moderation_cogs):
 
 	@commands.command()
 	@commands.check_any(is_allowed_members(), commands.has_any_role(*[mod_role_id, admin_role_id, owner_role_id]))
-	async def hardban(self, ctx, member: discord.Member = None, *, reason: Optional[str] = None) -> None:
+	async def hardban(self, ctx, *, reason: Optional[str] = None) -> None:
 		""" Hardbans a member from the server.
 		=> Bans and delete messages from the last day,
 		:param member: The @ or ID of the user to ban.
 		:param reason: The reason for banning the user. [Optional] """
 
 		await ctx.message.delete()
-		if not member:
+		members, reason = await utils.greedy_member_reason(ctx, reason)
+
+		if not members:
 			return await ctx.send('**Please, specify a member!**', delete_after=3)
+
 
 		# Bans and logs
 
@@ -1271,60 +1273,66 @@ class Moderation(*moderation_cogs):
 		else:
 			LevelSystem = self.client.get_cog("LevelSystem")
 			mod_default, adm_default = 30, 70
+			staff_bans = staff_member_info[3]
 
-			if not (mod_ban_limit := await LevelSystem.get_important_var("mod_ban_limit")):
-				await LevelSystem.insert_important_var(label="mod_ban_limit", value_int=mod_default)
-				mod_ban_limit = mod_default
-			if not (adm_ban_limit := await LevelSystem.get_important_var("adm_ban_limit")):
-				await LevelSystem.insert_important_var(label="adm_ban_limit", value_int=mod_default)
-				adm_ban_limit = adm_default
+			for member in members:
+				if not (mod_ban_limit := await LevelSystem.get_important_var("mod_ban_limit")):
+					await LevelSystem.insert_important_var(label="mod_ban_limit", value_int=mod_default)
+					mod_ban_limit = mod_default
+				if not (adm_ban_limit := await LevelSystem.get_important_var("adm_ban_limit")):
+					await LevelSystem.insert_important_var(label="adm_ban_limit", value_int=mod_default)
+					adm_ban_limit = adm_default
 
-			if staff_member_info[3] and current_ts - staff_member_info[4] >= 86400 or staff_member_info[3] and not staff_member_info[4]:
-				await self.update_staff_member_counter(
-					user_id=staff_member.id, infraction_increment=1, reset_ban=True, timestamp=current_ts)
-			elif staff_member_info[3] >= mod_ban_limit[2] and not ctx.channel.permissions_for(staff_member).administrator:
+				if staff_bans and current_ts - staff_member_info[4] >= 86400 or staff_bans and not staff_member_info[4]:
+					await self.update_staff_member_counter(
+						user_id=staff_member.id, infraction_increment=1, reset_ban=True, timestamp=current_ts)
+				elif staff_bans >= mod_ban_limit[2] and not ctx.channel.permissions_for(staff_member).administrator:
+					try:
+						await staff_member.send("**You have reached your daily ban limit. Please contact an admin.**")
+					except:
+						pass
+					return
+				elif staff_bans >= adm_ban_limit[2] and ctx.channel.permissions_for(staff_member).administrator:
+					try:
+						await staff_member.send("**You have reached your daily ban limit. Please contact the owner.**")
+					except:
+						pass
+					return
+
+				staff_bans += 1				
+
 				try:
-					return await staff_member.send("**You have reached your daily ban limit. Please contact an admin.**")
-				except:
-					pass
-			elif staff_member_info[3] >= adm_ban_limit[2] and ctx.channel.permissions_for(staff_member).administrator:
-				try:
-					return await staff_member.send("**You have reached your daily ban limit. Please contact the owner.**")
-				except:
-					pass
+					await member.ban(delete_message_days=1, reason=reason)
+				except Exception:
+					await ctx.send('**You cannot do that!**', delete_after=3)
+				else:
+					await self.update_staff_member_counter(
+							user_id=staff_member.id, infraction_increment=1, ban_increment=1, timestamp=current_ts)
 
-		try:
-			await member.ban(delete_message_days=1, reason=reason)
-		except Exception:
-			await ctx.send('**You cannot do that!**', delete_after=3)
-		else:
-			await self.update_staff_member_counter(
-					user_id=staff_member.id, infraction_increment=1, ban_increment=1, timestamp=current_ts)
+					# General embed
+					general_embed = discord.Embed(description=f'**Reason:** {reason}', color=discord.Color.dark_red())
+					general_embed.set_author(name=f'{member} has been hardbanned', icon_url=member.display_avatar)
+					msg = await ctx.send(embed=general_embed)
+					# Moderation log embed
+					moderation_log = discord.utils.get(ctx.guild.channels, id=mod_log_id)
+					embed = discord.Embed(
+						description=F"**Hardbanned** {member.mention}\n**Reason:** {reason}\n" \
+							f"**Channel:** {ctx.channel.mention}\n**Location:** [Jump URL]({msg.jump_url})",
+						color=discord.Color.dark_red(),
+						timestamp=ctx.message.created_at)
+					embed.set_author(name=f"{ctx.author} (ID {ctx.author.id})", icon_url=ctx.author.display_avatar)
+					embed.set_thumbnail(url=member.display_avatar)
+					await moderation_log.send(embed=embed)
+					# Inserts a infraction into the database
+					await self.insert_user_infraction(
+						user_id=member.id, infr_type="ban", reason=reason, 
+						timestamp=current_ts , perpetrator=ctx.author.id)
+					try:
+						await member.send(embed=general_embed)
+					except:
+						pass
 
-			# General embed
-			general_embed = discord.Embed(description=f'**Reason:** {reason}', color=discord.Color.dark_red())
-			general_embed.set_author(name=f'{member} has been hardbanned', icon_url=member.display_avatar)
-			msg = await ctx.send(embed=general_embed)
-			# Moderation log embed
-			moderation_log = discord.utils.get(ctx.guild.channels, id=mod_log_id)
-			embed = discord.Embed(
-				description=F"**Hardbanned** {member.mention}\n**Reason:** {reason}\n" \
-					f"**Channel:** {ctx.channel.mention}\n**Location:** [Jump URL]({msg.jump_url})",
-				color=discord.Color.dark_red(),
-				timestamp=ctx.message.created_at)
-			embed.set_author(name=f"{ctx.author} (ID {ctx.author.id})", icon_url=ctx.author.display_avatar)
-			embed.set_thumbnail(url=member.display_avatar)
-			await moderation_log.send(embed=embed)
-			# Inserts a infraction into the database
-			await self.insert_user_infraction(
-				user_id=member.id, infr_type="ban", reason=reason, 
-				timestamp=current_ts , perpetrator=ctx.author.id)
-			try:
-				await member.send(embed=general_embed)
-			except:
-				pass
-
-			await self.client.get_cog('LevelSystem').increment_important_var_int(label="m_infractions")
+					await self.client.get_cog('LevelSystem').increment_important_var_int(label="m_infractions")
 
 	@commands.command()
 	@commands.has_permissions(administrator=True)
