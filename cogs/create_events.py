@@ -86,6 +86,10 @@ class CreateEvents(CreateEventDatabase):
                 speak=True, connect=True
             )
         
+        if english_lessons_role := guild.get_role(english_lesson_role_id):
+            overwrites[english_lessons_role] = discord.PermissionOverwrite(
+                speak=True, connect=True
+            )
 
         for role_id in self.french_roles:
             if role := guild.get_role(role_id):
@@ -124,6 +128,11 @@ class CreateEvents(CreateEventDatabase):
         
         if english_lessons_role := guild.get_role(english_lesson_role_id):
             overwrites[english_lessons_role] = discord.PermissionOverwrite(
+                speak=True, connect=True
+            )
+        
+        if french_lessons_role := guild.get_role(french_lesson_role_id):
+            overwrites[french_lessons_role] = discord.PermissionOverwrite(
                 speak=True, connect=True
             )
 
