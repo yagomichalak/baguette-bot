@@ -114,7 +114,7 @@ class HelpChannel(commands.Cog):
         if not message.guild:
             return
 
-        if message.channel.id not in [help_channel_id, help_channel2_id, help_channel3_id]:
+        if message.channel.id not in [help_channel_id, help_channel2_id, help_channel3_id, 1008510757626986556, 1008511616142282772]:
             return
 
         if message.author.get_role(no_thread_role_id):
