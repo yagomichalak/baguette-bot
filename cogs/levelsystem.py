@@ -176,7 +176,8 @@ class LevelSystem(*level_cogs):
         if xp := xp_levels.get(str(level)):
             return xp
 
-        return level * 6000
+        # After level 121 (XP: 18.3 million), each subsequent level gets harder and harder following a parabola.
+        return 18300000 + 180000*(level - 120)**2
 
     async def check_level_role(self, member: discord.Member, level: int) -> Union[None, int]:
         """ Checks if the member level has a role attached to it
