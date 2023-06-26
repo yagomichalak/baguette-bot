@@ -269,7 +269,7 @@ class Moderation(*moderation_cogs):
 		await self.check_message_spam(ctx=ctx, message=message)
 
 		# Checks image spam
-		await self.check_image_spam(ctx=ctx, message=message)
+		# await self.check_image_spam(ctx=ctx, message=message)
 
 		# Checks mass mention
 		if len(message.mentions) >= 10:
