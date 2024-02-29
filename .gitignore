@@ -6,3 +6,4 @@ venv/
 .vs/
 .vscode/
 tests.py
+dump_2024.sql
